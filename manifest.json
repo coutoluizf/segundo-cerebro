@@ -1,0 +1,43 @@
+{
+  "manifest_version": 3,
+  "name": "Segundo Cérebro",
+  "description": "Salve tabs com voz. Busca semântica.",
+  "version": "0.1.0",
+  "permissions": [
+    "tabs",
+    "storage",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "https://api.openai.com/*",
+    "wss://api.elevenlabs.io/*",
+    "https://api.elevenlabs.io/*"
+  ],
+  "action": {
+    "default_popup": "src/popup/index.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "options_page": "src/options/index.html",
+  "commands": {
+    "save_with_voice": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+S",
+        "mac": "Command+Shift+S"
+      },
+      "description": "Salvar aba atual com voz"
+    }
+  }
+}
