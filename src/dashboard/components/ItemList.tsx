@@ -1,4 +1,3 @@
-import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -9,7 +8,8 @@ import {
 } from '@/components/ui/dropdown-menu'
 import type { VoiceItem, SearchResult, Project } from '@/shared/types'
 import { isNoteUrl } from '@/shared/types'
-import { ExternalLink, Trash2, MessageSquare, Calendar, ChevronDown, FolderOpen, FileText } from 'lucide-react'
+import { ExternalLink, Trash2, Quote, Calendar, ChevronDown, FolderOpen, FileText, Globe, Sparkles } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 interface ItemListProps {
   items: (VoiceItem | SearchResult)[]
@@ -25,6 +25,10 @@ function isSearchResult(item: VoiceItem | SearchResult): item is SearchResult {
   return 'similarity' in item && typeof item.similarity === 'number'
 }
 
+/**
+ * ItemList - Grid display of saved items with luminous card design
+ * Features similarity badges, project selectors, and action buttons
+ */
 export function ItemList({ items, projects, columns = 1, onDelete, onOpen, onUpdateProject }: ItemListProps) {
   // Get project by ID
   const getProject = (projectId: string | null): Project | undefined => {
@@ -32,17 +36,23 @@ export function ItemList({ items, projects, columns = 1, onDelete, onOpen, onUpd
     return projects.find((p) => p.id === projectId)
   }
 
-  // Format date
+  // Format date in relative or absolute format
   const formatDate = (timestamp: number): string => {
-    const date = new Date(timestamp)
-    return date.toLocaleDateString('pt-BR', {
+    const now = Date.now()
+    const diff = now - timestamp
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+
+    if (days === 0) return 'Hoje'
+    if (days === 1) return 'Ontem'
+    if (days < 7) return `${days} dias atrás`
+
+    return new Date(timestamp).toLocaleDateString('pt-BR', {
       day: 'numeric',
       month: 'short',
-      year: 'numeric',
     })
   }
 
-  // Format similarity score
+  // Format similarity score with visual indicator
   const formatSimilarity = (similarity: number): string => {
     return Math.round(similarity * 100) + '%'
   }
@@ -50,7 +60,7 @@ export function ItemList({ items, projects, columns = 1, onDelete, onOpen, onUpd
   // Get domain from URL
   const getDomain = (url: string): string => {
     try {
-      return new URL(url).hostname
+      return new URL(url).hostname.replace('www.', '')
     } catch {
       return url
     }
@@ -66,104 +76,110 @@ export function ItemList({ items, projects, columns = 1, onDelete, onOpen, onUpd
 
   return (
     <div className={gridClass}>
-      {items.map((item) => {
+      {items.map((item, index) => {
         const project = getProject(item.projectId)
-        const hasSimlarity = isSearchResult(item)
+        const hasSimilarity = isSearchResult(item)
         const isNote = item.type === 'note' || isNoteUrl(item.url)
 
         return (
-          <Card key={item.id} className="overflow-hidden">
-            <CardContent className="p-4">
-              {/* Header */}
-              <div className="flex items-start justify-between gap-4 mb-3">
-                <div className="flex-1 min-w-0">
-                  {isNote ? (
-                    // Note header
-                    <>
-                      <div className="flex items-center gap-2">
-                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-medium rounded">
-                          <FileText className="h-3 w-3" />
-                          Nota
-                        </span>
-                        {item.source && (
-                          <span className="text-xs text-muted-foreground truncate">
-                            {item.source}
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
-                        <Calendar className="h-3 w-3" />
-                        <span>{formatDate(item.createdAt)}</span>
-                      </div>
-                    </>
-                  ) : (
-                    // Tab header
-                    <>
-                      <h3 className="font-medium truncate">
-                        {item.title || 'Sem título'}
-                      </h3>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
-                        {item.favicon && (
-                          <img
-                            src={item.favicon}
-                            alt=""
-                            className="h-3 w-3"
-                            onError={(e) => (e.currentTarget.style.display = 'none')}
-                          />
-                        )}
-                        <span className="truncate">{item.url ? getDomain(item.url) : ''}</span>
-                        <span>•</span>
-                        <Calendar className="h-3 w-3" />
-                        <span>{formatDate(item.createdAt)}</span>
-                      </div>
-                    </>
-                  )}
-                </div>
-
-                {/* Similarity badge */}
-                {hasSimlarity && item.similarity > 0 && (
-                  <div className="shrink-0 px-2 py-1 bg-primary/10 text-primary text-xs font-medium rounded">
-                    {formatSimilarity(item.similarity)}
+          <div
+            key={item.id}
+            className="card-luminous rounded-2xl p-5 hover-glow animate-fade-in-up"
+            style={{ animationDelay: `${index * 50}ms` }}
+          >
+            {/* Header row */}
+            <div className="flex items-start justify-between gap-3 mb-4">
+              <div className="flex-1 min-w-0">
+                {isNote ? (
+                  // Note header with amber badge
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="note-badge">
+                      <FileText className="h-3 w-3" />
+                      Nota
+                    </span>
+                    {item.source && (
+                      <span className="text-xs text-muted-foreground truncate max-w-[150px]">
+                        {item.source}
+                      </span>
+                    )}
                   </div>
+                ) : (
+                  // Tab header with favicon and title
+                  <>
+                    <div className="flex items-center gap-2 mb-1">
+                      {item.favicon ? (
+                        <img
+                          src={item.favicon}
+                          alt=""
+                          className="h-4 w-4 rounded"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none'
+                          }}
+                        />
+                      ) : (
+                        <Globe className="h-4 w-4 text-muted-foreground" />
+                      )}
+                      <span className="text-xs text-muted-foreground truncate">
+                        {item.url ? getDomain(item.url) : ''}
+                      </span>
+                    </div>
+                    <h3 className="font-medium text-sm leading-snug line-clamp-2">
+                      {item.title || 'Sem título'}
+                    </h3>
+                  </>
                 )}
               </div>
 
-              {/* Transcription */}
-              <div className="flex items-start gap-2 mb-3">
-                <MessageSquare className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
-                <p className="text-sm text-foreground/80 line-clamp-3">
+              {/* Similarity badge */}
+              {hasSimilarity && item.similarity > 0 && (
+                <div className="similarity-badge shrink-0 flex items-center gap-1">
+                  <Sparkles className="h-3 w-3" />
+                  {formatSimilarity(item.similarity)}
+                </div>
+              )}
+            </div>
+
+            {/* Transcription - Quote style */}
+            <div className="relative mb-4">
+              <div className="absolute -left-1 top-0 bottom-0 w-0.5 bg-gradient-to-b from-primary/50 to-primary/0 rounded-full" />
+              <div className="pl-3">
+                <Quote className="h-3 w-3 text-muted-foreground/40 mb-1" />
+                <p className="text-sm text-foreground/80 leading-relaxed line-clamp-3">
                   {item.transcription}
                 </p>
               </div>
+            </div>
 
-              {/* Footer */}
-              <div className="flex items-center justify-between">
+            {/* Footer */}
+            <div className="flex items-center justify-between pt-3 border-t border-border/50">
+              {/* Left side - Project + Date */}
+              <div className="flex items-center gap-3">
                 {/* Project selector dropdown */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <button className="flex items-center gap-1.5 px-2 py-1 rounded hover:bg-accent transition-colors text-xs">
+                    <button className="flex items-center gap-1.5 px-2 py-1 rounded-lg hover:bg-secondary/70 transition-colors text-xs">
                       {project ? (
                         <>
                           <div
-                            className="h-2.5 w-2.5 rounded-full"
+                            className="h-2 w-2 rounded-full"
                             style={{ backgroundColor: project.color || '#6B7280' }}
                           />
-                          <span className="text-muted-foreground">{project.name}</span>
+                          <span className="text-muted-foreground max-w-[80px] truncate">{project.name}</span>
                         </>
                       ) : (
                         <>
-                          <FolderOpen className="h-3 w-3 text-muted-foreground" />
-                          <span className="text-muted-foreground">Sem projeto</span>
+                          <FolderOpen className="h-3 w-3 text-muted-foreground/60" />
+                          <span className="text-muted-foreground/60">Projeto</span>
                         </>
                       )}
-                      <ChevronDown className="h-3 w-3 text-muted-foreground" />
+                      <ChevronDown className="h-3 w-3 text-muted-foreground/40" />
                     </button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="w-48">
+                  <DropdownMenuContent align="start" className="w-48 rounded-xl">
                     {/* Option to remove from project */}
                     <DropdownMenuItem
                       onClick={() => onUpdateProject(item.id, null)}
-                      className="flex items-center gap-2"
+                      className="flex items-center gap-2 rounded-lg"
                     >
                       <FolderOpen className="h-3 w-3" />
                       <span>Sem projeto</span>
@@ -174,10 +190,13 @@ export function ItemList({ items, projects, columns = 1, onDelete, onOpen, onUpd
                       <DropdownMenuItem
                         key={p.id}
                         onClick={() => onUpdateProject(item.id, p.id)}
-                        className="flex items-center gap-2"
+                        className={cn(
+                          "flex items-center gap-2 rounded-lg",
+                          p.id === item.projectId && "bg-primary/10"
+                        )}
                       >
                         <div
-                          className="h-3 w-3 rounded-full"
+                          className="h-2.5 w-2.5 rounded-full"
                           style={{ backgroundColor: p.color || '#6B7280' }}
                         />
                         <span>{p.name}</span>
@@ -186,31 +205,39 @@ export function ItemList({ items, projects, columns = 1, onDelete, onOpen, onUpd
                   </DropdownMenuContent>
                 </DropdownMenu>
 
-                {/* Actions */}
-                <div className="flex items-center gap-2">
-                  {/* Only show "Abrir" button for items with real URL (not notes) */}
-                  {!isNote && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onOpen(item.url)}
-                    >
-                      <ExternalLink className="h-4 w-4 mr-1" />
-                      Abrir
-                    </Button>
-                  )}
+                {/* Date */}
+                <span className="text-xs text-muted-foreground/60 flex items-center gap-1">
+                  <Calendar className="h-3 w-3" />
+                  {formatDate(item.createdAt)}
+                </span>
+              </div>
+
+              {/* Right side - Actions */}
+              <div className="flex items-center gap-1">
+                {/* Open button for tabs only */}
+                {!isNote && (
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => onDelete(item.id)}
-                    className="text-destructive hover:text-destructive"
+                    onClick={() => onOpen(item.url)}
+                    className="h-8 px-2 rounded-lg text-xs hover:bg-primary/10 hover:text-primary"
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <ExternalLink className="h-3.5 w-3.5 mr-1" />
+                    Abrir
                   </Button>
-                </div>
+                )}
+                {/* Delete button */}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => onDelete(item.id)}
+                  className="h-8 w-8 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         )
       })}
     </div>

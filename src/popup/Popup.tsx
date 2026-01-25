@@ -7,7 +7,8 @@ import { Toaster } from '@/components/ui/toaster'
 import { useToast } from '@/components/ui/use-toast'
 import { sendMessage } from '@/shared/messaging'
 import type { Project, ItemType } from '@/shared/types'
-import { Settings, ExternalLink, Mic, Brain, FileText, Globe, Clipboard } from 'lucide-react'
+import { Settings, ExternalLink, Mic, Brain, FileText, Globe, Clipboard, Sparkles } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 // Permission states
 type MicPermission = 'checking' | 'granted' | 'prompt' | 'denied'
@@ -174,8 +175,12 @@ export function Popup() {
   // Loading state
   if (hasApiKeys === null || micPermission === 'checking') {
     return (
-      <div className="w-80 p-4 flex items-center justify-center">
-        <div className="animate-pulse text-muted-foreground">Carregando...</div>
+      <div className="w-80 p-5 gradient-mesh flex flex-col items-center justify-center min-h-[200px]">
+        <div className="relative">
+          <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full animate-pulse" />
+          <Sparkles className="h-6 w-6 text-primary animate-pulse relative" />
+        </div>
+        <p className="mt-3 text-sm text-muted-foreground">Carregando...</p>
       </div>
     )
   }
@@ -183,18 +188,32 @@ export function Popup() {
   // No API keys configured
   if (!hasApiKeys) {
     return (
-      <div className="w-80 p-4 space-y-4">
-        <div className="flex items-center gap-2">
-          <Brain className="h-5 w-5 text-primary" />
-          <h1 className="text-lg font-semibold">Segundo Cérebro</h1>
+      <div className="w-80 p-5 gradient-mesh space-y-5">
+        {/* Logo */}
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <div className="absolute inset-0 bg-primary/20 blur-lg rounded-full" />
+            <Brain className="h-6 w-6 text-primary relative" />
+          </div>
+          <h1 className="text-lg font-semibold tracking-tight">Segundo Cérebro</h1>
         </div>
-        <p className="text-sm text-muted-foreground">
-          Configure suas API keys para começar a usar.
-        </p>
-        <Button onClick={openOptions} className="w-full">
-          <Settings className="h-4 w-4 mr-2" />
-          Configurar API Keys
-        </Button>
+
+        {/* Setup card */}
+        <div className="card-luminous rounded-2xl p-5 text-center space-y-4">
+          <div className="mx-auto w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center">
+            <Settings className="h-7 w-7 text-primary" />
+          </div>
+          <div>
+            <h2 className="font-medium">Configuração necessária</h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              Configure suas API keys para começar a usar.
+            </p>
+          </div>
+          <Button onClick={openOptions} className="w-full rounded-xl h-11">
+            <Settings className="h-4 w-4 mr-2" />
+            Configurar API Keys
+          </Button>
+        </div>
         <Toaster />
       </div>
     )
@@ -203,27 +222,33 @@ export function Popup() {
   // Microphone permission not granted - show setup screen
   if (micPermission !== 'granted') {
     return (
-      <div className="w-80 p-4 space-y-4">
+      <div className="w-80 p-5 gradient-mesh space-y-5">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Brain className="h-5 w-5 text-primary" />
-            <h1 className="text-lg font-semibold">Segundo Cérebro</h1>
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <div className="absolute inset-0 bg-primary/20 blur-lg rounded-full" />
+              <Brain className="h-6 w-6 text-primary relative" />
+            </div>
+            <h1 className="text-lg font-semibold tracking-tight">Segundo Cérebro</h1>
           </div>
           <div className="flex items-center gap-1">
-            <Button variant="ghost" size="icon" onClick={openDashboard} title="Abrir Dashboard">
+            <Button variant="ghost" size="icon" onClick={openDashboard} title="Abrir Dashboard" className="rounded-full">
               <ExternalLink className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="icon" onClick={openOptions} title="Configurações">
+            <Button variant="ghost" size="icon" onClick={openOptions} title="Configurações" className="rounded-full">
               <Settings className="h-4 w-4" />
             </Button>
           </div>
         </div>
 
-        {/* Setup message */}
-        <div className="text-center py-4 space-y-3">
-          <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-            <Mic className="h-8 w-8 text-primary" />
+        {/* Setup card */}
+        <div className="card-luminous rounded-2xl p-6 text-center space-y-4">
+          <div className="relative mx-auto w-16 h-16">
+            <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full animate-pulse" />
+            <div className="relative w-full h-full rounded-2xl bg-primary/10 flex items-center justify-center">
+              <Mic className="h-8 w-8 text-primary" />
+            </div>
           </div>
           <div>
             <h2 className="font-medium">Configuração Inicial</h2>
@@ -236,13 +261,13 @@ export function Popup() {
         </div>
 
         {/* Setup button */}
-        <Button onClick={openMicSetup} className="w-full h-12 text-base" size="lg">
+        <Button onClick={openMicSetup} className="w-full h-12 rounded-xl text-base">
           <Mic className="h-5 w-5 mr-2" />
           Permitir Microfone
         </Button>
 
         {/* Quick access to dashboard */}
-        <Button variant="outline" onClick={openDashboard} className="w-full">
+        <Button variant="outline" onClick={openDashboard} className="w-full rounded-xl">
           <ExternalLink className="h-4 w-4 mr-2" />
           Ver itens salvos
         </Button>
@@ -254,60 +279,67 @@ export function Popup() {
 
   // Microphone granted - show full recording UI
   return (
-    <div className="w-80 p-4 space-y-4">
+    <div className="w-80 p-5 gradient-mesh space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Brain className="h-5 w-5 text-primary" />
-          <h1 className="text-lg font-semibold">Segundo Cérebro</h1>
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <div className="absolute inset-0 bg-primary/20 blur-lg rounded-full" />
+            <Brain className="h-5 w-5 text-primary relative" />
+          </div>
+          <h1 className="font-semibold tracking-tight">Segundo Cérebro</h1>
         </div>
         <div className="flex items-center gap-1">
-          <Button variant="ghost" size="icon" onClick={openDashboard} title="Abrir Dashboard">
+          <Button variant="ghost" size="icon" onClick={openDashboard} title="Abrir Dashboard" className="h-8 w-8 rounded-full">
             <ExternalLink className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="icon" onClick={openOptions} title="Configurações">
+          <Button variant="ghost" size="icon" onClick={openOptions} title="Configurações" className="h-8 w-8 rounded-full">
             <Settings className="h-4 w-4" />
           </Button>
         </div>
       </div>
 
-      {/* Mode toggle tabs */}
-      <div className="flex rounded-lg border p-1 bg-muted/30">
+      {/* Mode toggle tabs - Pill style */}
+      <div className="flex rounded-2xl bg-secondary/50 p-1">
         <button
           onClick={() => setMode('tab')}
-          className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 text-sm rounded-md transition-colors ${
+          className={cn(
+            'flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-sm rounded-xl transition-all duration-200',
             mode === 'tab'
               ? 'bg-background shadow-sm font-medium'
               : 'text-muted-foreground hover:text-foreground'
-          }`}
+          )}
         >
           <Globe className="h-3.5 w-3.5" />
           Salvar Tab
         </button>
         <button
           onClick={() => setMode('note')}
-          className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 text-sm rounded-md transition-colors ${
+          className={cn(
+            'flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-sm rounded-xl transition-all duration-200',
             mode === 'note'
               ? 'bg-background shadow-sm font-medium'
               : 'text-muted-foreground hover:text-foreground'
-          }`}
+          )}
         >
           <FileText className="h-3.5 w-3.5" />
           Nota Rápida
         </button>
       </div>
 
-      {/* Clipboard suggestion (only in note mode or if clipboard has content) */}
+      {/* Clipboard suggestion */}
       {clipboardText && (
         <div
           onClick={useClipboardText}
-          className="flex items-start gap-2 p-2 rounded-md bg-primary/10 border border-primary/20 cursor-pointer hover:bg-primary/15 transition-colors"
+          className="flex items-start gap-3 p-3 rounded-xl bg-primary/5 border border-primary/10 cursor-pointer hover:bg-primary/10 transition-colors"
         >
-          <Clipboard className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+          <div className="p-2 rounded-lg bg-primary/10 text-primary">
+            <Clipboard className="h-4 w-4" />
+          </div>
           <div className="flex-1 min-w-0">
             <p className="text-xs font-medium text-primary">Texto copiado detectado</p>
             <p className="text-xs text-muted-foreground truncate mt-0.5">
-              {clipboardText.substring(0, 60)}...
+              {clipboardText.substring(0, 50)}...
             </p>
           </div>
         </div>
@@ -315,8 +347,11 @@ export function Popup() {
 
       {/* Current tab info (only in tab mode) */}
       {mode === 'tab' && currentTab && (
-        <div className="text-xs text-muted-foreground truncate">
-          Salvando: {currentTab.title || currentTab.url}
+        <div className="flex items-center gap-2 px-1">
+          <div className="h-1.5 w-1.5 rounded-full bg-green-500" />
+          <span className="text-xs text-muted-foreground truncate">
+            {currentTab.title || currentTab.url}
+          </span>
         </div>
       )}
 
@@ -333,7 +368,7 @@ export function Popup() {
           value={source}
           onChange={(e) => setSource(e.target.value)}
           placeholder="Fonte (opcional): Twitter @user, Livro X..."
-          className="text-sm"
+          className="text-sm rounded-xl bg-secondary/50 border-0 focus-visible:ring-1 focus-visible:ring-primary/30"
         />
       )}
 
@@ -348,9 +383,18 @@ export function Popup() {
       <Button
         onClick={handleSave}
         disabled={!transcription.trim() || isSaving}
-        className="w-full"
+        className="w-full h-11 rounded-xl text-sm font-medium"
       >
-        {isSaving ? 'Salvando...' : mode === 'tab' ? 'Salvar Tab' : 'Salvar Nota'}
+        {isSaving ? (
+          <>
+            <Sparkles className="h-4 w-4 mr-2 animate-pulse" />
+            Salvando...
+          </>
+        ) : mode === 'tab' ? (
+          'Salvar Tab'
+        ) : (
+          'Salvar Nota'
+        )}
       </Button>
 
       <Toaster />

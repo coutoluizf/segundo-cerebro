@@ -6,8 +6,9 @@ import { Toaster } from '@/components/ui/toaster'
 import { useToast } from '@/components/ui/use-toast'
 import { sendMessage, onItemsChanged } from '@/shared/messaging'
 import type { VoiceItem, SearchResult, Project } from '@/shared/types'
-import { Brain, Settings, LayoutGrid, LayoutList, Grid3X3 } from 'lucide-react'
+import { Brain, Settings, LayoutGrid, LayoutList, Grid3X3, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
 export function Dashboard() {
   const [items, setItems] = useState<(VoiceItem | SearchResult)[]>([])
@@ -160,53 +161,79 @@ export function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b">
-        <div className="container mx-auto px-4 py-4">
+    <div className="min-h-screen gradient-mesh">
+      {/* Header - Glass effect with subtle border */}
+      <header className="sticky top-0 z-40 glass-surface border-b border-border/50">
+        <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Brain className="h-6 w-6 text-primary" />
-              <h1 className="text-xl font-semibold">Segundo Cérebro</h1>
+            {/* Logo and title */}
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full" />
+                <Brain className="h-7 w-7 text-primary relative" />
+              </div>
+              <div>
+                <h1 className="text-lg font-semibold tracking-tight">Segundo Cérebro</h1>
+                <p className="text-xs text-muted-foreground">Suas ideias, organizadas</p>
+              </div>
             </div>
-            <div className="flex items-center gap-4">
+
+            {/* Search and controls */}
+            <div className="flex items-center gap-3">
               <SearchBar
                 value={searchQuery}
                 onChange={handleSearch}
                 isSearching={isSearching}
               />
-              {/* View toggle buttons */}
-              <div className="flex items-center border rounded-md">
-                <Button
-                  variant={columns === 1 ? 'secondary' : 'ghost'}
-                  size="icon"
-                  className="h-9 w-9 rounded-r-none"
+
+              {/* View toggle - Pill style */}
+              <div className="flex items-center bg-secondary/50 rounded-full p-1">
+                <button
                   onClick={() => setColumns(1)}
-                  title="Lista (1 coluna)"
+                  className={cn(
+                    'p-2 rounded-full transition-all duration-200',
+                    columns === 1
+                      ? 'bg-background shadow-sm text-foreground'
+                      : 'text-muted-foreground hover:text-foreground'
+                  )}
+                  title="Lista"
                 >
                   <LayoutList className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant={columns === 2 ? 'secondary' : 'ghost'}
-                  size="icon"
-                  className="h-9 w-9 rounded-none border-x"
+                </button>
+                <button
                   onClick={() => setColumns(2)}
-                  title="Grid (2 colunas)"
+                  className={cn(
+                    'p-2 rounded-full transition-all duration-200',
+                    columns === 2
+                      ? 'bg-background shadow-sm text-foreground'
+                      : 'text-muted-foreground hover:text-foreground'
+                  )}
+                  title="2 colunas"
                 >
                   <LayoutGrid className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant={columns === 3 ? 'secondary' : 'ghost'}
-                  size="icon"
-                  className="h-9 w-9 rounded-l-none"
+                </button>
+                <button
                   onClick={() => setColumns(3)}
-                  title="Grid (3 colunas)"
+                  className={cn(
+                    'p-2 rounded-full transition-all duration-200',
+                    columns === 3
+                      ? 'bg-background shadow-sm text-foreground'
+                      : 'text-muted-foreground hover:text-foreground'
+                  )}
+                  title="3 colunas"
                 >
                   <Grid3X3 className="h-4 w-4" />
-                </Button>
+                </button>
               </div>
-              <Button variant="ghost" size="icon" onClick={openOptions}>
-                <Settings className="h-5 w-5" />
+
+              {/* Settings button */}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={openOptions}
+                className="rounded-full hover:bg-secondary/70"
+              >
+                <Settings className="h-4 w-4" />
               </Button>
             </div>
           </div>
@@ -214,43 +241,67 @@ export function Dashboard() {
       </header>
 
       {/* Main content */}
-      <div className="container mx-auto px-4 py-6">
-        <div className="flex gap-6">
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        <div className="flex gap-8">
           {/* Sidebar - Projects */}
-          <aside className="w-64 shrink-0">
-            <ProjectFilter
-              projects={projects}
-              selectedProject={selectedProject}
-              onProjectChange={handleProjectChange}
-              onProjectsUpdated={loadData}
-            />
+          <aside className="w-56 shrink-0">
+            <div className="sticky top-24">
+              <ProjectFilter
+                projects={projects}
+                selectedProject={selectedProject}
+                onProjectChange={handleProjectChange}
+                onProjectsUpdated={loadData}
+              />
+            </div>
           </aside>
 
           {/* Main content - Items */}
-          <main className="flex-1">
+          <main className="flex-1 min-w-0">
             {isLoading ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="animate-pulse text-muted-foreground">Carregando...</div>
+              <div className="flex flex-col items-center justify-center py-20">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-primary/10 blur-2xl rounded-full animate-pulse" />
+                  <Sparkles className="h-8 w-8 text-primary animate-pulse relative" />
+                </div>
+                <p className="mt-4 text-sm text-muted-foreground">Carregando memórias...</p>
               </div>
             ) : items.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <Brain className="h-12 w-12 text-muted-foreground/50 mb-4" />
-                <h2 className="text-lg font-medium mb-2">Nenhum item encontrado</h2>
-                <p className="text-sm text-muted-foreground">
+              <div className="flex flex-col items-center justify-center py-20 text-center">
+                <div className="relative mb-6">
+                  <div className="absolute inset-0 bg-primary/5 blur-3xl rounded-full" />
+                  <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center relative">
+                    <Brain className="h-10 w-10 text-primary/60" />
+                  </div>
+                </div>
+                <h2 className="text-xl font-medium mb-2">
+                  {searchQuery ? 'Nenhum resultado' : 'Comece a memorizar'}
+                </h2>
+                <p className="text-sm text-muted-foreground max-w-xs">
                   {searchQuery
-                    ? 'Tente buscar por outros termos.'
-                    : 'Use a extensão para salvar tabs com voz.'}
+                    ? 'Tente buscar por outros termos ou conceitos relacionados.'
+                    : 'Use a extensão para salvar tabs e notas com sua voz.'}
                 </p>
               </div>
             ) : (
-              <ItemList
-                items={items}
-                projects={projects}
-                columns={columns}
-                onDelete={handleDelete}
-                onOpen={handleOpen}
-                onUpdateProject={handleUpdateProject}
-              />
+              <>
+                {/* Results header */}
+                {searchQuery && (
+                  <div className="mb-6 flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-primary" />
+                    <span className="text-sm text-muted-foreground">
+                      {items.length} resultado{items.length !== 1 ? 's' : ''} para "{searchQuery}"
+                    </span>
+                  </div>
+                )}
+                <ItemList
+                  items={items}
+                  projects={projects}
+                  columns={columns}
+                  onDelete={handleDelete}
+                  onOpen={handleOpen}
+                  onUpdateProject={handleUpdateProject}
+                />
+              </>
             )}
           </main>
         </div>

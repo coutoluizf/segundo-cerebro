@@ -4,18 +4,18 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { sendMessage } from '@/shared/messaging'
 import type { Project } from '@/shared/types'
-import { Plus, Pencil, Trash2, Check, X } from 'lucide-react'
+import { Plus, Pencil, Trash2, Check, X, Layers } from 'lucide-react'
 
-// Preset colors for new projects
+// Preset colors for new projects - More vibrant, modern palette
 const PROJECT_COLORS = [
+  '#F97316', // orange (primary)
   '#3B82F6', // blue
   '#10B981', // green
   '#8B5CF6', // purple
   '#F59E0B', // amber
   '#EF4444', // red
   '#EC4899', // pink
-  '#6366F1', // indigo
-  '#14B8A6', // teal
+  '#06B6D4', // cyan
 ]
 
 interface ProjectFilterProps {
@@ -93,20 +93,22 @@ export function ProjectFilter({
   }
 
   return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-          Projetos
-        </h2>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-6 w-6"
+    <div className="space-y-4">
+      {/* Section header */}
+      <div className="flex items-center justify-between px-1">
+        <div className="flex items-center gap-2">
+          <Layers className="h-4 w-4 text-muted-foreground" />
+          <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+            Projetos
+          </h2>
+        </div>
+        <button
           onClick={() => setIsCreating(true)}
+          className="p-1.5 rounded-lg hover:bg-secondary/70 text-muted-foreground hover:text-foreground transition-colors"
           title="Novo projeto"
         >
           <Plus className="h-4 w-4" />
-        </Button>
+        </button>
       </div>
 
       <div className="space-y-1">
@@ -114,24 +116,22 @@ export function ProjectFilter({
         <button
           onClick={() => onProjectChange('')}
           className={cn(
-            'w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors',
-            selectedProject === ''
-              ? 'bg-primary text-primary-foreground'
-              : 'hover:bg-accent'
+            'sidebar-item w-full',
+            selectedProject === '' && 'sidebar-item-active'
           )}
         >
-          <div className="h-3 w-3 rounded-full bg-gradient-to-r from-blue-500 to-purple-500" />
-          <span>Todos</span>
+          <div className="h-2.5 w-2.5 rounded-full bg-gradient-to-br from-primary to-amber-500" />
+          <span>Todos os itens</span>
         </button>
 
         {/* Create new project input */}
         {isCreating && (
-          <div className="flex items-center gap-1 px-2 py-1">
+          <div className="flex items-center gap-1 px-2 py-2 bg-secondary/50 rounded-xl">
             <Input
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
               placeholder="Nome do projeto"
-              className="h-8 text-sm"
+              className="h-8 text-sm bg-transparent border-0 focus-visible:ring-1"
               autoFocus
               onKeyDown={(e) => {
                 if (e.key === 'Enter') handleCreate()
@@ -141,7 +141,7 @@ export function ProjectFilter({
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 shrink-0"
+              className="h-7 w-7 shrink-0 rounded-lg text-primary hover:text-primary"
               onClick={handleCreate}
             >
               <Check className="h-4 w-4" />
@@ -149,7 +149,7 @@ export function ProjectFilter({
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 shrink-0"
+              className="h-7 w-7 shrink-0 rounded-lg"
               onClick={() => setIsCreating(false)}
             >
               <X className="h-4 w-4" />
@@ -162,16 +162,18 @@ export function ProjectFilter({
           <div
             key={project.id}
             className={cn(
-              'group flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors cursor-pointer',
-              selectedProject === project.id
-                ? 'bg-primary text-primary-foreground'
-                : 'hover:bg-accent'
+              'group sidebar-item',
+              selectedProject === project.id && 'sidebar-item-active'
             )}
             onClick={() => editingId !== project.id && onProjectChange(project.id)}
           >
+            {/* Project color dot with glow */}
             <div
-              className="h-3 w-3 rounded-full shrink-0"
-              style={{ backgroundColor: project.color || '#6B7280' }}
+              className="project-dot shrink-0"
+              style={{
+                backgroundColor: project.color || '#6B7280',
+                color: project.color || '#6B7280'
+              }}
             />
 
             {editingId === project.id ? (
@@ -180,7 +182,7 @@ export function ProjectFilter({
                 <Input
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
-                  className="h-7 text-sm"
+                  className="h-7 text-sm bg-transparent border-0 focus-visible:ring-1"
                   autoFocus
                   onClick={(e) => e.stopPropagation()}
                   onKeyDown={(e) => {
@@ -191,7 +193,7 @@ export function ProjectFilter({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-7 w-7 shrink-0"
+                  className="h-6 w-6 shrink-0 rounded-lg"
                   onClick={(e) => { e.stopPropagation(); handleSaveEdit(project) }}
                 >
                   <Check className="h-3 w-3" />
@@ -199,7 +201,7 @@ export function ProjectFilter({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-7 w-7 shrink-0"
+                  className="h-6 w-6 shrink-0 rounded-lg"
                   onClick={(e) => { e.stopPropagation(); cancelEdit() }}
                 >
                   <X className="h-3 w-3" />
@@ -208,21 +210,21 @@ export function ProjectFilter({
             ) : (
               // View mode
               <>
-                <span className="truncate flex-1">{project.name}</span>
+                <span className="truncate flex-1 text-sm">{project.name}</span>
                 <div className={cn(
-                  'flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity',
+                  'flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity',
                   selectedProject === project.id ? 'opacity-100' : ''
                 )}>
                   <button
                     onClick={(e) => startEdit(project, e)}
-                    className="p-1 hover:bg-black/10 dark:hover:bg-white/10 rounded"
+                    className="p-1 rounded-md hover:bg-background/50 text-muted-foreground hover:text-foreground transition-colors"
                     title="Editar"
                   >
                     <Pencil className="h-3 w-3" />
                   </button>
                   <button
                     onClick={(e) => handleDelete(project.id, e)}
-                    className="p-1 hover:bg-black/10 dark:hover:bg-white/10 rounded text-destructive"
+                    className="p-1 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
                     title="Excluir"
                   >
                     <Trash2 className="h-3 w-3" />

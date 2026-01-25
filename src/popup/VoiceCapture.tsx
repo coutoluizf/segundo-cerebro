@@ -1,10 +1,10 @@
 import { useState, useRef, useEffect } from 'react'
-import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { ScribeClient, type ScribeConfig } from '@/shared/scribe'
 import type { ScribeState } from '@/shared/types'
 import { sendMessage } from '@/shared/messaging'
 import { Mic, MicOff, Loader2 } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 interface VoiceCaptureProps {
   transcription: string
@@ -12,6 +12,10 @@ interface VoiceCaptureProps {
   placeholder?: string
 }
 
+/**
+ * VoiceCapture - Recording interface with real-time transcription
+ * Features a luminous mic button with pulse animation while recording
+ */
 export function VoiceCapture({ transcription, onTranscriptionChange, placeholder }: VoiceCaptureProps) {
   const [state, setState] = useState<ScribeState>('idle')
   const [error, setError] = useState<string | null>(null)
@@ -90,47 +94,82 @@ export function VoiceCapture({ transcription, onTranscriptionChange, placeholder
 
   return (
     <div className="space-y-3">
-      {/* Mic button */}
+      {/* Mic button with glow effect */}
       <div className="flex justify-center">
-        <Button
-          variant={isRecording ? 'destructive' : 'default'}
-          size="lg"
-          className="h-16 w-16 rounded-full"
+        <button
           onClick={toggleRecording}
           disabled={isConnecting || isProcessing}
-        >
-          {isConnecting || isProcessing ? (
-            <Loader2 className="h-6 w-6 animate-spin" />
-          ) : isRecording ? (
-            <MicOff className="h-6 w-6" />
-          ) : (
-            <Mic className="h-6 w-6" />
+          className={cn(
+            'relative h-16 w-16 rounded-full transition-all duration-300',
+            'flex items-center justify-center',
+            'disabled:opacity-50 disabled:cursor-not-allowed',
+            isRecording
+              ? 'bg-red-500 hover:bg-red-600 text-white'
+              : 'bg-primary hover:bg-primary/90 text-primary-foreground hover:scale-105'
           )}
-        </Button>
+        >
+          {/* Glow effect */}
+          <div
+            className={cn(
+              'absolute inset-0 rounded-full blur-xl transition-opacity duration-300',
+              isRecording ? 'bg-red-500/50 opacity-100' : 'bg-primary/30 opacity-0 group-hover:opacity-100'
+            )}
+          />
+
+          {/* Pulse ring while recording */}
+          {isRecording && (
+            <>
+              <div className="absolute inset-0 rounded-full border-2 border-red-500 recording-pulse" />
+              <div className="absolute inset-[-8px] rounded-full border border-red-500/30 recording-pulse" style={{ animationDelay: '0.5s' }} />
+            </>
+          )}
+
+          {/* Icon */}
+          <div className="relative">
+            {isConnecting || isProcessing ? (
+              <Loader2 className="h-6 w-6 animate-spin" />
+            ) : isRecording ? (
+              <MicOff className="h-6 w-6" />
+            ) : (
+              <Mic className="h-6 w-6" />
+            )}
+          </div>
+        </button>
       </div>
 
       {/* Status text */}
-      <div className="text-center text-sm text-muted-foreground">
-        {isConnecting && 'Conectando...'}
-        {isProcessing && 'Processando...'}
+      <div className="text-center text-xs">
+        {isConnecting && <span className="text-muted-foreground">Conectando...</span>}
+        {isProcessing && <span className="text-muted-foreground">Processando...</span>}
         {isRecording && (
-          <span className="text-red-500 animate-pulse">
-            Gravando... Clique para parar
+          <span className="text-red-500 font-medium">
+            <span className="inline-block h-1.5 w-1.5 rounded-full bg-red-500 mr-1.5 animate-pulse" />
+            Gravando... Toque para parar
           </span>
         )}
-        {state === 'idle' && !transcription && 'Grave ou digite abaixo'}
-        {state === 'idle' && transcription && 'Gravação finalizada'}
+        {state === 'idle' && !transcription && (
+          <span className="text-muted-foreground">Toque para gravar ou digite abaixo</span>
+        )}
+        {state === 'idle' && transcription && (
+          <span className="text-muted-foreground">Pronto para salvar</span>
+        )}
         {state === 'error' && error && (
-          <span className="text-destructive">{error}</span>
+          <span className="text-destructive text-xs">{error}</span>
         )}
       </div>
 
-      {/* Transcription/text input - same field for both */}
+      {/* Transcription/text input */}
       <Textarea
         value={transcription}
         onChange={(e) => onTranscriptionChange(e.target.value)}
         placeholder={placeholder || "Grave ou digite sua anotação..."}
-        className="min-h-24 resize-none"
+        className={cn(
+          'min-h-20 resize-none rounded-xl',
+          'bg-secondary/50 border-0',
+          'focus-visible:ring-1 focus-visible:ring-primary/30',
+          'placeholder:text-muted-foreground/50',
+          isRecording && 'ring-1 ring-red-500/30 bg-red-500/5'
+        )}
         readOnly={isRecording}
       />
     </div>
