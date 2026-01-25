@@ -39,23 +39,23 @@
   .dark {
     /* Dark mode - rich, warm blacks inspired by Linear/Vercel */
     --background: 220 15% 5%;
-    --foreground: 40 15% 95%;
-    --card: 220 15% 7%;
-    --card-foreground: 40 15% 95%;
-    --popover: 220 15% 8%;
-    --popover-foreground: 40 15% 95%;
+    --foreground: 0 0% 98%;
+    --card: 220 15% 9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 220 15% 10%;
+    --popover-foreground: 0 0% 98%;
     --primary: 24 100% 60%;
     --primary-foreground: 220 15% 5%;
-    --secondary: 220 12% 12%;
-    --secondary-foreground: 40 15% 85%;
-    --muted: 220 12% 14%;
-    --muted-foreground: 40 10% 55%;
-    --accent: 220 12% 14%;
-    --accent-foreground: 40 15% 95%;
-    --destructive: 0 72% 45%;
+    --secondary: 220 12% 14%;
+    --secondary-foreground: 0 0% 92%;
+    --muted: 220 12% 16%;
+    --muted-foreground: 0 0% 65%;
+    --accent: 220 12% 16%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 72% 50%;
     --destructive-foreground: 0 0% 100%;
-    --border: 220 12% 14%;
-    --input: 220 12% 12%;
+    --border: 220 12% 18%;
+    --input: 220 12% 14%;
     --ring: 24 100% 60%;
 
     /* Custom accent colors for dark mode */

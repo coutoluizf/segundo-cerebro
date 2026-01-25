@@ -144,7 +144,7 @@ export function ItemList({ items, projects, columns = 1, onDelete, onOpen, onUpd
               <div className="absolute -left-1 top-0 bottom-0 w-0.5 bg-gradient-to-b from-primary/50 to-primary/0 rounded-full" />
               <div className="pl-3">
                 <Quote className="h-3 w-3 text-muted-foreground/40 mb-1" />
-                <p className="text-sm text-foreground/80 leading-relaxed line-clamp-3">
+                <p className="text-sm text-foreground/90 leading-relaxed line-clamp-3">
                   {item.transcription}
                 </p>
               </div>
