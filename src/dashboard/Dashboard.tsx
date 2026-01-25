@@ -6,7 +6,7 @@ import { Toaster } from '@/components/ui/toaster'
 import { useToast } from '@/components/ui/use-toast'
 import { sendMessage, onItemsChanged } from '@/shared/messaging'
 import type { VoiceItem, SearchResult, Project } from '@/shared/types'
-import { Brain, Settings } from 'lucide-react'
+import { Brain, Settings, LayoutGrid, LayoutList, Grid3X3 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 export function Dashboard() {
@@ -16,6 +16,7 @@ export function Dashboard() {
   const [searchQuery, setSearchQuery] = useState('')
   const [isSearching, setIsSearching] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const [columns, setColumns] = useState<1 | 2 | 3>(1) // Grid columns: 1, 2, or 3
   const { toast } = useToast()
 
   // Load items and projects
@@ -124,6 +125,30 @@ export function Dashboard() {
     }
   }
 
+  // Handle item project update (inline, without full refresh)
+  const handleUpdateProject = async (itemId: string, projectId: string | null) => {
+    try {
+      await sendMessage({ type: 'UPDATE_ITEM_PROJECT', id: itemId, projectId })
+      // Update item locally without reloading all data
+      setItems((prevItems) =>
+        prevItems.map((item) =>
+          item.id === itemId ? { ...item, projectId } : item
+        )
+      )
+      toast({
+        variant: 'success',
+        title: 'Atualizado',
+        description: 'Projeto do item alterado.',
+      })
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Erro',
+        description: 'Erro ao atualizar projeto.',
+      })
+    }
+  }
+
   // Open item URL
   const handleOpen = (url: string) => {
     chrome.tabs.create({ url })
@@ -150,6 +175,36 @@ export function Dashboard() {
                 onChange={handleSearch}
                 isSearching={isSearching}
               />
+              {/* View toggle buttons */}
+              <div className="flex items-center border rounded-md">
+                <Button
+                  variant={columns === 1 ? 'secondary' : 'ghost'}
+                  size="icon"
+                  className="h-9 w-9 rounded-r-none"
+                  onClick={() => setColumns(1)}
+                  title="Lista (1 coluna)"
+                >
+                  <LayoutList className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={columns === 2 ? 'secondary' : 'ghost'}
+                  size="icon"
+                  className="h-9 w-9 rounded-none border-x"
+                  onClick={() => setColumns(2)}
+                  title="Grid (2 colunas)"
+                >
+                  <LayoutGrid className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={columns === 3 ? 'secondary' : 'ghost'}
+                  size="icon"
+                  className="h-9 w-9 rounded-l-none"
+                  onClick={() => setColumns(3)}
+                  title="Grid (3 colunas)"
+                >
+                  <Grid3X3 className="h-4 w-4" />
+                </Button>
+              </div>
               <Button variant="ghost" size="icon" onClick={openOptions}>
                 <Settings className="h-5 w-5" />
               </Button>
@@ -167,6 +222,7 @@ export function Dashboard() {
               projects={projects}
               selectedProject={selectedProject}
               onProjectChange={handleProjectChange}
+              onProjectsUpdated={loadData}
             />
           </aside>
 
@@ -190,8 +246,10 @@ export function Dashboard() {
               <ItemList
                 items={items}
                 projects={projects}
+                columns={columns}
                 onDelete={handleDelete}
                 onOpen={handleOpen}
+                onUpdateProject={handleUpdateProject}
               />
             )}
           </main>

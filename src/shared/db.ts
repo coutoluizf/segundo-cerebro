@@ -1,12 +1,16 @@
 /**
- * Database wrapper using libSQL (Turso) with WASM
- * Stores items locally using OPFS for persistence
+ * Database wrapper using libSQL (Turso Cloud)
+ * Stores data in Turso Cloud for persistence and sync
  * Supports vector similarity search for semantic queries
  */
 
 import { createClient, type Client } from '@libsql/client/web'
 import type { VoiceItem, Project, SearchResult } from './types'
 import { generateId, generateUrlHash } from './types'
+
+// Turso Cloud configuration
+const TURSO_URL = 'libsql://segundo-cerebro-luizcouto.aws-us-east-1.turso.io'
+const TURSO_AUTH_TOKEN = 'eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3NjkyOTgwMjUsImlkIjoiZDQ4YTNhZjMtMWFjOC00YzExLTk4ZjQtZmZhNjRjMjQ1YWZiIiwicmlkIjoiYTk5MTZiOTgtYmM3Mi00NDViLThlOWItYzVlMDNiYWZlYjVjIn0.AvWgxq4OVHKWK3Q2G2VIUo_bBimpzGngWCJxUfIeN0sIKueQV1rgpyNE8xra5bOVrPVPd188TSEz0YYsf5xPCQ'
 
 // Database singleton
 let db: Client | null = null
@@ -17,10 +21,10 @@ export async function initDatabase(): Promise<Client> {
     return db
   }
 
-  // Create an in-memory SQLite database with libSQL
-  // Note: For production, you'd use Turso cloud URL or file-based storage
+  // Connect to Turso Cloud
   db = createClient({
-    url: 'file:segundo-cerebro.db',
+    url: TURSO_URL,
+    authToken: TURSO_AUTH_TOKEN,
   })
 
   // Create tables
@@ -237,6 +241,15 @@ export async function deleteItem(id: string): Promise<void> {
   })
 }
 
+// Update an item's project
+export async function updateItemProject(id: string, projectId: string | null): Promise<void> {
+  const database = await getDatabase()
+  await database.execute({
+    sql: 'UPDATE items SET project_id = ? WHERE id = ?',
+    args: [projectId, id],
+  })
+}
+
 // Permanently delete an item
 export async function permanentlyDeleteItem(id: string): Promise<void> {
   const database = await getDatabase()
@@ -272,6 +285,32 @@ export async function getProjects(): Promise<Project[]> {
     color: row.color as string | null,
     createdAt: row.created_at as number,
   }))
+}
+
+// Update a project
+export async function updateProject(id: string, name: string, color?: string): Promise<Project | null> {
+  const database = await getDatabase()
+
+  await database.execute({
+    sql: 'UPDATE projects SET name = ?, color = ? WHERE id = ?',
+    args: [name, color || null, id],
+  })
+
+  // Return the updated project
+  const result = await database.execute({
+    sql: 'SELECT * FROM projects WHERE id = ?',
+    args: [id],
+  })
+
+  if (result.rows.length === 0) return null
+
+  const row = result.rows[0]
+  return {
+    id: row.id as string,
+    name: row.name as string,
+    color: row.color as string | null,
+    createdAt: row.created_at as number,
+  }
 }
 
 // Delete a project

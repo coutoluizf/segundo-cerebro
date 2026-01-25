@@ -11,7 +11,9 @@
   "host_permissions": [
     "https://api.openai.com/*",
     "wss://api.elevenlabs.io/*",
-    "https://api.elevenlabs.io/*"
+    "https://api.elevenlabs.io/*",
+    "https://*.turso.io/*",
+    "wss://*.turso.io/*"
   ],
   "action": {
     "default_popup": "src/popup/index.html",

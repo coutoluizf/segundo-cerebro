@@ -112,19 +112,23 @@ export function VoiceCapture({ transcription, onTranscriptionChange }: VoiceCapt
       <div className="text-center text-sm text-muted-foreground">
         {isConnecting && 'Conectando...'}
         {isProcessing && 'Processando...'}
-        {isRecording && 'Gravando... Clique para parar'}
-        {state === 'idle' && !transcription && 'Clique no microfone para gravar'}
+        {isRecording && (
+          <span className="text-red-500 animate-pulse">
+            Gravando... Clique para parar
+          </span>
+        )}
+        {state === 'idle' && !transcription && 'Grave ou digite abaixo'}
         {state === 'idle' && transcription && 'Gravação finalizada'}
         {state === 'error' && error && (
           <span className="text-destructive">{error}</span>
         )}
       </div>
 
-      {/* Transcription display */}
+      {/* Transcription/text input - same field for both */}
       <Textarea
         value={transcription}
         onChange={(e) => onTranscriptionChange(e.target.value)}
-        placeholder="A transcrição aparecerá aqui..."
+        placeholder="Grave ou digite sua anotação..."
         className="min-h-24 resize-none"
         readOnly={isRecording}
       />

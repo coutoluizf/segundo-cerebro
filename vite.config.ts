@@ -5,6 +5,8 @@ import { resolve } from 'path'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  // Use relative paths for Chrome extension compatibility
+  base: '',
   resolve: {
     alias: {
       '@': resolve(__dirname, './src'),
@@ -18,6 +20,7 @@ export default defineConfig({
         popup: resolve(__dirname, 'src/popup/index.html'),
         dashboard: resolve(__dirname, 'src/dashboard/index.html'),
         options: resolve(__dirname, 'src/options/index.html'),
+        recorder: resolve(__dirname, 'src/recorder/index.html'),
         background: resolve(__dirname, 'src/background/index.ts'),
       },
       output: {

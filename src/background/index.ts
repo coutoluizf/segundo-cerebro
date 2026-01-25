@@ -12,8 +12,10 @@ import {
   semanticSearch,
   getProjects,
   createProject,
+  updateProject,
   deleteProject,
   deleteItem,
+  updateItemProject,
   seedDefaultProjects,
 } from '@/shared/db'
 import { captureContext } from '@/shared/context'
@@ -156,6 +158,11 @@ async function handleMessage(message: BgMessage): Promise<BgResponse<BgMessage['
       return { success: true, project }
     }
 
+    case 'UPDATE_PROJECT': {
+      const project = await updateProject(message.id, message.name, message.color)
+      return { success: true, project: project || undefined }
+    }
+
     case 'DELETE_PROJECT': {
       await deleteProject(message.id)
       broadcastItemsChanged()
@@ -168,6 +175,12 @@ async function handleMessage(message: BgMessage): Promise<BgResponse<BgMessage['
 
     case 'DELETE_ITEM': {
       await deleteItem(message.id)
+      broadcastItemsChanged()
+      return { success: true }
+    }
+
+    case 'UPDATE_ITEM_PROJECT': {
+      await updateItemProject(message.id, message.projectId)
       broadcastItemsChanged()
       return { success: true }
     }

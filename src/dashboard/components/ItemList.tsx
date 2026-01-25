@@ -1,13 +1,22 @@
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import type { VoiceItem, SearchResult, Project } from '@/shared/types'
-import { ExternalLink, Trash2, MessageSquare, Calendar } from 'lucide-react'
+import { ExternalLink, Trash2, MessageSquare, Calendar, ChevronDown, FolderOpen } from 'lucide-react'
 
 interface ItemListProps {
   items: (VoiceItem | SearchResult)[]
   projects: Project[]
+  columns?: 1 | 2 | 3 // Number of columns in grid view
   onDelete: (id: string) => void
   onOpen: (url: string) => void
+  onUpdateProject: (itemId: string, projectId: string | null) => void
 }
 
 // Type guard to check if item has similarity score
@@ -15,7 +24,7 @@ function isSearchResult(item: VoiceItem | SearchResult): item is SearchResult {
   return 'similarity' in item && typeof item.similarity === 'number'
 }
 
-export function ItemList({ items, projects, onDelete, onOpen }: ItemListProps) {
+export function ItemList({ items, projects, columns = 1, onDelete, onOpen, onUpdateProject }: ItemListProps) {
   // Get project by ID
   const getProject = (projectId: string | null): Project | undefined => {
     if (!projectId) return undefined
@@ -46,8 +55,16 @@ export function ItemList({ items, projects, onDelete, onOpen }: ItemListProps) {
     }
   }
 
+  // Grid classes based on columns
+  const gridClass =
+    columns === 1
+      ? 'flex flex-col gap-4'
+      : columns === 2
+        ? 'grid grid-cols-2 gap-4'
+        : 'grid grid-cols-3 gap-4'
+
   return (
-    <div className="space-y-4">
+    <div className={gridClass}>
       {items.map((item) => {
         const project = getProject(item.projectId)
         const hasSimlarity = isSearchResult(item)
@@ -95,19 +112,53 @@ export function ItemList({ items, projects, onDelete, onOpen }: ItemListProps) {
 
               {/* Footer */}
               <div className="flex items-center justify-between">
-                {/* Project tag */}
-                {project && (
-                  <div className="flex items-center gap-1.5">
-                    <div
-                      className="h-2.5 w-2.5 rounded-full"
-                      style={{ backgroundColor: project.color || '#6B7280' }}
-                    />
-                    <span className="text-xs text-muted-foreground">
-                      {project.name}
-                    </span>
-                  </div>
-                )}
-                {!project && <div />}
+                {/* Project selector dropdown */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="flex items-center gap-1.5 px-2 py-1 rounded hover:bg-accent transition-colors text-xs">
+                      {project ? (
+                        <>
+                          <div
+                            className="h-2.5 w-2.5 rounded-full"
+                            style={{ backgroundColor: project.color || '#6B7280' }}
+                          />
+                          <span className="text-muted-foreground">{project.name}</span>
+                        </>
+                      ) : (
+                        <>
+                          <FolderOpen className="h-3 w-3 text-muted-foreground" />
+                          <span className="text-muted-foreground">Sem projeto</span>
+                        </>
+                      )}
+                      <ChevronDown className="h-3 w-3 text-muted-foreground" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-48">
+                    {/* Option to remove from project */}
+                    <DropdownMenuItem
+                      onClick={() => onUpdateProject(item.id, null)}
+                      className="flex items-center gap-2"
+                    >
+                      <FolderOpen className="h-3 w-3" />
+                      <span>Sem projeto</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    {/* List of projects */}
+                    {projects.map((p) => (
+                      <DropdownMenuItem
+                        key={p.id}
+                        onClick={() => onUpdateProject(item.id, p.id)}
+                        className="flex items-center gap-2"
+                      >
+                        <div
+                          className="h-3 w-3 rounded-full"
+                          style={{ backgroundColor: p.color || '#6B7280' }}
+                        />
+                        <span>{p.name}</span>
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
 
                 {/* Actions */}
                 <div className="flex items-center gap-2">

@@ -1,7 +1,7 @@
 /**
  * ElevenLabs Scribe v2 Realtime STT Client
  * Handles real-time speech-to-text transcription via WebSocket
- * Reference: https://elevenlabs.io/docs/developers/guides/cookbooks/speech-to-text/realtime/client-side-streaming
+ * Reference: https://elevenlabs.io/docs/api-reference/speech-to-text/v-1-speech-to-text-realtime
  */
 
 import type { ScribeState } from './types'
@@ -49,6 +49,29 @@ export class ScribeClient {
     this.config.onStateChange(newState)
   }
 
+  // Get a single-use token for WebSocket authentication
+  private async getSingleUseToken(): Promise<string> {
+    const response = await fetch(
+      'https://api.elevenlabs.io/v1/single-use-token/realtime_scribe',
+      {
+        method: 'POST',
+        headers: {
+          'xi-api-key': this.config.apiKey,
+        },
+      }
+    )
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('[Scribe] Token error:', response.status, errorText)
+      throw new Error(`Erro ao obter token: ${response.status}`)
+    }
+
+    const data = await response.json()
+    console.log('[Scribe] Got single-use token')
+    return data.token
+  }
+
   // Connect to ElevenLabs and start recording
   async connect(): Promise<void> {
     if (this.state !== 'idle') {
@@ -59,6 +82,9 @@ export class ScribeClient {
     this.fullTranscript = ''
 
     try {
+      // First, get a single-use token for client-side authentication
+      const token = await this.getSingleUseToken()
+
       // Request microphone access
       this.mediaStream = await navigator.mediaDevices.getUserMedia({
         audio: {
@@ -75,33 +101,41 @@ export class ScribeClient {
 
       // Create processor for capturing audio data
       // Using ScriptProcessorNode (deprecated but widely supported)
-      // For production, consider using AudioWorklet
       this.processor = this.audioContext.createScriptProcessor(4096, 1, 1)
 
-      // Connect to ElevenLabs WebSocket
-      const wsUrl = `wss://api.elevenlabs.io/v1/speech-to-text/realtime?language_code=${this.config.language || 'pt'}`
+      // Build WebSocket URL with query parameters
+      // Use token instead of API key for client-side auth
+      const params = new URLSearchParams({
+        // IMPORTANT: must be scribe_v2_realtime, not scribe_v2
+        model_id: 'scribe_v2_realtime',
+        language_code: this.config.language || 'pt',
+        // Use token for authentication
+        token: token,
+      })
+
+      const wsUrl = `wss://api.elevenlabs.io/v1/speech-to-text/realtime?${params.toString()}`
+      console.log('[Scribe] Connecting to WebSocket...')
 
       this.ws = new WebSocket(wsUrl)
 
       this.ws.onopen = () => {
-        // Send authentication and configuration
-        this.ws?.send(JSON.stringify({
-          type: 'config',
-          api_key: this.config.apiKey,
-          model_id: 'scribe_v2',
-          transcription_config: {
-            language: this.config.language || 'pt',
-          },
-        }))
+        console.log('[Scribe] WebSocket connected and authenticated')
 
         this.setState('listening')
 
         // Start processing audio
         this.processor!.onaudioprocess = (event) => {
-          if (this.ws?.readyState === WebSocket.OPEN) {
+          if (this.ws?.readyState === WebSocket.OPEN && this.state === 'listening') {
             const inputData = event.inputBuffer.getChannelData(0)
+            // Convert to 16-bit PCM and then to base64
             const audioData = this.floatTo16BitPCM(inputData)
-            this.ws.send(audioData)
+            const base64Audio = this.arrayBufferToBase64(audioData)
+
+            // Send audio chunk in ElevenLabs format
+            this.ws.send(JSON.stringify({
+              message_type: 'input_audio_chunk',
+              audio_base_64: base64Audio,
+            }))
           }
         }
 
@@ -120,13 +154,13 @@ export class ScribeClient {
 
       this.ws.onerror = (error) => {
         console.error('[Scribe] WebSocket error:', error)
-        this.config.onError('Connection error')
+        this.config.onError('Erro de conexão')
         this.cleanup()
         this.setState('error')
       }
 
-      this.ws.onclose = () => {
-        console.log('[Scribe] WebSocket closed')
+      this.ws.onclose = (event) => {
+        console.log('[Scribe] WebSocket closed', event.code, event.reason)
         this.cleanup()
         if (this.state === 'listening') {
           this.setState('idle')
@@ -134,7 +168,7 @@ export class ScribeClient {
       }
     } catch (error) {
       console.error('[Scribe] Error:', error)
-      this.config.onError(error instanceof Error ? error.message : 'Unknown error')
+      this.config.onError(error instanceof Error ? error.message : 'Erro desconhecido')
       this.cleanup()
       this.setState('error')
       throw error
@@ -143,37 +177,47 @@ export class ScribeClient {
 
   // Handle incoming WebSocket messages
   private handleMessage(data: {
-    type: string
+    message_type: string
     text?: string
-    is_final?: boolean
     error?: string
+    session_id?: string
+    [key: string]: unknown
   }): void {
-    switch (data.type) {
-      case 'transcript':
+    console.log('[Scribe] Received:', data.message_type, data)
+
+    switch (data.message_type) {
+      case 'session_started':
+        console.log('[Scribe] Session started:', data.session_id)
+        break
+
+      case 'partial_transcript':
+        // Partial result - show current state with partial text
         if (data.text) {
-          if (data.is_final) {
-            // Final transcript - append to full transcript
-            this.fullTranscript += (this.fullTranscript ? ' ' : '') + data.text
-            this.config.onTranscript(this.fullTranscript, true)
-          } else {
-            // Partial transcript - show current state with partial text
-            const display = this.fullTranscript + (this.fullTranscript ? ' ' : '') + data.text
-            this.config.onTranscript(display, false)
-          }
+          const display = this.fullTranscript + (this.fullTranscript ? ' ' : '') + data.text
+          this.config.onTranscript(display, false)
         }
         break
 
-      case 'error':
-        console.error('[Scribe] Server error:', data.error)
-        this.config.onError(data.error || 'Server error')
+      case 'committed_transcript':
+      case 'committed_transcript_with_timestamps':
+        // Final transcript - append to full transcript
+        if (data.text) {
+          this.fullTranscript += (this.fullTranscript ? ' ' : '') + data.text
+          this.config.onTranscript(this.fullTranscript, true)
+        }
         break
 
-      case 'ready':
-        console.log('[Scribe] Server ready')
+      case 'auth_error':
+      case 'quota_exceeded':
+      case 'rate_limited':
+      case 'error':
+        console.error('[Scribe] Server error:', data.error || data.message_type)
+        this.config.onError(data.error || `Erro: ${data.message_type}`)
         break
 
       default:
-        console.log('[Scribe] Unknown message type:', data.type)
+        // Log unknown message types for debugging
+        console.log('[Scribe] Unknown message type:', data.message_type, data)
     }
   }
 
@@ -190,12 +234,31 @@ export class ScribeClient {
     return buffer
   }
 
+  // Convert ArrayBuffer to base64 string
+  private arrayBufferToBase64(buffer: ArrayBuffer): string {
+    const bytes = new Uint8Array(buffer)
+    let binary = ''
+    for (let i = 0; i < bytes.byteLength; i++) {
+      binary += String.fromCharCode(bytes[i])
+    }
+    return btoa(binary)
+  }
+
   // Stop recording and disconnect
   async disconnect(): Promise<string> {
     this.setState('processing')
 
+    // Send commit to finalize any pending transcript
+    if (this.ws?.readyState === WebSocket.OPEN) {
+      this.ws.send(JSON.stringify({
+        message_type: 'input_audio_chunk',
+        audio_base_64: '',
+        commit: true,
+      }))
+    }
+
     // Wait a moment for final transcripts
-    await new Promise(resolve => setTimeout(resolve, 500))
+    await new Promise(resolve => setTimeout(resolve, 1000))
 
     this.cleanup()
     this.setState('idle')
