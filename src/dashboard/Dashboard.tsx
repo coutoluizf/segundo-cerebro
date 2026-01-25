@@ -10,6 +10,22 @@ import { Brain, Settings, LayoutGrid, LayoutList, Grid3X3, Sparkles } from 'luci
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
+// Key for storing view preference in localStorage
+const VIEW_COLUMNS_KEY = 'segundo-cerebro-view-columns'
+
+// Get saved columns preference or default to 2
+function getSavedColumns(): 1 | 2 | 3 {
+  try {
+    const saved = localStorage.getItem(VIEW_COLUMNS_KEY)
+    if (saved === '1' || saved === '2' || saved === '3') {
+      return parseInt(saved) as 1 | 2 | 3
+    }
+  } catch {
+    // localStorage not available
+  }
+  return 2 // Default to 2 columns (grid view)
+}
+
 export function Dashboard() {
   const [items, setItems] = useState<(VoiceItem | SearchResult)[]>([])
   const [projects, setProjects] = useState<Project[]>([])
@@ -17,8 +33,18 @@ export function Dashboard() {
   const [searchQuery, setSearchQuery] = useState('')
   const [isSearching, setIsSearching] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
-  const [columns, setColumns] = useState<1 | 2 | 3>(1) // Grid columns: 1, 2, or 3
+  const [columns, setColumns] = useState<1 | 2 | 3>(getSavedColumns)
   const { toast } = useToast()
+
+  // Save columns preference when it changes
+  const handleColumnsChange = (newColumns: 1 | 2 | 3) => {
+    setColumns(newColumns)
+    try {
+      localStorage.setItem(VIEW_COLUMNS_KEY, String(newColumns))
+    } catch {
+      // localStorage not available
+    }
+  }
 
   // Load items and projects
   const loadData = useCallback(async () => {
@@ -189,7 +215,7 @@ export function Dashboard() {
               {/* View toggle - Pill style */}
               <div className="flex items-center bg-secondary/50 rounded-full p-1">
                 <button
-                  onClick={() => setColumns(1)}
+                  onClick={() => handleColumnsChange(1)}
                   className={cn(
                     'p-2 rounded-full transition-all duration-200',
                     columns === 1
@@ -201,7 +227,7 @@ export function Dashboard() {
                   <LayoutList className="h-4 w-4" />
                 </button>
                 <button
-                  onClick={() => setColumns(2)}
+                  onClick={() => handleColumnsChange(2)}
                   className={cn(
                     'p-2 rounded-full transition-all duration-200',
                     columns === 2
@@ -213,7 +239,7 @@ export function Dashboard() {
                   <LayoutGrid className="h-4 w-4" />
                 </button>
                 <button
-                  onClick={() => setColumns(3)}
+                  onClick={() => handleColumnsChange(3)}
                   className={cn(
                     'p-2 rounded-full transition-all duration-200',
                     columns === 3
