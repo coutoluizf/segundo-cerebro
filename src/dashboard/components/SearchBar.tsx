@@ -116,13 +116,13 @@ export function SearchBar({ value, onChange, isSearching, large = false }: Searc
       {/* Search container */}
       <div
         className={cn(
-          'relative flex items-center gap-3 rounded-2xl transition-all duration-200',
+          'relative flex items-center gap-3 rounded-2xl transition-all duration-200 border',
           large ? 'px-5 py-4' : 'px-4 py-2.5',
           isListening
-            ? 'bg-red-500/10 ring-2 ring-red-500/30'
+            ? 'bg-red-500/10 border-red-500/30 ring-2 ring-red-500/30'
             : isFocused
-              ? 'bg-secondary ring-2 ring-primary/20'
-              : 'bg-secondary/50 hover:bg-secondary/70'
+              ? 'bg-secondary border-primary/30 ring-2 ring-primary/20'
+              : 'bg-secondary/50 border-border hover:bg-secondary/70 hover:border-border'
         )}
       >
         {/* Search icon */}
