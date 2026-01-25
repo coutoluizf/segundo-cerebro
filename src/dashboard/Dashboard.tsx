@@ -6,9 +6,16 @@ import { Toaster } from '@/components/ui/toaster'
 import { useToast } from '@/components/ui/use-toast'
 import { sendMessage, onItemsChanged } from '@/shared/messaging'
 import type { VoiceItem, SearchResult, Project } from '@/shared/types'
-import { Brain, Settings, LayoutGrid, LayoutList, Grid3X3, Sparkles } from 'lucide-react'
+import { Brain, Settings, LayoutGrid, LayoutList, Grid3X3, Sparkles, Sun, Moon, Monitor } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { getStoredTheme, setTheme } from '@/shared/theme'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 
 // Key for storing view preference in localStorage
 const VIEW_COLUMNS_KEY = 'segundo-cerebro-view-columns'
@@ -34,6 +41,7 @@ export function Dashboard() {
   const [isSearching, setIsSearching] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [columns, setColumns] = useState<1 | 2 | 3>(getSavedColumns)
+  const [theme, setThemeState] = useState<'light' | 'dark' | 'system'>(getStoredTheme)
   const { toast } = useToast()
 
   // Save columns preference when it changes
@@ -45,6 +53,15 @@ export function Dashboard() {
       // localStorage not available
     }
   }
+
+  // Handle theme change
+  const handleThemeChange = (newTheme: 'light' | 'dark' | 'system') => {
+    setThemeState(newTheme)
+    setTheme(newTheme)
+  }
+
+  // Get current theme icon
+  const ThemeIcon = theme === 'light' ? Sun : theme === 'dark' ? Moon : Monitor
 
   // Load items and projects
   const loadData = useCallback(async () => {
@@ -251,6 +268,42 @@ export function Dashboard() {
                   <Grid3X3 className="h-4 w-4" />
                 </button>
               </div>
+
+              {/* Theme toggle dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="rounded-full hover:bg-secondary/70"
+                  >
+                    <ThemeIcon className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="rounded-xl">
+                  <DropdownMenuItem
+                    onClick={() => handleThemeChange('light')}
+                    className={cn('rounded-lg gap-2', theme === 'light' && 'bg-primary/10')}
+                  >
+                    <Sun className="h-4 w-4" />
+                    <span>Claro</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => handleThemeChange('dark')}
+                    className={cn('rounded-lg gap-2', theme === 'dark' && 'bg-primary/10')}
+                  >
+                    <Moon className="h-4 w-4" />
+                    <span>Escuro</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => handleThemeChange('system')}
+                    className={cn('rounded-lg gap-2', theme === 'system' && 'bg-primary/10')}
+                  >
+                    <Monitor className="h-4 w-4" />
+                    <span>Sistema</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
 
               {/* Settings button */}
               <Button
