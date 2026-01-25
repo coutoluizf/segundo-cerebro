@@ -221,14 +221,8 @@ export function Dashboard() {
               </div>
             </div>
 
-            {/* Search and controls */}
+            {/* Controls only - search moved below */}
             <div className="flex items-center gap-3">
-              <SearchBar
-                value={searchQuery}
-                onChange={handleSearch}
-                isSearching={isSearching}
-              />
-
               {/* View toggle - Pill style */}
               <div className="flex items-center bg-secondary/50 rounded-full p-1">
                 <button
@@ -336,6 +330,16 @@ export function Dashboard() {
 
           {/* Main content - Items */}
           <main className="flex-1 min-w-0">
+            {/* Hero Search Bar */}
+            <div className="mb-8">
+              <SearchBar
+                value={searchQuery}
+                onChange={handleSearch}
+                isSearching={isSearching}
+                large
+              />
+            </div>
+
             {isLoading ? (
               <div className="flex flex-col items-center justify-center py-20">
                 <div className="relative">
