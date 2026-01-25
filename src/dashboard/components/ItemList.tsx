@@ -8,7 +8,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import type { VoiceItem, SearchResult, Project } from '@/shared/types'
-import { ExternalLink, Trash2, MessageSquare, Calendar, ChevronDown, FolderOpen } from 'lucide-react'
+import { ExternalLink, Trash2, MessageSquare, Calendar, ChevronDown, FolderOpen, FileText } from 'lucide-react'
 
 interface ItemListProps {
   items: (VoiceItem | SearchResult)[]
@@ -68,6 +68,7 @@ export function ItemList({ items, projects, columns = 1, onDelete, onOpen, onUpd
       {items.map((item) => {
         const project = getProject(item.projectId)
         const hasSimlarity = isSearchResult(item)
+        const isNote = item.type === 'note' || !item.url
 
         return (
           <Card key={item.id} className="overflow-hidden">
@@ -75,23 +76,47 @@ export function ItemList({ items, projects, columns = 1, onDelete, onOpen, onUpd
               {/* Header */}
               <div className="flex items-start justify-between gap-4 mb-3">
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-medium truncate">
-                    {item.title || 'Sem título'}
-                  </h3>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
-                    {item.favicon && (
-                      <img
-                        src={item.favicon}
-                        alt=""
-                        className="h-3 w-3"
-                        onError={(e) => (e.currentTarget.style.display = 'none')}
-                      />
-                    )}
-                    <span className="truncate">{getDomain(item.url)}</span>
-                    <span>•</span>
-                    <Calendar className="h-3 w-3" />
-                    <span>{formatDate(item.createdAt)}</span>
-                  </div>
+                  {isNote ? (
+                    // Note header
+                    <>
+                      <div className="flex items-center gap-2">
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-medium rounded">
+                          <FileText className="h-3 w-3" />
+                          Nota
+                        </span>
+                        {item.source && (
+                          <span className="text-xs text-muted-foreground truncate">
+                            {item.source}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                        <Calendar className="h-3 w-3" />
+                        <span>{formatDate(item.createdAt)}</span>
+                      </div>
+                    </>
+                  ) : (
+                    // Tab header
+                    <>
+                      <h3 className="font-medium truncate">
+                        {item.title || 'Sem título'}
+                      </h3>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                        {item.favicon && (
+                          <img
+                            src={item.favicon}
+                            alt=""
+                            className="h-3 w-3"
+                            onError={(e) => (e.currentTarget.style.display = 'none')}
+                          />
+                        )}
+                        <span className="truncate">{item.url ? getDomain(item.url) : ''}</span>
+                        <span>•</span>
+                        <Calendar className="h-3 w-3" />
+                        <span>{formatDate(item.createdAt)}</span>
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 {/* Similarity badge */}
@@ -162,14 +187,17 @@ export function ItemList({ items, projects, columns = 1, onDelete, onOpen, onUpd
 
                 {/* Actions */}
                 <div className="flex items-center gap-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onOpen(item.url)}
-                  >
-                    <ExternalLink className="h-4 w-4 mr-1" />
-                    Abrir
-                  </Button>
+                  {/* Only show "Abrir" button for items with URL */}
+                  {item.url && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onOpen(item.url!)}
+                    >
+                      <ExternalLink className="h-4 w-4 mr-1" />
+                      Abrir
+                    </Button>
+                  )}
                   <Button
                     variant="ghost"
                     size="sm"

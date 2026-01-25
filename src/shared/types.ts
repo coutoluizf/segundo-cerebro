@@ -3,13 +3,18 @@
  * Defines the data structures for voice items, projects, and contexts
  */
 
+// Item type: 'tab' for saved tabs, 'note' for quick notes/clipboard
+export type ItemType = 'tab' | 'note'
+
 // A saved voice item with semantic embedding
 export interface VoiceItem {
   id: string
-  url: string
+  type: ItemType // 'tab' or 'note'
+  url: string | null // null for notes without URL
   urlHash: string
   title: string | null
   favicon: string | null
+  source: string | null // Optional source for notes (e.g., "Twitter @user", "Conversa com João")
   transcription: string
   projectId: string | null
   reason: string | null

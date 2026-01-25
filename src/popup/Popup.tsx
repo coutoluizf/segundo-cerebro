@@ -2,11 +2,12 @@ import { useState, useEffect } from 'react'
 import { VoiceCapture } from './VoiceCapture'
 import { ProjectSelector } from './ProjectSelector'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Toaster } from '@/components/ui/toaster'
 import { useToast } from '@/components/ui/use-toast'
 import { sendMessage } from '@/shared/messaging'
-import type { Project } from '@/shared/types'
-import { Settings, ExternalLink, Mic, Brain } from 'lucide-react'
+import type { Project, ItemType } from '@/shared/types'
+import { Settings, ExternalLink, Mic, Brain, FileText, Globe, Clipboard } from 'lucide-react'
 
 // Permission states
 type MicPermission = 'checking' | 'granted' | 'prompt' | 'denied'
@@ -14,7 +15,10 @@ type MicPermission = 'checking' | 'granted' | 'prompt' | 'denied'
 export function Popup() {
   const [hasApiKeys, setHasApiKeys] = useState<boolean | null>(null)
   const [micPermission, setMicPermission] = useState<MicPermission>('checking')
+  const [mode, setMode] = useState<ItemType>('tab') // 'tab' or 'note'
   const [transcription, setTranscription] = useState('')
+  const [source, setSource] = useState('') // Source for notes (optional)
+  const [clipboardText, setClipboardText] = useState<string | null>(null) // Detected clipboard content
   const [selectedProject, setSelectedProject] = useState<string>('')
   const [projects, setProjects] = useState<Project[]>([])
   const [isSaving, setIsSaving] = useState(false)
@@ -44,7 +48,33 @@ export function Popup() {
 
     // Check microphone permission
     checkMicPermission()
+
+    // Check clipboard for text content
+    checkClipboard()
   }, [])
+
+  // Check clipboard for text content
+  const checkClipboard = async () => {
+    try {
+      const text = await navigator.clipboard.readText()
+      // Only show if there's meaningful text (more than 10 chars)
+      if (text && text.trim().length > 10) {
+        setClipboardText(text.trim())
+      }
+    } catch {
+      // Clipboard access denied or not available
+      console.log('[Popup] Clipboard access not available')
+    }
+  }
+
+  // Use clipboard text as transcription
+  const useClipboardText = () => {
+    if (clipboardText) {
+      setTranscription(clipboardText)
+      setMode('note') // Switch to note mode when using clipboard
+      setClipboardText(null) // Clear the notification
+    }
+  }
 
   // Check microphone permission status
   const checkMicPermission = async () => {
@@ -86,7 +116,7 @@ export function Popup() {
       toast({
         variant: 'destructive',
         title: 'Erro',
-        description: 'Grave algo antes de salvar.',
+        description: mode === 'tab' ? 'Grave algo antes de salvar.' : 'Digite ou cole algo antes de salvar.',
       })
       return
     }
@@ -97,8 +127,10 @@ export function Popup() {
       const response = await sendMessage({
         type: 'SAVE_VOICE_ITEM',
         item: {
-          url: currentTab?.url,
-          title: currentTab?.title,
+          type: mode,
+          url: mode === 'tab' ? currentTab?.url : null,
+          title: mode === 'tab' ? currentTab?.title : null,
+          source: mode === 'note' && source.trim() ? source.trim() : null,
           projectId: selectedProject || null,
         },
         transcription: transcription.trim(),
@@ -108,10 +140,11 @@ export function Popup() {
         toast({
           variant: 'success',
           title: 'Salvo!',
-          description: 'Item salvo com sucesso.',
+          description: mode === 'tab' ? 'Tab salva com sucesso.' : 'Nota salva com sucesso.',
         })
         // Reset after save
         setTranscription('')
+        setSource('')
         // Close popup after short delay
         setTimeout(() => window.close(), 1000)
       } else {
@@ -238,8 +271,50 @@ export function Popup() {
         </div>
       </div>
 
-      {/* Current tab info */}
-      {currentTab && (
+      {/* Mode toggle tabs */}
+      <div className="flex rounded-lg border p-1 bg-muted/30">
+        <button
+          onClick={() => setMode('tab')}
+          className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 text-sm rounded-md transition-colors ${
+            mode === 'tab'
+              ? 'bg-background shadow-sm font-medium'
+              : 'text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          <Globe className="h-3.5 w-3.5" />
+          Salvar Tab
+        </button>
+        <button
+          onClick={() => setMode('note')}
+          className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 text-sm rounded-md transition-colors ${
+            mode === 'note'
+              ? 'bg-background shadow-sm font-medium'
+              : 'text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          <FileText className="h-3.5 w-3.5" />
+          Nota Rápida
+        </button>
+      </div>
+
+      {/* Clipboard suggestion (only in note mode or if clipboard has content) */}
+      {clipboardText && (
+        <div
+          onClick={useClipboardText}
+          className="flex items-start gap-2 p-2 rounded-md bg-primary/10 border border-primary/20 cursor-pointer hover:bg-primary/15 transition-colors"
+        >
+          <Clipboard className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-medium text-primary">Texto copiado detectado</p>
+            <p className="text-xs text-muted-foreground truncate mt-0.5">
+              {clipboardText.substring(0, 60)}...
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Current tab info (only in tab mode) */}
+      {mode === 'tab' && currentTab && (
         <div className="text-xs text-muted-foreground truncate">
           Salvando: {currentTab.title || currentTab.url}
         </div>
@@ -249,7 +324,18 @@ export function Popup() {
       <VoiceCapture
         onTranscriptionChange={setTranscription}
         transcription={transcription}
+        placeholder={mode === 'tab' ? 'Grave ou digite sobre esta tab...' : 'Cole ou digite sua nota...'}
       />
+
+      {/* Source field (only in note mode) */}
+      {mode === 'note' && (
+        <Input
+          value={source}
+          onChange={(e) => setSource(e.target.value)}
+          placeholder="Fonte (opcional): Twitter @user, Livro X..."
+          className="text-sm"
+        />
+      )}
 
       {/* Project selector */}
       <ProjectSelector
@@ -264,7 +350,7 @@ export function Popup() {
         disabled={!transcription.trim() || isSaving}
         className="w-full"
       >
-        {isSaving ? 'Salvando...' : 'Salvar'}
+        {isSaving ? 'Salvando...' : mode === 'tab' ? 'Salvar Tab' : 'Salvar Nota'}
       </Button>
 
       <Toaster />

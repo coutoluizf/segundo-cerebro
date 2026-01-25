@@ -9,9 +9,10 @@ import { Mic, MicOff, Loader2 } from 'lucide-react'
 interface VoiceCaptureProps {
   transcription: string
   onTranscriptionChange: (text: string) => void
+  placeholder?: string
 }
 
-export function VoiceCapture({ transcription, onTranscriptionChange }: VoiceCaptureProps) {
+export function VoiceCapture({ transcription, onTranscriptionChange, placeholder }: VoiceCaptureProps) {
   const [state, setState] = useState<ScribeState>('idle')
   const [error, setError] = useState<string | null>(null)
   const scribeRef = useRef<ScribeClient | null>(null)
@@ -128,7 +129,7 @@ export function VoiceCapture({ transcription, onTranscriptionChange }: VoiceCapt
       <Textarea
         value={transcription}
         onChange={(e) => onTranscriptionChange(e.target.value)}
-        placeholder="Grave ou digite sua anotação..."
+        placeholder={placeholder || "Grave ou digite sua anotação..."}
         className="min-h-24 resize-none"
         readOnly={isRecording}
       />

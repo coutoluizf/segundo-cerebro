@@ -99,20 +99,26 @@ async function handleMessage(message: BgMessage): Promise<BgResponse<BgMessage['
         // Continue without embedding
       }
 
-      // Capture context
+      // Capture context (only for tab items)
       const context = await captureContext()
+
+      // Determine item type: 'note' if explicitly set or no URL, 'tab' otherwise
+      const itemType = message.item.type || (message.item.url === null ? 'note' : 'tab')
+      const isNote = itemType === 'note'
 
       // Save item with embedding
       const item = await saveItem(
         {
-          url: message.item.url || context.activeTab.url,
-          title: message.item.title || context.activeTab.title,
-          favicon: message.item.favicon || context.activeTab.favicon || null,
+          type: itemType,
+          url: isNote ? null : (message.item.url || context.activeTab.url),
+          title: message.item.title || (isNote ? null : context.activeTab.title),
+          favicon: isNote ? null : (message.item.favicon || context.activeTab.favicon || null),
+          source: message.item.source || null,
           transcription: message.transcription,
           projectId: message.item.projectId || null,
           reason: message.item.reason || null,
-          contextTabs: context.tabUrls,
-          contextTabCount: context.tabCount,
+          contextTabs: isNote ? [] : context.tabUrls,
+          contextTabCount: isNote ? 0 : context.tabCount,
           status: 'saved',
         },
         embedding

@@ -32,10 +32,12 @@ export async function initDatabase(): Promise<Client> {
     // Items table with vector embedding support
     `CREATE TABLE IF NOT EXISTS items (
       id TEXT PRIMARY KEY,
-      url TEXT NOT NULL,
+      type TEXT DEFAULT 'tab',
+      url TEXT,
       url_hash TEXT NOT NULL UNIQUE,
       title TEXT,
       favicon TEXT,
+      source TEXT,
       transcription TEXT NOT NULL,
       project_id TEXT,
       reason TEXT,
@@ -56,7 +58,20 @@ export async function initDatabase(): Promise<Client> {
     `CREATE INDEX IF NOT EXISTS idx_items_project ON items(project_id)`,
     `CREATE INDEX IF NOT EXISTS idx_items_created ON items(created_at DESC)`,
     `CREATE INDEX IF NOT EXISTS idx_items_status ON items(status)`,
+    `CREATE INDEX IF NOT EXISTS idx_items_type ON items(type)`,
   ])
+
+  // Migration: Add new columns if they don't exist (for existing databases)
+  try {
+    await db.execute('ALTER TABLE items ADD COLUMN type TEXT DEFAULT \'tab\'')
+  } catch {
+    // Column already exists, ignore
+  }
+  try {
+    await db.execute('ALTER TABLE items ADD COLUMN source TEXT')
+  } catch {
+    // Column already exists, ignore
+  }
 
   return db
 }
@@ -109,7 +124,8 @@ export async function saveItem(
   const database = await getDatabase()
 
   const id = generateId()
-  const urlHash = generateUrlHash(item.url)
+  // Generate hash from URL or from transcription content for notes
+  const urlHash = item.url ? generateUrlHash(item.url) : generateUrlHash(item.transcription + Date.now())
   const createdAt = Date.now()
 
   const savedItem: VoiceItem = {
@@ -122,14 +138,16 @@ export async function saveItem(
 
   await database.execute({
     sql: `INSERT OR REPLACE INTO items
-      (id, url, url_hash, title, favicon, transcription, project_id, reason, context_tabs, context_tab_count, embedding, created_at, status)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      (id, type, url, url_hash, title, favicon, source, transcription, project_id, reason, context_tabs, context_tab_count, embedding, created_at, status)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     args: [
       id,
+      item.type || 'tab',
       item.url,
       urlHash,
       item.title,
       item.favicon,
+      item.source,
       item.transcription,
       item.projectId,
       item.reason,
@@ -169,10 +187,12 @@ export async function getItems(
 
   return result.rows.map(row => ({
     id: row.id as string,
-    url: row.url as string,
+    type: (row.type as VoiceItem['type']) || 'tab',
+    url: row.url as string | null,
     urlHash: row.url_hash as string,
     title: row.title as string | null,
     favicon: row.favicon as string | null,
+    source: row.source as string | null,
     transcription: row.transcription as string,
     projectId: row.project_id as string | null,
     reason: row.reason as string | null,
@@ -209,10 +229,12 @@ export async function semanticSearch(
 
     return {
       id: row.id as string,
-      url: row.url as string,
+      type: (row.type as VoiceItem['type']) || 'tab',
+      url: row.url as string | null,
       urlHash: row.url_hash as string,
       title: row.title as string | null,
       favicon: row.favicon as string | null,
+      source: row.source as string | null,
       transcription: row.transcription as string,
       projectId: row.project_id as string | null,
       reason: row.reason as string | null,
