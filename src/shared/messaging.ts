@@ -158,21 +158,22 @@ async function handleDevMessage(message: BgMessage): Promise<unknown> {
         }
       }
 
-      // Determine item type: 'note' if no URL, 'tab' otherwise
-      const itemType = message.item.type || (message.item.url ? 'tab' : 'note')
+      // Determine item type: 'note' if explicitly set, 'tab' otherwise
+      const itemType = message.item.type || 'tab'
+      const isNote = itemType === 'note'
 
       const item = await db.saveItem(
         {
           type: itemType,
-          url: message.item.url || (itemType === 'tab' ? window.location.href : null),
-          title: message.item.title || (itemType === 'tab' ? document.title : null),
+          url: isNote ? '' : (message.item.url || window.location.href), // Empty string for notes, saveItem handles it
+          title: message.item.title || (isNote ? null : document.title),
           favicon: message.item.favicon || null,
           source: message.item.source || null,
           transcription: message.transcription,
           projectId: message.item.projectId || null,
           reason: message.item.reason || null,
           contextTabs: [],
-          contextTabCount: itemType === 'tab' ? 1 : 0,
+          contextTabCount: isNote ? 0 : 1,
           status: 'saved',
         },
         embedding

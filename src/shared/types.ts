@@ -6,11 +6,19 @@
 // Item type: 'tab' for saved tabs, 'note' for quick notes/clipboard
 export type ItemType = 'tab' | 'note'
 
+// Placeholder URL prefix for notes (since url column is NOT NULL in DB)
+export const NOTE_URL_PREFIX = 'note://local/'
+
+// Check if a URL is a note placeholder
+export function isNoteUrl(url: string): boolean {
+  return url.startsWith(NOTE_URL_PREFIX)
+}
+
 // A saved voice item with semantic embedding
 export interface VoiceItem {
   id: string
   type: ItemType // 'tab' or 'note'
-  url: string | null // null for notes without URL
+  url: string // For notes, uses 'note://local/{id}' placeholder
   urlHash: string
   title: string | null
   favicon: string | null

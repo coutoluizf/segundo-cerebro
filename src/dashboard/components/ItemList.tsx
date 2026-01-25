@@ -8,6 +8,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import type { VoiceItem, SearchResult, Project } from '@/shared/types'
+import { isNoteUrl } from '@/shared/types'
 import { ExternalLink, Trash2, MessageSquare, Calendar, ChevronDown, FolderOpen, FileText } from 'lucide-react'
 
 interface ItemListProps {
@@ -68,7 +69,7 @@ export function ItemList({ items, projects, columns = 1, onDelete, onOpen, onUpd
       {items.map((item) => {
         const project = getProject(item.projectId)
         const hasSimlarity = isSearchResult(item)
-        const isNote = item.type === 'note' || !item.url
+        const isNote = item.type === 'note' || isNoteUrl(item.url)
 
         return (
           <Card key={item.id} className="overflow-hidden">
@@ -187,12 +188,12 @@ export function ItemList({ items, projects, columns = 1, onDelete, onOpen, onUpd
 
                 {/* Actions */}
                 <div className="flex items-center gap-2">
-                  {/* Only show "Abrir" button for items with URL */}
-                  {item.url && (
+                  {/* Only show "Abrir" button for items with real URL (not notes) */}
+                  {!isNote && (
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => onOpen(item.url!)}
+                      onClick={() => onOpen(item.url)}
                     >
                       <ExternalLink className="h-4 w-4 mr-1" />
                       Abrir

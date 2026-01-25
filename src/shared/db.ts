@@ -6,7 +6,7 @@
 
 import { createClient, type Client } from '@libsql/client/web'
 import type { VoiceItem, Project, SearchResult } from './types'
-import { generateId, generateUrlHash } from './types'
+import { generateId, generateUrlHash, NOTE_URL_PREFIX } from './types'
 
 // Turso Cloud configuration
 const TURSO_URL = 'libsql://segundo-cerebro-luizcouto.aws-us-east-1.turso.io'
@@ -124,13 +124,16 @@ export async function saveItem(
   const database = await getDatabase()
 
   const id = generateId()
-  // Generate hash from URL or from transcription content for notes
-  const urlHash = item.url ? generateUrlHash(item.url) : generateUrlHash(item.transcription + Date.now())
+  // For notes, use placeholder URL since url column is NOT NULL
+  const isNote = item.type === 'note'
+  const url = isNote ? `${NOTE_URL_PREFIX}${id}` : item.url
+  const urlHash = generateUrlHash(url)
   const createdAt = Date.now()
 
   const savedItem: VoiceItem = {
     ...item,
     id,
+    url,
     urlHash,
     createdAt,
     embedding,
@@ -143,7 +146,7 @@ export async function saveItem(
     args: [
       id,
       item.type || 'tab',
-      item.url,
+      url,
       urlHash,
       item.title,
       item.favicon,
@@ -188,7 +191,7 @@ export async function getItems(
   return result.rows.map(row => ({
     id: row.id as string,
     type: (row.type as VoiceItem['type']) || 'tab',
-    url: row.url as string | null,
+    url: (row.url as string) || '', // Fallback to empty string for legacy items
     urlHash: row.url_hash as string,
     title: row.title as string | null,
     favicon: row.favicon as string | null,
@@ -230,7 +233,7 @@ export async function semanticSearch(
     return {
       id: row.id as string,
       type: (row.type as VoiceItem['type']) || 'tab',
-      url: row.url as string | null,
+      url: (row.url as string) || '', // Fallback to empty string for legacy items
       urlHash: row.url_hash as string,
       title: row.title as string | null,
       favicon: row.favicon as string | null,

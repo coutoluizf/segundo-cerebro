@@ -102,15 +102,16 @@ async function handleMessage(message: BgMessage): Promise<BgResponse<BgMessage['
       // Capture context (only for tab items)
       const context = await captureContext()
 
-      // Determine item type: 'note' if explicitly set or no URL, 'tab' otherwise
-      const itemType = message.item.type || (message.item.url === null ? 'note' : 'tab')
+      // Determine item type: 'note' if explicitly set, 'tab' otherwise
+      const itemType = message.item.type || 'tab'
       const isNote = itemType === 'note'
 
       // Save item with embedding
+      // Note: for notes, db.saveItem will generate a placeholder URL
       const item = await saveItem(
         {
           type: itemType,
-          url: isNote ? null : (message.item.url || context.activeTab.url),
+          url: isNote ? '' : (message.item.url || context.activeTab.url), // Empty string for notes, saveItem handles it
           title: message.item.title || (isNote ? null : context.activeTab.title),
           favicon: isNote ? null : (message.item.favicon || context.activeTab.favicon || null),
           source: message.item.source || null,

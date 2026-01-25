@@ -128,7 +128,7 @@ export function Popup() {
         type: 'SAVE_VOICE_ITEM',
         item: {
           type: mode,
-          url: mode === 'tab' ? currentTab?.url : null,
+          url: mode === 'tab' ? currentTab?.url : undefined, // undefined for notes, saveItem will handle
           title: mode === 'tab' ? currentTab?.title : null,
           source: mode === 'note' && source.trim() ? source.trim() : null,
           projectId: selectedProject || null,
