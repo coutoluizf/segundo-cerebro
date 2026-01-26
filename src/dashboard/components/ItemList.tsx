@@ -19,7 +19,7 @@ interface ItemListProps {
   projects: Project[]
   columns?: 1 | 2 | 3 // Number of columns in grid view
   onDelete: (id: string) => void
-  onOpen: (url: string) => void
+  onOpen: (url: string, projectId?: string | null) => void
   onUpdateProject: (itemId: string, projectId: string | null) => void
   onItemClick?: (item: VoiceItem | SearchResult) => void // Click to expand item
 }
@@ -290,7 +290,7 @@ export function ItemList({ items, projects, columns = 1, onDelete, onOpen, onUpd
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => onOpen(item.url)}
+                    onClick={() => onOpen(item.url, item.projectId)}
                     className="h-8 px-2 rounded-lg text-xs hover:bg-primary/10 hover:text-primary"
                   >
                     <ExternalLink className="h-3.5 w-3.5 mr-1" />

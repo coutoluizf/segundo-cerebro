@@ -27,6 +27,7 @@ export function Options() {
   const [language, setLanguage] = useState('pt-BR')
   const [autoSummarize, setAutoSummarize] = useState(true)
   const [closeTabOnSave, setCloseTabOnSave] = useState(true)
+  const [useTabGroups, setUseTabGroups] = useState(true)
   const { toast } = useToast()
 
   // Load current settings
@@ -47,6 +48,7 @@ export function Options() {
       setLanguage(settings.language)
       setAutoSummarize(settings.autoSummarize)
       setCloseTabOnSave(settings.closeTabOnSave)
+      setUseTabGroups(settings.useTabGroups)
     })
   }, [])
 
@@ -126,6 +128,27 @@ export function Options() {
         description: enabled
           ? 'A tab será fechada automaticamente após salvar.'
           : 'A tab permanecerá aberta após salvar.',
+      })
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Erro',
+        description: 'Erro ao salvar configuração.',
+      })
+    }
+  }
+
+  // Handle use tab groups toggle
+  const handleUseTabGroupsChange = async (enabled: boolean) => {
+    setUseTabGroups(enabled)
+    try {
+      await sendMessage({ type: 'SET_SETTINGS', settings: { useTabGroups: enabled } })
+      toast({
+        variant: 'success',
+        title: enabled ? 'Grupos de tabs ativado' : 'Grupos de tabs desativado',
+        description: enabled
+          ? 'Tabs serão organizadas em grupos por projeto.'
+          : 'Tabs não serão agrupadas automaticamente.',
       })
     } catch (error) {
       toast({
@@ -349,6 +372,21 @@ export function Options() {
                   id="close-tab"
                   checked={closeTabOnSave}
                   onCheckedChange={handleCloseTabOnSaveChange}
+                />
+              </div>
+
+              {/* Use tab groups toggle */}
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="tab-groups">Organizar em grupos por projeto</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Agrupa tabs automaticamente pelo projeto ao salvar ou abrir lembretes.
+                  </p>
+                </div>
+                <Switch
+                  id="tab-groups"
+                  checked={useTabGroups}
+                  onCheckedChange={handleUseTabGroupsChange}
                 />
               </div>
             </CardContent>

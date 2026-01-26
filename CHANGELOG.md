@@ -2,6 +2,22 @@
 
 Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 
+## [0.5.0] - 2026-01-26
+
+### Adicionado
+- **Tab Groups por Projeto**: Tabs são organizadas automaticamente em grupos do Chrome por projeto
+- **Grupos ao salvar**: Ao salvar tab (sem fechar), adiciona ao grupo do projeto
+- **Grupos em lembretes**: Ao disparar lembrete, abre tab no grupo do projeto
+- **Grupos ao abrir**: Ao clicar "Abrir" no dashboard, abre no grupo do projeto
+- **Setting "Organizar em grupos"**: Toggle em Configurações para habilitar/desabilitar (default: ON)
+- **Mapeamento de cores**: Cores dos projetos mapeadas para cores do Chrome (blue, green, purple, orange, red, pink, cyan, yellow, grey)
+
+### Técnico
+- Nova permissão: `tabGroups` para gerenciar grupos de abas
+- Novo setting: `useTabGroups: boolean` (default: true)
+- Nova mensagem: `OPEN_ITEM_URL` para abrir URLs com suporte a grupos
+- Funções `findOrCreateTabGroup` e `mapToTabGroupColor` no background
+
 ## [0.4.2] - 2026-01-26
 
 ### Melhorado

@@ -53,7 +53,7 @@ interface ItemDetailProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onDelete: (id: string) => void
-  onOpen: (url: string) => void
+  onOpen: (url: string, projectId?: string | null) => void
   onUpdateProject: (itemId: string, projectId: string | null) => void
   onNavigate: (item: VoiceItem | SearchResult) => void
   onUpdate?: (itemId: string, updates: { title?: string; transcription?: string; aiSummary?: string }) => Promise<void>
@@ -549,7 +549,7 @@ export function ItemDetail({
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => onOpen(item.url)}
+                  onClick={() => onOpen(item.url, item.projectId)}
                   className="rounded-lg"
                 >
                   <ExternalLink className="h-4 w-4 mr-2" />

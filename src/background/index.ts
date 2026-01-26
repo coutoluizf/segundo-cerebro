@@ -86,6 +86,86 @@ async function playReminderSound(): Promise<void> {
 }
 
 /**
+ * Map hex color to Chrome tab group color
+ * Chrome supports: grey, blue, red, yellow, green, pink, purple, cyan, orange
+ */
+function mapToTabGroupColor(hexColor: string | null): chrome.tabGroups.ColorEnum {
+  if (!hexColor) return 'grey'
+
+  // Map common hex colors to Chrome tab group colors
+  const colorMap: Record<string, chrome.tabGroups.ColorEnum> = {
+    '#3B82F6': 'blue',    // Blue
+    '#2563EB': 'blue',
+    '#1D4ED8': 'blue',
+    '#10B981': 'green',   // Green/Emerald
+    '#059669': 'green',
+    '#22C55E': 'green',
+    '#8B5CF6': 'purple',  // Purple/Violet
+    '#7C3AED': 'purple',
+    '#A855F7': 'purple',
+    '#F59E0B': 'orange',  // Amber/Orange
+    '#F97316': 'orange',
+    '#EA580C': 'orange',
+    '#EF4444': 'red',     // Red
+    '#DC2626': 'red',
+    '#B91C1C': 'red',
+    '#6B7280': 'grey',    // Gray
+    '#9CA3AF': 'grey',
+    '#EC4899': 'pink',    // Pink
+    '#DB2777': 'pink',
+    '#06B6D4': 'cyan',    // Cyan
+    '#0891B2': 'cyan',
+    '#EAB308': 'yellow',  // Yellow
+    '#CA8A04': 'yellow',
+  }
+
+  // Direct match
+  const upperHex = hexColor.toUpperCase()
+  if (colorMap[upperHex]) {
+    return colorMap[upperHex]
+  }
+
+  // Fallback: try to detect color family from hex
+  const r = parseInt(hexColor.slice(1, 3), 16)
+  const g = parseInt(hexColor.slice(3, 5), 16)
+  const b = parseInt(hexColor.slice(5, 7), 16)
+
+  // Simple heuristics based on RGB dominance
+  if (r > 200 && g < 100 && b < 100) return 'red'
+  if (r < 100 && g > 150 && b < 100) return 'green'
+  if (r < 100 && g < 100 && b > 200) return 'blue'
+  if (r > 200 && g > 150 && b < 100) return 'orange'
+  if (r > 200 && g > 200 && b < 100) return 'yellow'
+  if (r > 150 && g < 100 && b > 150) return 'purple'
+  if (r > 200 && g < 150 && b > 150) return 'pink'
+  if (r < 100 && g > 150 && b > 150) return 'cyan'
+
+  return 'grey'
+}
+
+/**
+ * Find or create a tab group for a project
+ */
+async function findOrCreateTabGroup(
+  projectName: string,
+  windowId: number
+): Promise<number> {
+  // Query existing groups in the window
+  const groups = await chrome.tabGroups.query({ windowId })
+
+  // Find group with matching title
+  const existingGroup = groups.find((g) => g.title === projectName)
+  if (existingGroup) {
+    console.log(`[Background] Found existing tab group: ${projectName}`)
+    return existingGroup.id
+  }
+
+  // No existing group - we'll create one after adding the tab
+  console.log(`[Background] Will create new tab group: ${projectName}`)
+  return -1 // Signal to create new group
+}
+
+/**
  * Handle a triggered reminder alarm
  */
 async function handleReminderAlarm(itemId: string): Promise<void> {
@@ -103,15 +183,51 @@ async function handleReminderAlarm(itemId: string): Promise<void> {
 
   // Only open tab for 'tab' type items (not notes)
   if (item.type === 'tab' && item.url) {
+    // Get project info if item has a project
+    let project = null
+    if (item.projectId) {
+      const projects = await getProjects()
+      project = projects.find((p) => p.id === item.projectId)
+    }
+
+    // Get current window
+    const currentWindow = await chrome.windows.getCurrent()
+
     // Open the saved URL in a new tab
-    await chrome.tabs.create({ url: item.url })
+    const newTab = await chrome.tabs.create({ url: item.url })
+
+    // Add tab to project group if project exists and setting is enabled
+    const settings = await getSettings()
+    if (settings.useTabGroups && project && newTab.id && currentWindow.id) {
+      try {
+        const groupId = await findOrCreateTabGroup(project.name, currentWindow.id)
+
+        if (groupId > 0) {
+          // Add to existing group
+          await chrome.tabs.group({ tabIds: newTab.id, groupId })
+        } else {
+          // Create new group with the tab
+          const newGroupId = await chrome.tabs.group({ tabIds: newTab.id })
+          // Set group title and color
+          await chrome.tabGroups.update(newGroupId, {
+            title: project.name,
+            color: mapToTabGroupColor(project.color),
+          })
+          console.log(`[Background] Created tab group: ${project.name}`)
+        }
+      } catch (error) {
+        console.error('[Background] Error managing tab group:', error)
+        // Tab was still opened, just not grouped
+      }
+    }
   }
 
   // Show notification
+  const projectInfo = item.projectId ? ' 📁' : ''
   await chrome.notifications.create(`reminder-${itemId}`, {
     type: 'basic',
     iconUrl: chrome.runtime.getURL('icons/icon128.png'),
-    title: 'Segundo Cérebro - Lembrete',
+    title: `Segundo Cérebro - Lembrete${projectInfo}`,
     message: item.title || item.transcription.substring(0, 100),
     priority: 2,
   })
@@ -423,6 +539,38 @@ async function handleMessage(message: BgMessage): Promise<BgResponse<BgMessage['
         }
       }
 
+      // If NOT closing the tab, add it to project group if enabled
+      if (!isNote && !shouldCloseTab && settings.useTabGroups && message.item.projectId) {
+        try {
+          const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true })
+          if (activeTab?.id && activeTab.windowId) {
+            // Get project info
+            const projects = await getProjects()
+            const project = projects.find((p) => p.id === message.item.projectId)
+
+            if (project) {
+              const groupId = await findOrCreateTabGroup(project.name, activeTab.windowId)
+
+              if (groupId > 0) {
+                // Add to existing group
+                await chrome.tabs.group({ tabIds: activeTab.id, groupId })
+                console.log(`[Background] Added tab to existing group: ${project.name}`)
+              } else {
+                // Create new group with the tab
+                const newGroupId = await chrome.tabs.group({ tabIds: activeTab.id })
+                await chrome.tabGroups.update(newGroupId, {
+                  title: project.name,
+                  color: mapToTabGroupColor(project.color),
+                })
+                console.log(`[Background] Created tab group: ${project.name}`)
+              }
+            }
+          }
+        } catch (error) {
+          console.error('[Background] Error adding tab to group:', error)
+        }
+      }
+
       broadcastItemsChanged()
       return { success: true, item }
     }
@@ -586,6 +734,48 @@ async function handleMessage(message: BgMessage): Promise<BgResponse<BgMessage['
     case 'SET_SETTINGS': {
       const updatedSettings = await saveSettings(message.settings)
       return { success: true, settings: updatedSettings }
+    }
+
+    case 'OPEN_ITEM_URL': {
+      const { url, projectId } = message
+      const settings = await getSettings()
+
+      // Get current window
+      const currentWindow = await chrome.windows.getCurrent()
+
+      // Create the new tab
+      const newTab = await chrome.tabs.create({ url })
+
+      // Add to project group if enabled and has project
+      if (settings.useTabGroups && projectId && newTab.id && currentWindow.id) {
+        try {
+          // Get project info
+          const projects = await getProjects()
+          const project = projects.find((p) => p.id === projectId)
+
+          if (project) {
+            const groupId = await findOrCreateTabGroup(project.name, currentWindow.id)
+
+            if (groupId > 0) {
+              // Add to existing group
+              await chrome.tabs.group({ tabIds: newTab.id, groupId })
+              console.log(`[Background] Opened tab in existing group: ${project.name}`)
+            } else {
+              // Create new group with the tab
+              const newGroupId = await chrome.tabs.group({ tabIds: newTab.id })
+              await chrome.tabGroups.update(newGroupId, {
+                title: project.name,
+                color: mapToTabGroupColor(project.color),
+              })
+              console.log(`[Background] Opened tab in new group: ${project.name}`)
+            }
+          }
+        } catch (error) {
+          console.error('[Background] Error adding opened tab to group:', error)
+        }
+      }
+
+      return { success: true }
     }
 
     default:

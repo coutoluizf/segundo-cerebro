@@ -8,6 +8,7 @@ export interface UserSettings {
   language: string // Language for AI summaries (e.g., 'pt-BR', 'en-US')
   autoSummarize: boolean // Whether to auto-generate AI summaries for tabs
   closeTabOnSave: boolean // Whether to close the tab after saving (only applies to tabs, not notes)
+  useTabGroups: boolean // Whether to organize tabs in Chrome tab groups by project
 }
 
 // Default settings
@@ -15,6 +16,7 @@ const DEFAULT_SETTINGS: UserSettings = {
   language: 'pt-BR',
   autoSummarize: true,
   closeTabOnSave: true, // Default to closing tab after save
+  useTabGroups: true, // Default to organizing tabs in groups
 }
 
 // Storage key

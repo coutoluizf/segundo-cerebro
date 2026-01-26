@@ -51,6 +51,7 @@ export type BgMessage =
   | { type: 'CHECK_API_KEYS' }
   | { type: 'GET_SETTINGS' }
   | { type: 'SET_SETTINGS'; settings: Partial<UserSettings> }
+  | { type: 'OPEN_ITEM_URL'; url: string; projectId: string | null }
 
 // Response types based on message type
 export type BgResponse<T extends BgMessage['type']> =
@@ -71,6 +72,7 @@ export type BgResponse<T extends BgMessage['type']> =
   T extends 'CHECK_API_KEYS' ? { hasKeys: boolean; elevenlabs: boolean; openai: boolean } :
   T extends 'GET_SETTINGS' ? UserSettings :
   T extends 'SET_SETTINGS' ? { success: boolean; settings?: UserSettings; error?: string } :
+  T extends 'OPEN_ITEM_URL' ? { success: boolean } :
   never
 
 // Helper function to send typed messages to background

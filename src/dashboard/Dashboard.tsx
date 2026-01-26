@@ -230,9 +230,9 @@ export function Dashboard() {
     }
   }
 
-  // Open item URL
-  const handleOpen = (url: string) => {
-    chrome.tabs.create({ url })
+  // Open item URL (with tab group support)
+  const handleOpen = (url: string, projectId?: string | null) => {
+    sendMessage({ type: 'OPEN_ITEM_URL', url, projectId: projectId || null })
   }
 
   // Handle item click - open detail drawer
