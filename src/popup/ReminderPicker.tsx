@@ -113,7 +113,9 @@ export function ReminderPicker({ value, onChange, disabled }: ReminderPickerProp
         )}
       >
         <div className="flex items-center gap-2">
-          <Clock className="h-4 w-4" />
+          <div className="p-1 rounded-md bg-primary/10">
+            <Clock className="h-4 w-4 text-primary" />
+          </div>
           <span>Adicionar lembrete</span>
         </div>
         {isExpanded ? (

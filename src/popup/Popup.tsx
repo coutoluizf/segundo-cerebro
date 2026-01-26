@@ -125,11 +125,12 @@ export function Popup() {
 
   // Handle save action
   const handleSave = async () => {
-    if (!transcription.trim()) {
+    // Transcription is required for notes, optional for tabs (since AI generates summary)
+    if (mode === 'note' && !transcription.trim()) {
       toast({
         variant: 'destructive',
         title: 'Erro',
-        description: mode === 'tab' ? 'Grave algo antes de salvar.' : 'Digite ou cole algo antes de salvar.',
+        description: 'Digite ou cole algo antes de salvar.',
       })
       return
     }
@@ -204,7 +205,7 @@ export function Popup() {
   // Loading state
   if (hasApiKeys === null || micPermission === 'checking') {
     return (
-      <div className="w-80 p-5 gradient-mesh flex flex-col items-center justify-center min-h-[200px]">
+      <div className="w-[400px] p-5 gradient-mesh flex flex-col items-center justify-center min-h-[200px]">
         <div className="relative">
           <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full animate-pulse" />
           <Sparkles className="h-6 w-6 text-primary animate-pulse relative" />
@@ -217,7 +218,7 @@ export function Popup() {
   // No API keys configured
   if (!hasApiKeys) {
     return (
-      <div className="w-80 p-5 gradient-mesh space-y-5">
+      <div className="w-[400px] p-5 gradient-mesh space-y-5">
         {/* Logo */}
         <div className="flex items-center gap-3">
           <div className="relative">
@@ -251,7 +252,7 @@ export function Popup() {
   // Microphone permission not granted - show setup screen
   if (micPermission !== 'granted') {
     return (
-      <div className="w-80 p-5 gradient-mesh space-y-5">
+      <div className="w-[400px] p-5 gradient-mesh space-y-5">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -308,7 +309,7 @@ export function Popup() {
 
   // Microphone granted - show full recording UI
   return (
-    <div className="w-80 p-5 gradient-mesh space-y-4">
+    <div className="w-[400px] p-5 gradient-mesh space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -387,11 +388,11 @@ export function Popup() {
         </div>
       )}
 
-      {/* Voice capture */}
+      {/* Voice capture - optional for tabs (AI generates summary), required for notes */}
       <VoiceCapture
         onTranscriptionChange={setTranscription}
         transcription={transcription}
-        placeholder={mode === 'tab' ? 'Grave ou digite sobre esta tab...' : 'Cole ou digite sua nota...'}
+        placeholder={mode === 'tab' ? 'Comentário opcional (AI gera resumo)...' : 'Cole ou digite sua nota...'}
       />
 
       {/* Source field (only in note mode) */}
@@ -420,10 +421,10 @@ export function Popup() {
         />
       )}
 
-      {/* Save button */}
+      {/* Save button - transcription required only for notes, optional for tabs */}
       <Button
         onClick={handleSave}
-        disabled={!transcription.trim() || isSaving}
+        disabled={(mode === 'note' && !transcription.trim()) || isSaving}
         className="w-full h-11 rounded-xl text-sm font-medium"
       >
         {isSaving ? (

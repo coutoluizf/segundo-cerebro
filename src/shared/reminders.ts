@@ -82,6 +82,21 @@ export async function getScheduledReminders(): Promise<{ itemId: string; schedul
 export function formatReminderTime(timestamp: number): string {
   const date = new Date(timestamp)
   const now = new Date()
+  const diffMs = timestamp - now.getTime()
+  const diffMinutes = Math.round(diffMs / (1000 * 60))
+
+  // For very short times (< 2 hours), show relative time
+  if (diffMinutes > 0 && diffMinutes < 120) {
+    if (diffMinutes < 60) {
+      return `em ${diffMinutes} min`
+    }
+    const hours = Math.floor(diffMinutes / 60)
+    const mins = diffMinutes % 60
+    if (mins === 0) {
+      return `em ${hours}h`
+    }
+    return `em ${hours}h ${mins}min`
+  }
 
   // Day of week abbreviations in Portuguese
   const dayNames = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb']
@@ -129,6 +144,15 @@ export function formatReminderTime(timestamp: number): string {
 export function getReminderPresets(): { label: string; value: number }[] {
   const now = new Date()
 
+  // In 1 minute (for testing)
+  const oneMinute = new Date(now.getTime() + 1 * 60 * 1000)
+
+  // In 15 minutes
+  const fifteenMinutes = new Date(now.getTime() + 15 * 60 * 1000)
+
+  // In 1 hour
+  const oneHour = new Date(now.getTime() + 60 * 60 * 1000)
+
   // Tomorrow at 9 AM
   const tomorrow9am = new Date(now)
   tomorrow9am.setDate(tomorrow9am.getDate() + 1)
@@ -145,6 +169,9 @@ export function getReminderPresets(): { label: string; value: number }[] {
   oneWeek.setDate(oneWeek.getDate() + 7)
 
   return [
+    { label: 'Em 1 minuto', value: oneMinute.getTime() },
+    { label: 'Em 15 minutos', value: fifteenMinutes.getTime() },
+    { label: 'Em 1 hora', value: oneHour.getTime() },
     { label: 'Amanhã (9h)', value: tomorrow9am.getTime() },
     { label: 'Próxima segunda (9h)', value: nextMonday.getTime() },
     { label: 'Em 1 semana', value: oneWeek.getTime() },
