@@ -128,8 +128,8 @@ export function ReminderPicker({ value, onChange, disabled }: ReminderPickerProp
       {/* Expanded options */}
       {isExpanded && (
         <div className="rounded-xl border border-border/50 bg-background/80 backdrop-blur overflow-hidden animate-in slide-in-from-top-2 duration-200">
-          {/* Preset options */}
-          <div className="p-2 space-y-1">
+          {/* Preset options - scrollable container */}
+          <div className="p-2 space-y-1 max-h-[280px] overflow-y-auto">
             {presets.map((preset, index) => (
               <button
                 key={index}

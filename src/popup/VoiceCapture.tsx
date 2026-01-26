@@ -13,8 +13,8 @@ interface VoiceCaptureProps {
 }
 
 /**
- * VoiceCapture - Recording interface with real-time transcription
- * Features a luminous mic button with pulse animation while recording
+ * VoiceCapture - Integrated voice + text input component
+ * Features a textarea with embedded mic button for seamless voice/text entry
  */
 export function VoiceCapture({ transcription, onTranscriptionChange, placeholder }: VoiceCaptureProps) {
   const [state, setState] = useState<ScribeState>('idle')
@@ -93,85 +93,92 @@ export function VoiceCapture({ transcription, onTranscriptionChange, placeholder
   const isProcessing = state === 'processing'
 
   return (
-    <div className="space-y-3">
-      {/* Mic button with glow effect */}
-      <div className="flex justify-center">
+    <div className="space-y-2">
+      {/* Integrated textarea with mic button */}
+      <div className="relative">
+        {/* Textarea */}
+        <Textarea
+          value={transcription}
+          onChange={(e) => onTranscriptionChange(e.target.value)}
+          placeholder={placeholder || "Digite ou grave sua anotação..."}
+          className={cn(
+            'min-h-24 resize-none rounded-xl pr-12',
+            'bg-secondary/50 border transition-all duration-200',
+            // Recording state - pulsing red border
+            isRecording
+              ? 'border-red-500/50 bg-red-500/5 ring-2 ring-red-500/20'
+              : 'border-border/40 focus-visible:border-primary/30',
+            'focus-visible:ring-2 focus-visible:ring-primary/10',
+            'placeholder:text-muted-foreground/60'
+          )}
+          readOnly={isRecording}
+        />
+
+        {/* Mic button - embedded in textarea */}
         <button
           onClick={toggleRecording}
           disabled={isConnecting || isProcessing}
+          type="button"
           className={cn(
-            'relative h-16 w-16 rounded-full transition-all duration-300',
+            'absolute top-3 right-3 h-8 w-8 rounded-lg',
             'flex items-center justify-center',
+            'transition-all duration-200',
             'disabled:opacity-50 disabled:cursor-not-allowed',
-            isRecording
-              ? 'bg-red-500 hover:bg-red-600 text-white'
-              : 'bg-primary hover:bg-primary/90 text-primary-foreground hover:scale-105'
+            // Idle state - subtle orange
+            !isRecording && !isConnecting && !isProcessing && 'bg-primary/10 hover:bg-primary/20 text-primary hover:scale-105',
+            // Recording state - red with glow
+            isRecording && 'bg-red-500 text-white shadow-lg shadow-red-500/40',
+            // Processing state
+            (isConnecting || isProcessing) && 'bg-secondary text-muted-foreground'
           )}
+          title={isRecording ? 'Clique para parar' : 'Gravar por voz'}
         >
-          {/* Glow effect */}
-          <div
-            className={cn(
-              'absolute inset-0 rounded-full blur-xl transition-opacity duration-300',
-              isRecording ? 'bg-red-500/50 opacity-100' : 'bg-primary/30 opacity-0 group-hover:opacity-100'
-            )}
-          />
-
           {/* Pulse ring while recording */}
           {isRecording && (
             <>
-              <div className="absolute inset-0 rounded-full border-2 border-red-500 recording-pulse" />
-              <div className="absolute inset-[-8px] rounded-full border border-red-500/30 recording-pulse" style={{ animationDelay: '0.5s' }} />
+              <div className="absolute inset-0 rounded-lg border border-red-500 recording-pulse" />
+              <div className="absolute inset-[-2px] rounded-lg border border-red-500/40 recording-pulse" style={{ animationDelay: '0.75s' }} />
             </>
           )}
 
           {/* Icon */}
-          <div className="relative">
+          <div className="relative z-10">
             {isConnecting || isProcessing ? (
-              <Loader2 className="h-6 w-6 animate-spin" />
+              <Loader2 className="h-4 w-4 animate-spin" />
             ) : isRecording ? (
-              <MicOff className="h-6 w-6" />
+              <MicOff className="h-4 w-4" />
             ) : (
-              <Mic className="h-6 w-6" />
+              <Mic className="h-4 w-4" />
             )}
           </div>
         </button>
       </div>
 
-      {/* Status text */}
-      <div className="text-center text-xs">
-        {isConnecting && <span className="text-muted-foreground">Conectando...</span>}
-        {isProcessing && <span className="text-muted-foreground">Processando...</span>}
-        {isRecording && (
-          <span className="text-red-500 font-medium">
-            <span className="inline-block h-1.5 w-1.5 rounded-full bg-red-500 mr-1.5 animate-pulse" />
-            Gravando... Toque para parar
-          </span>
-        )}
-        {state === 'idle' && !transcription && (
-          <span className="text-muted-foreground">Toque para gravar ou digite abaixo</span>
-        )}
-        {state === 'idle' && transcription && (
-          <span className="text-muted-foreground">Pronto para salvar</span>
-        )}
-        {state === 'error' && error && (
-          <span className="text-destructive text-xs">{error}</span>
-        )}
-      </div>
-
-      {/* Transcription/text input */}
-      <Textarea
-        value={transcription}
-        onChange={(e) => onTranscriptionChange(e.target.value)}
-        placeholder={placeholder || "Grave ou digite sua anotação..."}
-        className={cn(
-          'min-h-20 resize-none rounded-xl',
-          'bg-secondary/50 border-0',
-          'focus-visible:ring-1 focus-visible:ring-primary/30',
-          'placeholder:text-muted-foreground/50',
-          isRecording && 'ring-1 ring-red-500/30 bg-red-500/5'
-        )}
-        readOnly={isRecording}
-      />
+      {/* Status text - compact and only when relevant */}
+      {(isRecording || isConnecting || isProcessing || error) && (
+        <div className="flex items-center justify-between text-xs px-1">
+          <div className="flex items-center gap-1.5">
+            {isConnecting && (
+              <span className="text-muted-foreground">Conectando...</span>
+            )}
+            {isProcessing && (
+              <span className="text-muted-foreground">Processando...</span>
+            )}
+            {isRecording && (
+              <>
+                <span className="inline-block h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse" />
+                <span className="text-red-500 font-medium">Gravando</span>
+              </>
+            )}
+            {error && (
+              <span className="text-destructive">{error}</span>
+            )}
+          </div>
+          {isRecording && (
+            <span className="text-muted-foreground text-[10px]">Clique no microfone para parar</span>
+          )}
+        </div>
+      )}
     </div>
   )
 }

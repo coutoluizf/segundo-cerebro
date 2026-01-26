@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Toaster } from '@/components/ui/toaster'
 import { useToast } from '@/components/ui/use-toast'
 import { sendMessage } from '@/shared/messaging'
+import { getSettings, saveSettings } from '@/shared/settings'
 import type { Project, ItemType } from '@/shared/types'
 import { Settings, ExternalLink, Mic, Brain, FileText, Globe, Clipboard, Sparkles, ChevronRight, X, LayoutDashboard } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -27,6 +28,7 @@ export function Popup() {
   const [selectedProject, setSelectedProject] = useState<string>('')
   const [projects, setProjects] = useState<Project[]>([])
   const [reminderAt, setReminderAt] = useState<number | null>(null) // Reminder timestamp
+  const [closeTabOnSave, setCloseTabOnSave] = useState<boolean>(true) // Override for global setting
   const [isSaving, setIsSaving] = useState(false)
   const [currentTab, setCurrentTab] = useState<{
     url: string
@@ -57,6 +59,11 @@ export function Popup() {
     // Get item count for footer link
     sendMessage({ type: 'GET_ITEMS' }).then((response) => {
       setItemCount(response.items.length)
+    })
+
+    // Load global closeTabOnSave setting
+    getSettings().then((settings) => {
+      setCloseTabOnSave(settings.closeTabOnSave)
     })
 
     // Check microphone permission
@@ -149,6 +156,7 @@ export function Popup() {
           reminderAt: mode === 'tab' ? reminderAt : null, // Reminders only for tabs
         },
         transcription: transcription.trim(),
+        closeTabOnSave: mode === 'tab' ? closeTabOnSave : undefined, // Pass override for tab mode
       })
 
       if (response.success) {
@@ -202,10 +210,18 @@ export function Popup() {
     chrome.tabs.create({ url: chrome.runtime.getURL('src/dashboard/index.html') })
   }
 
+  // Toggle close tab on save (also saves to global settings)
+  const toggleCloseTabOnSave = async () => {
+    const newValue = !closeTabOnSave
+    setCloseTabOnSave(newValue)
+    // Save to global settings so it persists
+    await saveSettings({ closeTabOnSave: newValue })
+  }
+
   // Loading state
   if (hasApiKeys === null || micPermission === 'checking') {
     return (
-      <div className="w-[400px] p-5 gradient-mesh flex flex-col items-center justify-center min-h-[200px]">
+      <div className="w-[550px] p-5 gradient-mesh flex flex-col items-center justify-center min-h-[200px]">
         <div className="relative">
           <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full animate-pulse" />
           <Sparkles className="h-6 w-6 text-primary animate-pulse relative" />
@@ -218,7 +234,7 @@ export function Popup() {
   // No API keys configured
   if (!hasApiKeys) {
     return (
-      <div className="w-[400px] p-5 gradient-mesh space-y-5">
+      <div className="w-[550px] p-5 gradient-mesh space-y-5">
         {/* Logo */}
         <div className="flex items-center gap-3">
           <div className="relative">
@@ -252,7 +268,7 @@ export function Popup() {
   // Microphone permission not granted - show setup screen
   if (micPermission !== 'granted') {
     return (
-      <div className="w-[400px] p-5 gradient-mesh space-y-5">
+      <div className="w-[550px] p-5 gradient-mesh space-y-5">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -309,7 +325,7 @@ export function Popup() {
 
   // Microphone granted - show full recording UI
   return (
-    <div className="w-[400px] p-5 gradient-mesh space-y-4">
+    <div className="w-[550px] h-[600px] p-5 gradient-mesh space-y-4 overflow-y-auto">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -405,14 +421,7 @@ export function Popup() {
         />
       )}
 
-      {/* Project selector */}
-      <ProjectSelector
-        projects={projects}
-        selectedProject={selectedProject}
-        onProjectChange={setSelectedProject}
-      />
-
-      {/* Reminder picker (only for tabs, not notes) */}
+      {/* Reminder picker (only for tabs, not notes) - moved BEFORE project selector */}
       {mode === 'tab' && (
         <ReminderPicker
           value={reminderAt}
@@ -421,37 +430,71 @@ export function Popup() {
         />
       )}
 
-      {/* Save button - transcription required only for notes, optional for tabs */}
-      <Button
-        onClick={handleSave}
-        disabled={(mode === 'note' && !transcription.trim()) || isSaving}
-        className="w-full h-11 rounded-xl text-sm font-medium"
-      >
-        {isSaving ? (
-          <>
-            <Sparkles className="h-4 w-4 mr-2 animate-pulse" />
-            Salvando...
-          </>
-        ) : mode === 'tab' ? (
-          'Salvar Tab'
-        ) : (
-          'Salvar Nota'
-        )}
-      </Button>
+      {/* Project, Save button, and footer - with spacing from reminder picker */}
+      <div className="space-y-4 pt-6">
+        {/* Project selector */}
+        <ProjectSelector
+          projects={projects}
+          selectedProject={selectedProject}
+          onProjectChange={setSelectedProject}
+        />
 
-      {/* Footer link to dashboard */}
-      {itemCount > 0 && (
-        <button
-          onClick={openDashboard}
-          className="w-full flex items-center justify-center gap-2 py-2 text-sm text-muted-foreground hover:text-primary transition-colors group"
+        {/* Save button */}
+        <Button
+          onClick={handleSave}
+          disabled={(mode === 'note' && !transcription.trim()) || isSaving}
+          className="w-full h-11 rounded-xl text-sm font-medium"
         >
-          <LayoutDashboard className="h-4 w-4" />
-          <span>
-            Ver seus <span className="font-medium text-foreground">{itemCount}</span> {itemCount === 1 ? 'item salvo' : 'itens salvos'}
-          </span>
-          <ChevronRight className="h-4 w-4 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
-        </button>
-      )}
+          {isSaving ? (
+            <>
+              <Sparkles className="h-4 w-4 mr-2 animate-pulse" />
+              Salvando...
+            </>
+          ) : mode === 'tab' ? (
+            'Salvar Tab'
+          ) : (
+            'Salvar Nota'
+          )}
+        </Button>
+
+        {/* Close tab toggle - only show in tab mode, friendly switch design */}
+        {mode === 'tab' && (
+          <button
+            onClick={toggleCloseTabOnSave}
+            className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-secondary/30 hover:bg-secondary/50 transition-colors"
+          >
+            <span className="text-xs text-muted-foreground">Fechar tab ao salvar</span>
+            {/* Custom switch */}
+            <div
+              className={cn(
+                'relative w-9 h-5 rounded-full transition-colors',
+                closeTabOnSave ? 'bg-primary' : 'bg-border'
+              )}
+            >
+              <div
+                className={cn(
+                  'absolute top-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform',
+                  closeTabOnSave ? 'translate-x-4' : 'translate-x-0.5'
+                )}
+              />
+            </div>
+          </button>
+        )}
+
+        {/* Footer link to dashboard */}
+        {itemCount > 0 && (
+          <button
+            onClick={openDashboard}
+            className="w-full flex items-center justify-center gap-2 py-2 text-sm text-muted-foreground hover:text-primary transition-colors group"
+          >
+            <LayoutDashboard className="h-4 w-4" />
+            <span>
+              Ver seus <span className="font-medium text-foreground">{itemCount}</span> {itemCount === 1 ? 'item salvo' : 'itens salvos'}
+            </span>
+            <ChevronRight className="h-4 w-4 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+          </button>
+        )}
+      </div>
 
       {/* First-time dashboard floating card */}
       {showDashboardBanner && (

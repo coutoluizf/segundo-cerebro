@@ -34,7 +34,7 @@ function setDevApiKeys(keys: Partial<ApiKeys>): void {
 
 // Message types from UI to Background
 export type BgMessage =
-  | { type: 'SAVE_VOICE_ITEM'; item: Partial<VoiceItem>; transcription: string; pageContent?: string }
+  | { type: 'SAVE_VOICE_ITEM'; item: Partial<VoiceItem>; transcription: string; pageContent?: string; closeTabOnSave?: boolean }
   | { type: 'GET_ITEMS'; limit?: number; projectId?: string }
   | { type: 'SEMANTIC_SEARCH'; query: string; limit?: number }
   | { type: 'GET_PROJECTS' }

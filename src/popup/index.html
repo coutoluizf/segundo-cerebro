@@ -5,10 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Segundo Cérebro</title>
     <style>
-      /* Chrome extension popup needs explicit dimensions */
-      html, body {
-        min-width: 320px;
-        min-height: 400px;
+      /* Chrome extension popup - max height is 600px (Chrome limit) */
+      html, body, #root {
+        width: 550px;
+        height: 600px;
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden;
+        overflow-y: auto;
+        box-sizing: border-box;
       }
     </style>
   </head>

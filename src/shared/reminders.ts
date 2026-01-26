@@ -143,6 +143,7 @@ export function formatReminderTime(timestamp: number): string {
  */
 export function getReminderPresets(): { label: string; value: number }[] {
   const now = new Date()
+  const currentHour = now.getHours()
 
   // In 1 minute (for testing)
   const oneMinute = new Date(now.getTime() + 1 * 60 * 1000)
@@ -153,7 +154,26 @@ export function getReminderPresets(): { label: string; value: number }[] {
   // In 1 hour
   const oneHour = new Date(now.getTime() + 60 * 60 * 1000)
 
-  // Tomorrow at 9 AM
+  // Dynamic option based on time of day:
+  // - Morning (before 12h): "Depois do almoço" at 14h today
+  // - Afternoon/Evening (12h+): "Amanhã de manhã" at 9h tomorrow
+  const isMorning = currentHour < 12
+  let dynamicOption: { label: string; value: number }
+
+  if (isMorning) {
+    // After lunch today at 14h
+    const afterLunch = new Date(now)
+    afterLunch.setHours(14, 0, 0, 0)
+    dynamicOption = { label: 'Depois do almoço (14h)', value: afterLunch.getTime() }
+  } else {
+    // Tomorrow morning at 9h
+    const tomorrowMorning = new Date(now)
+    tomorrowMorning.setDate(tomorrowMorning.getDate() + 1)
+    tomorrowMorning.setHours(9, 0, 0, 0)
+    dynamicOption = { label: 'Amanhã de manhã (9h)', value: tomorrowMorning.getTime() }
+  }
+
+  // Tomorrow at 9 AM (only show if we're not already showing "Amanhã de manhã")
   const tomorrow9am = new Date(now)
   tomorrow9am.setDate(tomorrow9am.getDate() + 1)
   tomorrow9am.setHours(9, 0, 0, 0)
@@ -168,12 +188,23 @@ export function getReminderPresets(): { label: string; value: number }[] {
   const oneWeek = new Date(now)
   oneWeek.setDate(oneWeek.getDate() + 7)
 
-  return [
+  // Build presets array
+  const presets = [
     { label: 'Em 1 minuto', value: oneMinute.getTime() },
     { label: 'Em 15 minutos', value: fifteenMinutes.getTime() },
     { label: 'Em 1 hora', value: oneHour.getTime() },
-    { label: 'Amanhã (9h)', value: tomorrow9am.getTime() },
-    { label: 'Próxima segunda (9h)', value: nextMonday.getTime() },
-    { label: 'Em 1 semana', value: oneWeek.getTime() },
+    dynamicOption, // Dynamic: "Depois do almoço" or "Amanhã de manhã"
   ]
+
+  // Only add "Amanhã (9h)" if we're in the morning (otherwise dynamicOption already covers it)
+  if (isMorning) {
+    presets.push({ label: 'Amanhã (9h)', value: tomorrow9am.getTime() })
+  }
+
+  presets.push(
+    { label: 'Próxima segunda (9h)', value: nextMonday.getTime() },
+    { label: 'Em 1 semana', value: oneWeek.getTime() }
+  )
+
+  return presets
 }

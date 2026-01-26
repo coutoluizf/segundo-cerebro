@@ -405,7 +405,9 @@ async function handleMessage(message: BgMessage): Promise<BgResponse<BgMessage['
       }
 
       // Close the active tab if it's a tab save and closeTabOnSave is enabled
-      if (!isNote && settings.closeTabOnSave) {
+      // Use message override if provided, otherwise use global setting
+      const shouldCloseTab = message.closeTabOnSave ?? settings.closeTabOnSave
+      if (!isNote && shouldCloseTab) {
         try {
           const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true })
           if (activeTab?.id && activeTab.url && !activeTab.url.startsWith('chrome://')) {

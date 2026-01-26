@@ -2,6 +2,25 @@
 
 Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 
+## [0.4.1] - 2026-01-26
+
+### Adicionado
+- **Toggle "Fechar tab ao salvar" no Popup**: Switch amigável abaixo do botão Salvar para controlar se a tab fecha após salvar
+- **Persistência do toggle**: Ao alterar o switch no popup, a preferência é salva globalmente nas configurações
+- **Presets dinâmicos de lembrete**: "Depois do almoço (14h)" de manhã, "Amanhã de manhã (9h)" à tarde
+- **Presets curtos para teste**: 1 minuto, 15 minutos, 1 hora nos lembretes
+
+### Melhorado
+- **Borda sutil no textarea**: Campo de comentário agora tem borda visível para melhor identificação
+- **Espaçamento do popup**: Separação visual entre ReminderPicker e seção de Projeto/Salvar
+- **Switch amigável**: Design de toggle estilo iOS com label "Fechar tab ao salvar" para novatos
+- **formatReminderTime**: Exibe "em X min" para intervalos curtos (< 2 horas)
+- **Tamanho do popup**: Ajustado para 550x600px (limite máximo do Chrome) com scroll
+
+### Técnico
+- Parâmetro `closeTabOnSave` adicionado à mensagem `SAVE_VOICE_ITEM` para override por save
+- Background usa `message.closeTabOnSave ?? settings.closeTabOnSave` para respeitar override
+
 ## [0.4.0] - 2026-01-26
 
 ### Adicionado
