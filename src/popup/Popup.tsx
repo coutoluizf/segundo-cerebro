@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { VoiceCapture } from './VoiceCapture'
 import { ProjectSelector } from './ProjectSelector'
+import { ReminderPicker } from './ReminderPicker'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Toaster } from '@/components/ui/toaster'
@@ -22,6 +23,7 @@ export function Popup() {
   const [clipboardText, setClipboardText] = useState<string | null>(null) // Detected clipboard content
   const [selectedProject, setSelectedProject] = useState<string>('')
   const [projects, setProjects] = useState<Project[]>([])
+  const [reminderAt, setReminderAt] = useState<number | null>(null) // Reminder timestamp
   const [isSaving, setIsSaving] = useState(false)
   const [currentTab, setCurrentTab] = useState<{
     url: string
@@ -133,6 +135,7 @@ export function Popup() {
           title: mode === 'tab' ? currentTab?.title : null,
           source: mode === 'note' && source.trim() ? source.trim() : null,
           projectId: selectedProject || null,
+          reminderAt: mode === 'tab' ? reminderAt : null, // Reminders only for tabs
         },
         transcription: transcription.trim(),
       })
@@ -146,6 +149,7 @@ export function Popup() {
         // Reset after save
         setTranscription('')
         setSource('')
+        setReminderAt(null)
         // Close popup after short delay
         setTimeout(() => window.close(), 1000)
       } else {
@@ -314,7 +318,10 @@ export function Popup() {
           Salvar Tab
         </button>
         <button
-          onClick={() => setMode('note')}
+          onClick={() => {
+            setMode('note')
+            setReminderAt(null) // Clear reminder when switching to note mode
+          }}
           className={cn(
             'flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-sm rounded-xl transition-all duration-200',
             mode === 'note'
@@ -378,6 +385,15 @@ export function Popup() {
         selectedProject={selectedProject}
         onProjectChange={setSelectedProject}
       />
+
+      {/* Reminder picker (only for tabs, not notes) */}
+      {mode === 'tab' && (
+        <ReminderPicker
+          value={reminderAt}
+          onChange={setReminderAt}
+          disabled={isSaving}
+        />
+      )}
 
       {/* Save button */}
       <Button

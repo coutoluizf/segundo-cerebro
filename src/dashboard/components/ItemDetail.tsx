@@ -43,6 +43,7 @@ import {
   Loader2,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { formatReminderTime } from '@/shared/reminders'
 
 interface ItemDetailProps {
   item: VoiceItem | SearchResult | null
@@ -417,6 +418,16 @@ export function ItemDetail({
                 {formatDateTime(item.createdAt)}
               </span>
             </div>
+
+            {/* Reminder */}
+            {item.reminderAt && (
+              <div className="flex items-center gap-3 text-sm">
+                <Clock className="h-4 w-4 text-primary/60" />
+                <span className="text-primary/80 flex items-center gap-2">
+                  Lembrete: {formatReminderTime(item.reminderAt)}
+                </span>
+              </div>
+            )}
 
             {/* Project selector */}
             <div className="flex items-center gap-3 text-sm">

@@ -21,6 +21,7 @@ export default defineConfig({
         dashboard: resolve(__dirname, 'src/dashboard/index.html'),
         options: resolve(__dirname, 'src/options/index.html'),
         recorder: resolve(__dirname, 'src/recorder/index.html'),
+        offscreen: resolve(__dirname, 'src/offscreen/index.html'),
         background: resolve(__dirname, 'src/background/index.ts'),
       },
       output: {

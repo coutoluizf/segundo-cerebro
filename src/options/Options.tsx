@@ -16,7 +16,7 @@ import {
 import { sendMessage } from '@/shared/messaging'
 import { AVAILABLE_LANGUAGES } from '@/shared/settings'
 import type { Project } from '@/shared/types'
-import { Brain, Key, FolderOpen, Plus, Trash2, ExternalLink, Sparkles, Globe } from 'lucide-react'
+import { Brain, Key, FolderOpen, Plus, Trash2, ExternalLink, Sparkles, Globe, TabletSmartphone } from 'lucide-react'
 
 export function Options() {
   const [elevenlabsKey, setElevenlabsKey] = useState('')
@@ -26,6 +26,7 @@ export function Options() {
   const [isSaving, setIsSaving] = useState(false)
   const [language, setLanguage] = useState('pt-BR')
   const [autoSummarize, setAutoSummarize] = useState(true)
+  const [closeTabOnSave, setCloseTabOnSave] = useState(true)
   const { toast } = useToast()
 
   // Load current settings
@@ -45,6 +46,7 @@ export function Options() {
     sendMessage({ type: 'GET_SETTINGS' }).then((settings) => {
       setLanguage(settings.language)
       setAutoSummarize(settings.autoSummarize)
+      setCloseTabOnSave(settings.closeTabOnSave)
     })
   }, [])
 
@@ -103,6 +105,27 @@ export function Options() {
         description: enabled
           ? 'Páginas serão resumidas automaticamente ao salvar.'
           : 'Apenas sua transcrição será salva.',
+      })
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Erro',
+        description: 'Erro ao salvar configuração.',
+      })
+    }
+  }
+
+  // Handle close tab on save toggle
+  const handleCloseTabOnSaveChange = async (enabled: boolean) => {
+    setCloseTabOnSave(enabled)
+    try {
+      await sendMessage({ type: 'SET_SETTINGS', settings: { closeTabOnSave: enabled } })
+      toast({
+        variant: 'success',
+        title: enabled ? 'Fechar tab ativado' : 'Fechar tab desativado',
+        description: enabled
+          ? 'A tab será fechada automaticamente após salvar.'
+          : 'A tab permanecerá aberta após salvar.',
       })
     } catch (error) {
       toast({
@@ -298,6 +321,35 @@ export function Options() {
                 <p className="text-xs text-muted-foreground">
                   O resumo será gerado neste idioma, independente do idioma da página.
                 </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Behavior Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TabletSmartphone className="h-5 w-5" />
+                Comportamento
+              </CardTitle>
+              <CardDescription>
+                Configure o comportamento ao salvar tabs.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Close tab on save toggle */}
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="close-tab">Fechar tab ao salvar</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Fecha automaticamente a tab após salvar. Não se aplica a notas.
+                  </p>
+                </div>
+                <Switch
+                  id="close-tab"
+                  checked={closeTabOnSave}
+                  onCheckedChange={handleCloseTabOnSaveChange}
+                />
               </div>
             </CardContent>
           </Card>

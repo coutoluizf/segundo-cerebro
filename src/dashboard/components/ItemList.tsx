@@ -8,8 +8,9 @@ import {
 } from '@/components/ui/dropdown-menu'
 import type { VoiceItem, SearchResult, Project } from '@/shared/types'
 import { isNoteUrl } from '@/shared/types'
-import { ExternalLink, Trash2, Quote, Calendar, ChevronDown, FolderOpen, FileText, Globe, Sparkles } from 'lucide-react'
+import { ExternalLink, Trash2, Quote, Calendar, ChevronDown, FolderOpen, FileText, Globe, Sparkles, Clock } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { formatReminderTime } from '@/shared/reminders'
 
 interface ItemListProps {
   items: (VoiceItem | SearchResult)[]
@@ -242,6 +243,14 @@ export function ItemList({ items, projects, columns = 1, onDelete, onOpen, onUpd
                   <Calendar className="h-3 w-3" />
                   {formatDate(item.createdAt)}
                 </span>
+
+                {/* Reminder badge */}
+                {item.reminderAt && (
+                  <span className="text-xs text-primary/80 flex items-center gap-1 px-1.5 py-0.5 bg-primary/10 rounded-md">
+                    <Clock className="h-3 w-3" />
+                    {formatReminderTime(item.reminderAt)}
+                  </span>
+                )}
               </div>
 
               {/* Right side - Actions */}

@@ -78,6 +78,18 @@ export async function initDatabase(): Promise<Client> {
   } catch {
     // Column already exists, ignore
   }
+  // Migration: Add reminder_at column for scheduled reminders
+  try {
+    await db.execute('ALTER TABLE items ADD COLUMN reminder_at INTEGER')
+  } catch {
+    // Column already exists, ignore
+  }
+  // Index for efficient reminder queries
+  try {
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_items_reminder ON items(reminder_at) WHERE reminder_at IS NOT NULL')
+  } catch {
+    // Index already exists or not supported, ignore
+  }
 
   return db
 }
@@ -147,8 +159,8 @@ export async function saveItem(
 
   await database.execute({
     sql: `INSERT OR REPLACE INTO items
-      (id, type, url, url_hash, title, favicon, source, transcription, ai_summary, project_id, reason, context_tabs, context_tab_count, embedding, created_at, status)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      (id, type, url, url_hash, title, favicon, source, transcription, ai_summary, project_id, reason, context_tabs, context_tab_count, embedding, created_at, status, reminder_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     args: [
       id,
       item.type || 'tab',
@@ -166,6 +178,7 @@ export async function saveItem(
       embedding ? embeddingToBlob(embedding) : null,
       createdAt,
       item.status || 'saved',
+      item.reminderAt || null,
     ],
   })
 
@@ -195,7 +208,12 @@ export async function getItems(
 
   const result = await database.execute({ sql, args })
 
-  return result.rows.map(row => ({
+  return result.rows.map(row => rowToVoiceItem(row))
+}
+
+// Helper function to convert a database row to VoiceItem
+function rowToVoiceItem(row: Record<string, unknown>): VoiceItem {
+  return {
     id: row.id as string,
     type: (row.type as VoiceItem['type']) || 'tab',
     url: (row.url as string) || '', // Fallback to empty string for legacy items
@@ -212,7 +230,8 @@ export async function getItems(
     embedding: row.embedding ? blobToEmbedding(new Uint8Array(row.embedding as ArrayBuffer)) : null,
     createdAt: row.created_at as number,
     status: row.status as VoiceItem['status'],
-  }))
+    reminderAt: row.reminder_at as number | null,
+  }
 }
 
 // Semantic search using cosine similarity
@@ -235,26 +254,11 @@ export async function semanticSearch(
 
   // Calculate similarity for each item
   const itemsWithSimilarity: SearchResult[] = result.rows.map(row => {
-    const embedding = row.embedding ? blobToEmbedding(new Uint8Array(row.embedding as ArrayBuffer)) : null
-    const similarity = embedding ? cosineSimilarity(queryEmbedding, embedding) : 0
+    const item = rowToVoiceItem(row)
+    const similarity = item.embedding ? cosineSimilarity(queryEmbedding, item.embedding) : 0
 
     return {
-      id: row.id as string,
-      type: (row.type as VoiceItem['type']) || 'tab',
-      url: (row.url as string) || '', // Fallback to empty string for legacy items
-      urlHash: row.url_hash as string,
-      title: row.title as string | null,
-      favicon: row.favicon as string | null,
-      source: row.source as string | null,
-      transcription: row.transcription as string,
-      aiSummary: row.ai_summary as string | null,
-      projectId: row.project_id as string | null,
-      reason: row.reason as string | null,
-      contextTabs: JSON.parse((row.context_tabs as string) || '[]'),
-      contextTabCount: row.context_tab_count as number,
-      embedding,
-      createdAt: row.created_at as number,
-      status: row.status as VoiceItem['status'],
+      ...item,
       similarity,
     }
   })
@@ -337,25 +341,7 @@ export async function getItemById(id: string): Promise<VoiceItem | null> {
 
   if (result.rows.length === 0) return null
 
-  const row = result.rows[0]
-  return {
-    id: row.id as string,
-    type: (row.type as VoiceItem['type']) || 'tab',
-    url: (row.url as string) || '',
-    urlHash: row.url_hash as string,
-    title: row.title as string | null,
-    favicon: row.favicon as string | null,
-    source: row.source as string | null,
-    transcription: row.transcription as string,
-    aiSummary: row.ai_summary as string | null,
-    projectId: row.project_id as string | null,
-    reason: row.reason as string | null,
-    contextTabs: JSON.parse((row.context_tabs as string) || '[]'),
-    contextTabCount: row.context_tab_count as number,
-    embedding: row.embedding ? blobToEmbedding(new Uint8Array(row.embedding as ArrayBuffer)) : null,
-    createdAt: row.created_at as number,
-    status: row.status as VoiceItem['status'],
-  }
+  return rowToVoiceItem(result.rows[0])
 }
 
 // Permanently delete an item
@@ -453,4 +439,37 @@ export async function seedDefaultProjects(): Promise<void> {
       await createProject(project.name, project.color)
     }
   }
+}
+
+// ============================================
+// Reminder functions
+// ============================================
+
+// Update an item's reminder timestamp
+export async function updateItemReminder(id: string, reminderAt: number | null): Promise<VoiceItem | null> {
+  const database = await getDatabase()
+  await database.execute({
+    sql: 'UPDATE items SET reminder_at = ? WHERE id = ?',
+    args: [reminderAt, id],
+  })
+  return getItemById(id)
+}
+
+// Get all items with pending reminders (for recreating alarms on startup)
+export async function getItemsWithPendingReminders(): Promise<VoiceItem[]> {
+  const database = await getDatabase()
+  const result = await database.execute({
+    sql: 'SELECT * FROM items WHERE status = ? AND reminder_at IS NOT NULL ORDER BY reminder_at ASC',
+    args: ['saved'],
+  })
+  return result.rows.map(row => rowToVoiceItem(row))
+}
+
+// Clear an item's reminder after it has been triggered
+export async function clearItemReminder(id: string): Promise<void> {
+  const database = await getDatabase()
+  await database.execute({
+    sql: 'UPDATE items SET reminder_at = NULL WHERE id = ?',
+    args: [id],
+  })
 }

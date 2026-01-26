@@ -2,6 +2,27 @@
 
 Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 
+## [0.4.0] - 2026-01-26
+
+### Adicionado
+- **Sistema de Lembretes**: Agende quando uma tab salva deve ser reaberta automaticamente
+- **ReminderPicker**: Componente colapsável com presets (amanhã 9h, próxima segunda, 1 semana) e data customizada
+- **Notificação + Som**: Ao disparar lembrete, abre tab + notificação do Chrome + som de alerta
+- **Badge de lembrete**: Exibição do lembrete agendado nos cards do dashboard e no drawer
+- **Close Tab on Save**: Nova configuração para fechar a tab automaticamente após salvar
+- **Offscreen Document**: Documento offscreen para reproduzir som mesmo com popup fechado
+- **Fallback de áudio**: Geração de tom via Web Audio API quando arquivo de som não disponível
+
+### Técnico
+- Nova permissão: `alarms` para agendamento de lembretes
+- Nova permissão: `notifications` para alertas visuais
+- Nova permissão: `offscreen` para reprodução de áudio em background
+- Novo campo `reminder_at` na tabela items com migração automática
+- Novo campo `closeTabOnSave` nas configurações do usuário
+- Mensagem `UPDATE_ITEM_REMINDER` para atualização de lembretes
+- Recreação automática de alarms do banco ao reiniciar o browser
+- Cancelamento automático de alarm ao deletar item
+
 ## [0.3.0] - 2026-01-25
 
 ### Adicionado

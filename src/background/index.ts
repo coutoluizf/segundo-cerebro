@@ -19,7 +19,16 @@ import {
   updateItemProject,
   getItemById,
   seedDefaultProjects,
+  updateItemReminder,
+  getItemsWithPendingReminders,
+  clearItemReminder,
 } from '@/shared/db'
+import {
+  scheduleReminder,
+  cancelReminder,
+  getItemIdFromAlarm,
+  isReminderAlarm,
+} from '@/shared/reminders'
 import { captureContext } from '@/shared/context'
 import { generateEmbedding } from '@/shared/embeddings'
 import { generateSummary } from '@/shared/summarize'
@@ -28,6 +37,109 @@ import type { ApiKeys } from '@/shared/types'
 
 // API keys storage key
 const API_KEYS_STORAGE_KEY = 'segundo-cerebro-api-keys'
+
+// Offscreen document path
+const OFFSCREEN_DOCUMENT_PATH = 'src/offscreen/index.html'
+
+// Track if offscreen document exists
+let creatingOffscreen: Promise<void> | null = null
+
+/**
+ * Create the offscreen document if it doesn't exist
+ */
+async function setupOffscreenDocument(): Promise<void> {
+  // Check if offscreen document already exists
+  const existingContexts = await chrome.runtime.getContexts({
+    contextTypes: [chrome.runtime.ContextType.OFFSCREEN_DOCUMENT],
+    documentUrls: [chrome.runtime.getURL(OFFSCREEN_DOCUMENT_PATH)],
+  })
+
+  if (existingContexts.length > 0) {
+    return // Already exists
+  }
+
+  // Create if not already creating
+  if (creatingOffscreen) {
+    await creatingOffscreen
+  } else {
+    creatingOffscreen = chrome.offscreen.createDocument({
+      url: OFFSCREEN_DOCUMENT_PATH,
+      reasons: [chrome.offscreen.Reason.AUDIO_PLAYBACK],
+      justification: 'Playing reminder notification sound',
+    })
+    await creatingOffscreen
+    creatingOffscreen = null
+  }
+}
+
+/**
+ * Play the reminder sound via offscreen document
+ */
+async function playReminderSound(): Promise<void> {
+  try {
+    await setupOffscreenDocument()
+    await chrome.runtime.sendMessage({ type: 'PLAY_REMINDER_SOUND' })
+  } catch (error) {
+    console.error('[Background] Error playing reminder sound:', error)
+  }
+}
+
+/**
+ * Handle a triggered reminder alarm
+ */
+async function handleReminderAlarm(itemId: string): Promise<void> {
+  console.log(`[Background] Reminder triggered for item: ${itemId}`)
+
+  // Get the item from database
+  const item = await getItemById(itemId)
+  if (!item) {
+    console.warn(`[Background] Item ${itemId} not found for reminder`)
+    return
+  }
+
+  // Clear the reminder from the database
+  await clearItemReminder(itemId)
+
+  // Only open tab for 'tab' type items (not notes)
+  if (item.type === 'tab' && item.url) {
+    // Open the saved URL in a new tab
+    await chrome.tabs.create({ url: item.url })
+  }
+
+  // Show notification
+  await chrome.notifications.create(`reminder-${itemId}`, {
+    type: 'basic',
+    iconUrl: chrome.runtime.getURL('icons/icon128.png'),
+    title: 'Segundo Cérebro - Lembrete',
+    message: item.title || item.transcription.substring(0, 100),
+    priority: 2,
+  })
+
+  // Play sound
+  await playReminderSound()
+
+  // Broadcast that items changed (reminder was cleared)
+  broadcastItemsChanged()
+}
+
+/**
+ * Recreate all alarms from database on service worker startup
+ * This is needed because Chrome clears alarms when the browser restarts
+ */
+async function recreateAlarmsFromDb(): Promise<void> {
+  try {
+    const itemsWithReminders = await getItemsWithPendingReminders()
+    console.log(`[Background] Found ${itemsWithReminders.length} items with pending reminders`)
+
+    for (const item of itemsWithReminders) {
+      if (item.reminderAt) {
+        await scheduleReminder(item.id, item.reminderAt)
+      }
+    }
+  } catch (error) {
+    console.error('[Background] Error recreating alarms from DB:', error)
+  }
+}
 
 // Get API keys from storage
 async function getApiKeys(): Promise<ApiKeys> {
@@ -139,10 +251,27 @@ initDatabase()
   })
   .then(() => {
     console.log('[Background] Default projects seeded')
+    // Recreate alarms from database (Chrome clears alarms on restart)
+    return recreateAlarmsFromDb()
+  })
+  .then(() => {
+    console.log('[Background] Alarms recreated from database')
   })
   .catch((error) => {
     console.error('[Background] Database initialization error:', error)
   })
+
+// Handle alarm events (for reminders)
+chrome.alarms.onAlarm.addListener(async (alarm) => {
+  console.log(`[Background] Alarm triggered: ${alarm.name}`)
+
+  if (isReminderAlarm(alarm.name)) {
+    const itemId = getItemIdFromAlarm(alarm.name)
+    if (itemId) {
+      await handleReminderAlarm(itemId)
+    }
+  }
+})
 
 // Handle messages from UI
 chrome.runtime.onMessage.addListener(
@@ -248,9 +377,33 @@ async function handleMessage(message: BgMessage): Promise<BgResponse<BgMessage['
           contextTabs: isNote ? [] : context.tabUrls,
           contextTabCount: isNote ? 0 : context.tabCount,
           status: 'saved',
+          reminderAt: message.item.reminderAt || null,
         },
         embedding
       )
+
+      // Schedule reminder alarm if reminderAt is set
+      if (item.reminderAt) {
+        await scheduleReminder(item.id, item.reminderAt)
+        console.log(`[Background] Scheduled reminder for item ${item.id}`)
+      }
+
+      // Close the active tab if it's a tab save and closeTabOnSave is enabled
+      if (!isNote && settings.closeTabOnSave) {
+        try {
+          const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true })
+          if (activeTab?.id && activeTab.url && !activeTab.url.startsWith('chrome://')) {
+            // Small delay to allow the popup to close first
+            setTimeout(() => {
+              chrome.tabs.remove(activeTab.id!).catch((err) => {
+                console.error('[Background] Error closing tab:', err)
+              })
+            }, 500)
+          }
+        } catch (error) {
+          console.error('[Background] Error closing tab after save:', error)
+        }
+      }
 
       broadcastItemsChanged()
       return { success: true, item }
@@ -308,6 +461,8 @@ async function handleMessage(message: BgMessage): Promise<BgResponse<BgMessage['
     }
 
     case 'DELETE_ITEM': {
+      // Cancel any pending reminder alarm for this item
+      await cancelReminder(message.id)
       await deleteItem(message.id)
       broadcastItemsChanged()
       return { success: true }
@@ -317,6 +472,26 @@ async function handleMessage(message: BgMessage): Promise<BgResponse<BgMessage['
       await updateItemProject(message.id, message.projectId)
       broadcastItemsChanged()
       return { success: true }
+    }
+
+    case 'UPDATE_ITEM_REMINDER': {
+      const { id, reminderAt } = message
+
+      // Update the reminder in the database
+      const updatedItem = await updateItemReminder(id, reminderAt)
+      if (!updatedItem) {
+        return { success: false, error: 'Item not found' }
+      }
+
+      // Schedule or cancel the alarm
+      if (reminderAt) {
+        await scheduleReminder(id, reminderAt)
+      } else {
+        await cancelReminder(id)
+      }
+
+      broadcastItemsChanged()
+      return { success: true, item: updatedItem }
     }
 
     case 'UPDATE_ITEM': {

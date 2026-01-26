@@ -45,6 +45,7 @@ export type BgMessage =
   | { type: 'DELETE_ITEM'; id: string }
   | { type: 'UPDATE_ITEM'; id: string; updates: { title?: string; transcription?: string; aiSummary?: string } }
   | { type: 'UPDATE_ITEM_PROJECT'; id: string; projectId: string | null }
+  | { type: 'UPDATE_ITEM_REMINDER'; id: string; reminderAt: number | null }
   | { type: 'GET_API_KEYS' }
   | { type: 'SET_API_KEYS'; elevenlabs?: string; openai?: string }
   | { type: 'CHECK_API_KEYS' }
@@ -64,6 +65,7 @@ export type BgResponse<T extends BgMessage['type']> =
   T extends 'DELETE_ITEM' ? { success: boolean; error?: string } :
   T extends 'UPDATE_ITEM' ? { success: boolean; item?: VoiceItem; error?: string } :
   T extends 'UPDATE_ITEM_PROJECT' ? { success: boolean; error?: string } :
+  T extends 'UPDATE_ITEM_REMINDER' ? { success: boolean; item?: VoiceItem; error?: string } :
   T extends 'GET_API_KEYS' ? ApiKeys :
   T extends 'SET_API_KEYS' ? { success: boolean; error?: string } :
   T extends 'CHECK_API_KEYS' ? { hasKeys: boolean; elevenlabs: boolean; openai: boolean } :
@@ -152,6 +154,14 @@ async function handleDevMessage(message: BgMessage): Promise<unknown> {
     case 'UPDATE_ITEM_PROJECT':
       await db.updateItemProject(message.id, message.projectId)
       return { success: true }
+
+    case 'UPDATE_ITEM_REMINDER': {
+      const updatedItem = await db.updateItemReminder(message.id, message.reminderAt)
+      if (!updatedItem) {
+        return { success: false, error: 'Item not found' }
+      }
+      return { success: true, item: updatedItem }
+    }
 
     case 'UPDATE_ITEM': {
       const keys = getDevApiKeys()
@@ -247,6 +257,7 @@ async function handleDevMessage(message: BgMessage): Promise<unknown> {
           contextTabs: [],
           contextTabCount: isNote ? 0 : 1,
           status: 'saved',
+          reminderAt: message.item.reminderAt || null,
         },
         embedding
       )

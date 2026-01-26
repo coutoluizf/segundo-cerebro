@@ -7,7 +7,10 @@
     "tabs",
     "storage",
     "activeTab",
-    "scripting"
+    "scripting",
+    "alarms",
+    "notifications",
+    "offscreen"
   ],
   "host_permissions": [
     "https://api.openai.com/*",

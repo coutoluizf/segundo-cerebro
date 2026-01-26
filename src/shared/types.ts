@@ -32,6 +32,7 @@ export interface VoiceItem {
   embedding: number[] | null // 1536d vector from OpenAI
   createdAt: number // Unix timestamp
   status: 'saved' | 'archived' | 'deleted'
+  reminderAt: number | null // Unix timestamp for when to trigger reminder
 }
 
 // Project for organizing voice items
@@ -75,8 +76,10 @@ export interface ApiKeys {
 // Scribe client states
 export type ScribeState = 'idle' | 'connecting' | 'listening' | 'processing' | 'error'
 
-// Utility type for creating new items
-export type NewVoiceItem = Omit<VoiceItem, 'id' | 'createdAt' | 'embedding'>
+// Utility type for creating new items (reminderAt is optional on creation)
+export type NewVoiceItem = Omit<VoiceItem, 'id' | 'createdAt' | 'embedding' | 'reminderAt'> & {
+  reminderAt?: number | null
+}
 
 // Utility to generate URL hash for deduplication
 export function generateUrlHash(url: string): string {
