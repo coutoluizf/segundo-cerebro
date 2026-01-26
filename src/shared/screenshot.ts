@@ -5,8 +5,8 @@
  */
 
 // Target dimensions for thumbnail
-const THUMBNAIL_WIDTH = 400
-const THUMBNAIL_QUALITY = 0.7 // JPEG quality (0-1)
+const THUMBNAIL_WIDTH = 800 // Increased for better quality
+const THUMBNAIL_QUALITY = 0.85 // JPEG quality (0-1) - higher for sharper text
 
 /**
  * Captures a thumbnail of the currently visible tab
