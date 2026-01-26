@@ -3,11 +3,13 @@ import { SearchBar } from './components/SearchBar'
 import { ProjectFilter } from './components/ProjectFilter'
 import { ItemList } from './components/ItemList'
 import { ItemDetail } from './components/ItemDetail'
+import { RecentCarousel } from './components/RecentCarousel'
+import { ProjectGrid } from './components/ProjectGrid'
 import { Toaster } from '@/components/ui/toaster'
 import { useToast } from '@/components/ui/use-toast'
 import { sendMessage, onItemsChanged } from '@/shared/messaging'
 import type { VoiceItem, SearchResult, Project } from '@/shared/types'
-import { Brain, Settings, LayoutGrid, LayoutList, Grid3X3, Sparkles, Sun, Moon, Monitor } from 'lucide-react'
+import { Brain, Settings, LayoutGrid, LayoutList, Grid3X3, Sparkles, Sun, Moon, Monitor, FolderKanban } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { getStoredTheme, setTheme } from '@/shared/theme'
@@ -18,8 +20,12 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 
-// Key for storing view preference in localStorage
+// Keys for storing view preferences in localStorage
 const VIEW_COLUMNS_KEY = 'segundo-cerebro-view-columns'
+const VIEW_MODE_KEY = 'segundo-cerebro-view-mode'
+
+// View mode type
+type ViewMode = 'items' | 'projects'
 
 // Get saved columns preference or default to 2
 function getSavedColumns(): 1 | 2 | 3 {
@@ -34,14 +40,29 @@ function getSavedColumns(): 1 | 2 | 3 {
   return 2 // Default to 2 columns (grid view)
 }
 
+// Get saved view mode preference or default to 'items'
+function getSavedViewMode(): ViewMode {
+  try {
+    const saved = localStorage.getItem(VIEW_MODE_KEY)
+    if (saved === 'items' || saved === 'projects') {
+      return saved
+    }
+  } catch {
+    // localStorage not available
+  }
+  return 'items' // Default to items view
+}
+
 export function Dashboard() {
   const [items, setItems] = useState<(VoiceItem | SearchResult)[]>([])
+  const [allItems, setAllItems] = useState<VoiceItem[]>([]) // All items for sidebar counts
   const [projects, setProjects] = useState<Project[]>([])
   const [selectedProject, setSelectedProject] = useState<string>('')
   const [searchQuery, setSearchQuery] = useState('')
   const [isSearching, setIsSearching] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [columns, setColumns] = useState<1 | 2 | 3>(getSavedColumns)
+  const [viewMode, setViewMode] = useState<ViewMode>(getSavedViewMode)
   const [theme, setThemeState] = useState<'light' | 'dark' | 'system'>(getStoredTheme)
   // Item detail drawer state
   const [selectedItem, setSelectedItem] = useState<VoiceItem | SearchResult | null>(null)
@@ -53,6 +74,16 @@ export function Dashboard() {
     setColumns(newColumns)
     try {
       localStorage.setItem(VIEW_COLUMNS_KEY, String(newColumns))
+    } catch {
+      // localStorage not available
+    }
+  }
+
+  // Save view mode preference when it changes
+  const handleViewModeChange = (newMode: ViewMode) => {
+    setViewMode(newMode)
+    try {
+      localStorage.setItem(VIEW_MODE_KEY, newMode)
     } catch {
       // localStorage not available
     }
@@ -71,12 +102,14 @@ export function Dashboard() {
   const loadData = useCallback(async () => {
     setIsLoading(true)
     try {
-      const [itemsResponse, projectsResponse] = await Promise.all([
+      const [itemsResponse, allItemsResponse, projectsResponse] = await Promise.all([
         sendMessage({ type: 'GET_ITEMS', projectId: selectedProject || undefined }),
+        sendMessage({ type: 'GET_ITEMS' }), // All items for sidebar counts
         sendMessage({ type: 'GET_PROJECTS' }),
       ])
 
       setItems(itemsResponse.items)
+      setAllItems(allItemsResponse.items)
       setProjects(projectsResponse.projects)
     } catch (error) {
       console.error('[Dashboard] Error loading data:', error)
@@ -272,8 +305,39 @@ export function Dashboard() {
 
             {/* Controls only - search moved below */}
             <div className="flex items-center gap-3">
-              {/* View toggle - Pill style */}
+              {/* View mode toggle - Items vs Projects */}
               <div className="flex items-center bg-secondary/50 rounded-full p-1">
+                <button
+                  onClick={() => handleViewModeChange('items')}
+                  className={cn(
+                    'p-2 rounded-full transition-all duration-200',
+                    viewMode === 'items'
+                      ? 'bg-background shadow-sm text-foreground'
+                      : 'text-muted-foreground hover:text-foreground'
+                  )}
+                  title="Itens"
+                >
+                  <LayoutGrid className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => handleViewModeChange('projects')}
+                  className={cn(
+                    'p-2 rounded-full transition-all duration-200',
+                    viewMode === 'projects'
+                      ? 'bg-background shadow-sm text-foreground'
+                      : 'text-muted-foreground hover:text-foreground'
+                  )}
+                  title="Projetos"
+                >
+                  <FolderKanban className="h-4 w-4" />
+                </button>
+              </div>
+
+              {/* Columns toggle - Pill style (only shown in items view) */}
+              <div className={cn(
+                "flex items-center bg-secondary/50 rounded-full p-1 transition-opacity",
+                viewMode === 'projects' && "opacity-50 pointer-events-none"
+              )}>
                 <button
                   onClick={() => handleColumnsChange(1)}
                   className={cn(
@@ -370,6 +434,7 @@ export function Dashboard() {
             <div className="sticky top-24">
               <ProjectFilter
                 projects={projects}
+                items={allItems}
                 selectedProject={selectedProject}
                 onProjectChange={handleProjectChange}
                 onProjectsUpdated={loadData}
@@ -379,6 +444,16 @@ export function Dashboard() {
 
           {/* Main content - Items */}
           <main className="flex-1 min-w-0">
+            {/* Recent Carousel - Hidden during search and in projects view */}
+            {!searchQuery && !isLoading && items.length > 0 && viewMode === 'items' && (
+              <RecentCarousel
+                items={items}
+                projects={projects}
+                onItemClick={handleItemClick}
+                className="mb-8"
+              />
+            )}
+
             {/* Hero Search Bar */}
             <div className="mb-8">
               <SearchBar
@@ -414,6 +489,17 @@ export function Dashboard() {
                     : 'Use a extensão para salvar tabs e notas com sua voz.'}
                 </p>
               </div>
+            ) : viewMode === 'projects' && !searchQuery ? (
+              // Project grid view
+              <ProjectGrid
+                projects={projects}
+                items={items}
+                onProjectClick={(projectId) => {
+                  // Filter to the selected project and switch to items view
+                  handleProjectChange(projectId)
+                  handleViewModeChange('items')
+                }}
+              />
             ) : (
               <>
                 {/* Results header */}

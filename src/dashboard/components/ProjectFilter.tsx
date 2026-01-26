@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { sendMessage } from '@/shared/messaging'
-import type { Project } from '@/shared/types'
+import type { Project, VoiceItem } from '@/shared/types'
 import { Plus, Pencil, Trash2, Check, X, Layers } from 'lucide-react'
 
 // Preset colors for new projects - More vibrant, modern palette
@@ -20,6 +20,7 @@ const PROJECT_COLORS = [
 
 interface ProjectFilterProps {
   projects: Project[]
+  items: VoiceItem[] // All items to count per project
   selectedProject: string
   onProjectChange: (projectId: string) => void
   onProjectsUpdated: () => void
@@ -27,6 +28,7 @@ interface ProjectFilterProps {
 
 export function ProjectFilter({
   projects,
+  items,
   selectedProject,
   onProjectChange,
   onProjectsUpdated,
@@ -35,6 +37,15 @@ export function ProjectFilter({
   const [editingId, setEditingId] = useState<string | null>(null)
   const [newName, setNewName] = useState('')
   const [editName, setEditName] = useState('')
+
+  // Count items per project
+  const getItemCount = (projectId: string | null): number => {
+    if (projectId === null) {
+      // Count all items
+      return items.length
+    }
+    return items.filter(item => item.projectId === projectId).length
+  }
 
   // Create new project
   const handleCreate = async () => {
@@ -121,7 +132,10 @@ export function ProjectFilter({
           )}
         >
           <div className="h-2.5 w-2.5 rounded-full bg-gradient-to-br from-primary to-amber-500" />
-          <span>Todos os itens</span>
+          <span className="flex-1 text-left">Todos os itens</span>
+          <span className="text-xs text-muted-foreground tabular-nums">
+            {getItemCount(null)}
+          </span>
         </button>
 
         {/* Create new project input */}
@@ -162,7 +176,7 @@ export function ProjectFilter({
           <div
             key={project.id}
             className={cn(
-              'group sidebar-item',
+              'group sidebar-item relative',
               selectedProject === project.id && 'sidebar-item-active'
             )}
             onClick={() => editingId !== project.id && onProjectChange(project.id)}
@@ -211,8 +225,17 @@ export function ProjectFilter({
               // View mode
               <>
                 <span className="truncate flex-1 text-sm">{project.name}</span>
+                {/* Item count - hidden when hovering to show actions */}
+                <span className={cn(
+                  'text-xs text-muted-foreground tabular-nums transition-opacity',
+                  'group-hover:opacity-0',
+                  selectedProject === project.id && 'group-hover:opacity-0'
+                )}>
+                  {getItemCount(project.id)}
+                </span>
+                {/* Action buttons - shown on hover */}
                 <div className={cn(
-                  'flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity',
+                  'flex items-center gap-0.5 absolute right-2 opacity-0 group-hover:opacity-100 transition-opacity',
                   selectedProject === project.id ? 'opacity-100' : ''
                 )}>
                   <button

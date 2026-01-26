@@ -37,6 +37,7 @@ export async function initDatabase(): Promise<Client> {
       url_hash TEXT NOT NULL UNIQUE,
       title TEXT,
       favicon TEXT,
+      thumbnail TEXT,
       source TEXT,
       transcription TEXT NOT NULL,
       ai_summary TEXT,
@@ -75,6 +76,11 @@ export async function initDatabase(): Promise<Client> {
   }
   try {
     await db.execute('ALTER TABLE items ADD COLUMN ai_summary TEXT')
+  } catch {
+    // Column already exists, ignore
+  }
+  try {
+    await db.execute('ALTER TABLE items ADD COLUMN thumbnail TEXT')
   } catch {
     // Column already exists, ignore
   }
@@ -147,8 +153,8 @@ export async function saveItem(
 
   await database.execute({
     sql: `INSERT OR REPLACE INTO items
-      (id, type, url, url_hash, title, favicon, source, transcription, ai_summary, project_id, reason, context_tabs, context_tab_count, embedding, created_at, status)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      (id, type, url, url_hash, title, favicon, thumbnail, source, transcription, ai_summary, project_id, reason, context_tabs, context_tab_count, embedding, created_at, status)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     args: [
       id,
       item.type || 'tab',
@@ -156,6 +162,7 @@ export async function saveItem(
       urlHash,
       item.title,
       item.favicon,
+      item.thumbnail || null,
       item.source,
       item.transcription,
       item.aiSummary || null,
@@ -202,6 +209,7 @@ export async function getItems(
     urlHash: row.url_hash as string,
     title: row.title as string | null,
     favicon: row.favicon as string | null,
+    thumbnail: row.thumbnail as string | null,
     source: row.source as string | null,
     transcription: row.transcription as string,
     aiSummary: row.ai_summary as string | null,
@@ -245,6 +253,7 @@ export async function semanticSearch(
       urlHash: row.url_hash as string,
       title: row.title as string | null,
       favicon: row.favicon as string | null,
+      thumbnail: row.thumbnail as string | null,
       source: row.source as string | null,
       transcription: row.transcription as string,
       aiSummary: row.ai_summary as string | null,
@@ -345,6 +354,7 @@ export async function getItemById(id: string): Promise<VoiceItem | null> {
     urlHash: row.url_hash as string,
     title: row.title as string | null,
     favicon: row.favicon as string | null,
+    thumbnail: row.thumbnail as string | null,
     source: row.source as string | null,
     transcription: row.transcription as string,
     aiSummary: row.ai_summary as string | null,

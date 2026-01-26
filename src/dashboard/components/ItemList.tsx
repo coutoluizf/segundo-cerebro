@@ -10,6 +10,8 @@ import type { VoiceItem, SearchResult, Project } from '@/shared/types'
 import { isNoteUrl } from '@/shared/types'
 import { ExternalLink, Trash2, Quote, Calendar, ChevronDown, FolderOpen, FileText, Globe, Sparkles } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { FaviconFallbackLarge } from './FaviconFallback'
+import { HoverPreview } from './HoverPreview'
 
 interface ItemListProps {
   items: (VoiceItem | SearchResult)[]
@@ -84,10 +86,10 @@ export function ItemList({ items, projects, columns = 1, onDelete, onOpen, onUpd
         const isNote = item.type === 'note' || isNoteUrl(item.url)
 
         return (
+          <HoverPreview key={item.id} item={item} project={project}>
           <div
-            key={item.id}
             className={cn(
-              "card-luminous rounded-2xl p-5 hover-glow animate-fade-in-up",
+              "card-luminous rounded-2xl overflow-hidden hover-glow animate-fade-in-up",
               onItemClick && "cursor-pointer"
             )}
             style={{ animationDelay: `${index * 50}ms` }}
@@ -101,6 +103,41 @@ export function ItemList({ items, projects, columns = 1, onDelete, onOpen, onUpd
               }
             }}
           >
+            {/* Thumbnail section */}
+            <div className="relative">
+              {item.thumbnail ? (
+                // Show actual thumbnail
+                <div className="relative w-full aspect-[16/9] overflow-hidden">
+                  <img
+                    src={item.thumbnail}
+                    alt=""
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                  />
+                  {/* Gradient overlay for better text contrast */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-transparent" />
+                </div>
+              ) : (
+                // Fallback with favicon/icon
+                <FaviconFallbackLarge
+                  favicon={item.favicon}
+                  projectColor={project?.color}
+                  url={item.url}
+                  isNote={isNote}
+                />
+              )}
+
+              {/* Similarity badge positioned on thumbnail */}
+              {hasSimilarity && item.similarity > 0 && (
+                <div className="absolute top-2 right-2 similarity-badge flex items-center gap-1">
+                  <Sparkles className="h-3 w-3" />
+                  {formatSimilarity(item.similarity)}
+                </div>
+              )}
+            </div>
+
+            {/* Card content */}
+            <div className="p-5">
             {/* Header row */}
             <div className="flex items-start justify-between gap-3 mb-4">
               <div className="flex-1 min-w-0">
@@ -144,13 +181,6 @@ export function ItemList({ items, projects, columns = 1, onDelete, onOpen, onUpd
                 )}
               </div>
 
-              {/* Similarity badge */}
-              {hasSimilarity && item.similarity > 0 && (
-                <div className="similarity-badge shrink-0 flex items-center gap-1">
-                  <Sparkles className="h-3 w-3" />
-                  {formatSimilarity(item.similarity)}
-                </div>
-              )}
             </div>
 
             {/* Transcription - Quote style */}
@@ -269,7 +299,9 @@ export function ItemList({ items, projects, columns = 1, onDelete, onOpen, onUpd
                 </Button>
               </div>
             </div>
+            </div>
           </div>
+          </HoverPreview>
         )
       })}
     </div>

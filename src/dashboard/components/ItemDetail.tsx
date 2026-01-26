@@ -43,6 +43,7 @@ import {
   Loader2,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { FaviconFallbackLarge } from './FaviconFallback'
 
 interface ItemDetailProps {
   item: VoiceItem | SearchResult | null
@@ -194,6 +195,28 @@ export function ItemDetail({
         className="w-full sm:max-w-lg overflow-y-auto p-0"
         onKeyDown={handleKeyDown}
       >
+        {/* Thumbnail section at top */}
+        <div className="relative">
+          {item.thumbnail ? (
+            <div className="relative w-full aspect-[16/9]">
+              <img
+                src={item.thumbnail}
+                alt=""
+                className="w-full h-full object-cover"
+              />
+              {/* Gradient overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
+            </div>
+          ) : (
+            <FaviconFallbackLarge
+              favicon={item.favicon}
+              projectColor={project?.color}
+              url={item.url}
+              isNote={isNote}
+            />
+          )}
+        </div>
+
         <div className="p-6 pb-24">
         {/* Header */}
         <SheetHeader className="pr-10 pb-6 border-b border-border/50">

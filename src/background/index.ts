@@ -23,6 +23,7 @@ import {
 import { captureContext } from '@/shared/context'
 import { generateEmbedding } from '@/shared/embeddings'
 import { generateSummary } from '@/shared/summarize'
+import { captureTabThumbnail } from '@/shared/screenshot'
 import { getSettings, saveSettings } from '@/shared/settings'
 import type { ApiKeys } from '@/shared/types'
 
@@ -181,6 +182,20 @@ async function handleMessage(message: BgMessage): Promise<BgResponse<BgMessage['
       const itemType = message.item.type || 'tab'
       const isNote = itemType === 'note'
 
+      // Capture thumbnail for tab items (before any async operations)
+      let thumbnail: string | null = null
+      if (!isNote) {
+        try {
+          thumbnail = await captureTabThumbnail()
+          if (thumbnail) {
+            console.log('[Background] Thumbnail captured successfully')
+          }
+        } catch (error) {
+          console.error('[Background] Error capturing thumbnail:', error)
+          // Continue without thumbnail
+        }
+      }
+
       // Get user settings for AI summary
       const settings = await getSettings()
       let aiSummary: string | null = null
@@ -232,7 +247,7 @@ async function handleMessage(message: BgMessage): Promise<BgResponse<BgMessage['
         // Continue without embedding
       }
 
-      // Save item with embedding and AI summary
+      // Save item with embedding, AI summary, and thumbnail
       // Note: for notes, db.saveItem will generate a placeholder URL
       const item = await saveItem(
         {
@@ -240,6 +255,7 @@ async function handleMessage(message: BgMessage): Promise<BgResponse<BgMessage['
           url: isNote ? '' : (message.item.url || context.activeTab.url), // Empty string for notes, saveItem handles it
           title: message.item.title || (isNote ? null : context.activeTab.title),
           favicon: isNote ? null : (message.item.favicon || context.activeTab.favicon || null),
+          thumbnail, // Tab screenshot thumbnail
           source: message.item.source || null,
           transcription: message.transcription,
           aiSummary,
