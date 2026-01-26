@@ -444,6 +444,16 @@ export function Dashboard() {
 
           {/* Main content - Items */}
           <main className="flex-1 min-w-0">
+            {/* Hero Search Bar - Above everything for natural results flow */}
+            <div className="mb-8">
+              <SearchBar
+                value={searchQuery}
+                onChange={handleSearch}
+                isSearching={isSearching}
+                large
+              />
+            </div>
+
             {/* Recent Carousel - Hidden during search and in projects view */}
             {!searchQuery && !isLoading && items.length > 0 && viewMode === 'items' && (
               <RecentCarousel
@@ -453,16 +463,6 @@ export function Dashboard() {
                 className="mb-8"
               />
             )}
-
-            {/* Hero Search Bar */}
-            <div className="mb-8">
-              <SearchBar
-                value={searchQuery}
-                onChange={handleSearch}
-                isSearching={isSearching}
-                large
-              />
-            </div>
 
             {isLoading ? (
               <div className="flex flex-col items-center justify-center py-20">

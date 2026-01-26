@@ -2,6 +2,17 @@
 
 Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 
+## [0.4.2] - 2026-01-26
+
+### Melhorado
+- **Som de lembrete**: Novo chime duplo elegante (C6 → G5) - mais agradável e familiar
+- **Layout do Dashboard**: Barra de busca movida para acima do carrossel de Recentes
+- **Fluxo de busca**: Resultados aparecem naturalmente abaixo da busca
+
+### Técnico
+- Som gerado via Web Audio API (não depende de arquivo MP3)
+- Adicionado `web_accessible_resources` ao manifest para suporte a sons
+
 ## [0.4.1] - 2026-01-26
 
 ### Adicionado

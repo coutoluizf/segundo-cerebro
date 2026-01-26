@@ -45,5 +45,12 @@
       },
       "description": "Salvar aba atual com voz"
     }
-  }
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["sounds/*"],
+      "matches": ["<all_urls>"],
+      "extension_ids": []
+    }
+  ]
 }

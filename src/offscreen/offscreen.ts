@@ -16,75 +16,55 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 
 /**
  * Play the reminder notification sound
- * Falls back to a generated tone if the sound file is not available
+ * Uses a simple generated tone for consistency and subtlety
  */
 async function playReminderSound(): Promise<void> {
-  try {
-    // Try to play the custom sound file first
-    const audio = new Audio(chrome.runtime.getURL('sounds/reminder.mp3'))
-    audio.volume = 0.8
-
-    await audio.play()
-
-    // Wait for the audio to finish before resolving
-    return new Promise((resolve, reject) => {
-      audio.onended = () => {
-        console.log('[Offscreen] Reminder sound finished playing')
-        resolve()
-      }
-      audio.onerror = (e) => {
-        console.error('[Offscreen] Error playing reminder sound:', e)
-        reject(new Error('Failed to play sound'))
-      }
-    })
-  } catch (error) {
-    console.warn('[Offscreen] Could not play sound file, using generated tone:', error)
-    // Fallback: generate a simple notification tone using Web Audio API
-    return playGeneratedTone()
-  }
+  // Use the simple generated tone - it's subtle and consistent
+  return playGeneratedTone()
 }
 
 /**
- * Generate and play a simple notification tone using Web Audio API
- * Used as fallback when the sound file is not available
+ * Generate and play a pleasant double chime notification
+ * Two descending notes for a familiar, elegant sound
  */
 async function playGeneratedTone(): Promise<void> {
   const audioContext = new AudioContext()
-
-  // Create a pleasant two-tone notification sound
-  const playTone = (frequency: number, startTime: number, duration: number) => {
-    const oscillator = audioContext.createOscillator()
-    const gainNode = audioContext.createGain()
-
-    oscillator.connect(gainNode)
-    gainNode.connect(audioContext.destination)
-
-    oscillator.type = 'sine'
-    oscillator.frequency.setValueAtTime(frequency, startTime)
-
-    // Envelope for smooth attack and decay
-    gainNode.gain.setValueAtTime(0, startTime)
-    gainNode.gain.linearRampToValueAtTime(0.3, startTime + 0.05) // Attack
-    gainNode.gain.linearRampToValueAtTime(0.3, startTime + duration - 0.1) // Sustain
-    gainNode.gain.linearRampToValueAtTime(0, startTime + duration) // Decay
-
-    oscillator.start(startTime)
-    oscillator.stop(startTime + duration)
-  }
-
   const now = audioContext.currentTime
+  const volume = 0.5 // 50% volume
 
-  // Play a pleasant two-note chime (C5 and E5)
-  playTone(523.25, now, 0.2) // C5
-  playTone(659.25, now + 0.15, 0.25) // E5
+  // First chime - higher note (C6)
+  const osc1 = audioContext.createOscillator()
+  const gain1 = audioContext.createGain()
+  osc1.connect(gain1)
+  gain1.connect(audioContext.destination)
+  osc1.type = 'sine'
+  osc1.frequency.setValueAtTime(1047, now) // C6
+  gain1.gain.setValueAtTime(0, now)
+  gain1.gain.linearRampToValueAtTime(volume * 0.25, now + 0.01)
+  gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.5)
+  osc1.start(now)
+  osc1.stop(now + 0.5)
+
+  // Second chime - lower note (G5), slightly delayed
+  const osc2 = audioContext.createOscillator()
+  const gain2 = audioContext.createGain()
+  osc2.connect(gain2)
+  gain2.connect(audioContext.destination)
+  osc2.type = 'sine'
+  osc2.frequency.setValueAtTime(784, now + 0.15) // G5
+  gain2.gain.setValueAtTime(0, now + 0.15)
+  gain2.gain.linearRampToValueAtTime(volume * 0.2, now + 0.16)
+  gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.8)
+  osc2.start(now + 0.15)
+  osc2.stop(now + 0.8)
 
   // Wait for the sound to finish
   return new Promise((resolve) => {
     setTimeout(() => {
       audioContext.close()
-      console.log('[Offscreen] Generated tone finished playing')
+      console.log('[Offscreen] Double chime finished playing')
       resolve()
-    }, 500)
+    }, 900)
   })
 }
 
