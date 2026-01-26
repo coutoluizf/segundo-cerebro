@@ -39,6 +39,7 @@ export async function initDatabase(): Promise<Client> {
       favicon TEXT,
       source TEXT,
       transcription TEXT NOT NULL,
+      ai_summary TEXT,
       project_id TEXT,
       reason TEXT,
       context_tabs TEXT,
@@ -69,6 +70,11 @@ export async function initDatabase(): Promise<Client> {
   }
   try {
     await db.execute('ALTER TABLE items ADD COLUMN source TEXT')
+  } catch {
+    // Column already exists, ignore
+  }
+  try {
+    await db.execute('ALTER TABLE items ADD COLUMN ai_summary TEXT')
   } catch {
     // Column already exists, ignore
   }
@@ -141,8 +147,8 @@ export async function saveItem(
 
   await database.execute({
     sql: `INSERT OR REPLACE INTO items
-      (id, type, url, url_hash, title, favicon, source, transcription, project_id, reason, context_tabs, context_tab_count, embedding, created_at, status)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      (id, type, url, url_hash, title, favicon, source, transcription, ai_summary, project_id, reason, context_tabs, context_tab_count, embedding, created_at, status)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     args: [
       id,
       item.type || 'tab',
@@ -152,6 +158,7 @@ export async function saveItem(
       item.favicon,
       item.source,
       item.transcription,
+      item.aiSummary || null,
       item.projectId,
       item.reason,
       JSON.stringify(item.contextTabs),
@@ -197,6 +204,7 @@ export async function getItems(
     favicon: row.favicon as string | null,
     source: row.source as string | null,
     transcription: row.transcription as string,
+    aiSummary: row.ai_summary as string | null,
     projectId: row.project_id as string | null,
     reason: row.reason as string | null,
     contextTabs: JSON.parse((row.context_tabs as string) || '[]'),
@@ -239,6 +247,7 @@ export async function semanticSearch(
       favicon: row.favicon as string | null,
       source: row.source as string | null,
       transcription: row.transcription as string,
+      aiSummary: row.ai_summary as string | null,
       projectId: row.project_id as string | null,
       reason: row.reason as string | null,
       contextTabs: JSON.parse((row.context_tabs as string) || '[]'),
@@ -273,6 +282,80 @@ export async function updateItemProject(id: string, projectId: string | null): P
     sql: 'UPDATE items SET project_id = ? WHERE id = ?',
     args: [projectId, id],
   })
+}
+
+// Update an item's content (title, transcription, aiSummary) and optionally its embedding
+export async function updateItem(
+  id: string,
+  updates: { title?: string; transcription?: string; aiSummary?: string },
+  embedding?: number[] | null
+): Promise<VoiceItem | null> {
+  const database = await getDatabase()
+
+  // Build dynamic UPDATE query based on provided fields
+  const setClauses: string[] = []
+  const args: (string | number | Uint8Array | null)[] = []
+
+  if (updates.title !== undefined) {
+    setClauses.push('title = ?')
+    args.push(updates.title)
+  }
+  if (updates.transcription !== undefined) {
+    setClauses.push('transcription = ?')
+    args.push(updates.transcription)
+  }
+  if (updates.aiSummary !== undefined) {
+    setClauses.push('ai_summary = ?')
+    args.push(updates.aiSummary)
+  }
+  if (embedding !== undefined) {
+    setClauses.push('embedding = ?')
+    args.push(embedding ? embeddingToBlob(embedding) : null)
+  }
+
+  if (setClauses.length === 0) {
+    // Nothing to update, just return the existing item
+    return getItemById(id)
+  }
+
+  args.push(id)
+  const sql = `UPDATE items SET ${setClauses.join(', ')} WHERE id = ?`
+
+  await database.execute({ sql, args })
+
+  // Return the updated item
+  return getItemById(id)
+}
+
+// Get a single item by ID
+export async function getItemById(id: string): Promise<VoiceItem | null> {
+  const database = await getDatabase()
+  const result = await database.execute({
+    sql: 'SELECT * FROM items WHERE id = ?',
+    args: [id],
+  })
+
+  if (result.rows.length === 0) return null
+
+  const row = result.rows[0]
+  return {
+    id: row.id as string,
+    type: (row.type as VoiceItem['type']) || 'tab',
+    url: (row.url as string) || '',
+    urlHash: row.url_hash as string,
+    title: row.title as string | null,
+    favicon: row.favicon as string | null,
+    source: row.source as string | null,
+    transcription: row.transcription as string,
+    aiSummary: row.ai_summary as string | null,
+    projectId: row.project_id as string | null,
+    reason: row.reason as string | null,
+    contextTabs: JSON.parse((row.context_tabs as string) || '[]'),
+    contextTabCount: row.context_tab_count as number,
+    embedding: row.embedding ? blobToEmbedding(new Uint8Array(row.embedding as ArrayBuffer)) : null,
+    createdAt: row.created_at as number,
+    status: row.status as VoiceItem['status'],
+  }
 }
 
 // Permanently delete an item

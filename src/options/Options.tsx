@@ -5,9 +5,18 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Toaster } from '@/components/ui/toaster'
 import { useToast } from '@/components/ui/use-toast'
+import { Switch } from '@/components/ui/switch'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { sendMessage } from '@/shared/messaging'
+import { AVAILABLE_LANGUAGES } from '@/shared/settings'
 import type { Project } from '@/shared/types'
-import { Brain, Key, FolderOpen, Plus, Trash2, ExternalLink } from 'lucide-react'
+import { Brain, Key, FolderOpen, Plus, Trash2, ExternalLink, Sparkles, Globe } from 'lucide-react'
 
 export function Options() {
   const [elevenlabsKey, setElevenlabsKey] = useState('')
@@ -15,6 +24,8 @@ export function Options() {
   const [projects, setProjects] = useState<Project[]>([])
   const [newProjectName, setNewProjectName] = useState('')
   const [isSaving, setIsSaving] = useState(false)
+  const [language, setLanguage] = useState('pt-BR')
+  const [autoSummarize, setAutoSummarize] = useState(true)
   const { toast } = useToast()
 
   // Load current settings
@@ -28,6 +39,12 @@ export function Options() {
     // Load projects
     sendMessage({ type: 'GET_PROJECTS' }).then((response) => {
       setProjects(response.projects)
+    })
+
+    // Load user settings
+    sendMessage({ type: 'GET_SETTINGS' }).then((settings) => {
+      setLanguage(settings.language)
+      setAutoSummarize(settings.autoSummarize)
     })
   }, [])
 
@@ -53,6 +70,46 @@ export function Options() {
       })
     } finally {
       setIsSaving(false)
+    }
+  }
+
+  // Handle language change
+  const handleLanguageChange = async (newLanguage: string) => {
+    setLanguage(newLanguage)
+    try {
+      await sendMessage({ type: 'SET_SETTINGS', settings: { language: newLanguage } })
+      toast({
+        variant: 'success',
+        title: 'Idioma atualizado',
+        description: 'Idioma dos resumos AI alterado.',
+      })
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Erro',
+        description: 'Erro ao salvar configuração.',
+      })
+    }
+  }
+
+  // Handle auto-summarize toggle
+  const handleAutoSummarizeChange = async (enabled: boolean) => {
+    setAutoSummarize(enabled)
+    try {
+      await sendMessage({ type: 'SET_SETTINGS', settings: { autoSummarize: enabled } })
+      toast({
+        variant: 'success',
+        title: enabled ? 'Resumo automático ativado' : 'Resumo automático desativado',
+        description: enabled
+          ? 'Páginas serão resumidas automaticamente ao salvar.'
+          : 'Apenas sua transcrição será salva.',
+      })
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Erro',
+        description: 'Erro ao salvar configuração.',
+      })
     }
   }
 
@@ -190,6 +247,58 @@ export function Options() {
               <Button onClick={handleSaveKeys} disabled={isSaving}>
                 {isSaving ? 'Salvando...' : 'Salvar API Keys'}
               </Button>
+            </CardContent>
+          </Card>
+
+          {/* AI Settings Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5" />
+                Resumo Automático (AI)
+              </CardTitle>
+              <CardDescription>
+                Configure o resumo automático de páginas usando inteligência artificial.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Auto-summarize toggle */}
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="auto-summarize">Resumir páginas automaticamente</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Gera um resumo AI do conteúdo da página ao salvar tabs.
+                  </p>
+                </div>
+                <Switch
+                  id="auto-summarize"
+                  checked={autoSummarize}
+                  onCheckedChange={handleAutoSummarizeChange}
+                />
+              </div>
+
+              {/* Language selector */}
+              <div className="space-y-2">
+                <Label htmlFor="language" className="flex items-center gap-2">
+                  <Globe className="h-4 w-4" />
+                  Idioma dos resumos
+                </Label>
+                <Select value={language} onValueChange={handleLanguageChange}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Selecione o idioma" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {AVAILABLE_LANGUAGES.map((lang) => (
+                      <SelectItem key={lang.code} value={lang.code}>
+                        {lang.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  O resumo será gerado neste idioma, independente do idioma da página.
+                </p>
+              </div>
             </CardContent>
           </Card>
 

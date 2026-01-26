@@ -2,6 +2,29 @@
 
 Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 
+## [0.3.0] - 2026-01-25
+
+### Adicionado
+- **AI Summary**: Resumo automático de páginas usando GPT-4o-mini ao salvar tabs
+- **Configuração de idioma**: Escolha o idioma dos resumos AI (9 idiomas suportados)
+- **Toggle auto-summarize**: Opção para desabilitar resumo automático nas configurações
+- **Item Detail Drawer**: Painel lateral com visão expandida do item ao clicar no card
+- **Navegação no Drawer**: Setas ←/→ para navegar entre itens sem fechar o drawer
+- **Edição inline**: Editar título, transcrição e resumo AI diretamente no drawer
+- **Regeneração de embedding**: Embedding é regenerado automaticamente ao editar conteúdo
+- **Voice Search**: Busca por voz no search bar usando ElevenLabs STT
+- **Hero Search Bar**: Campo de busca em destaque acima dos cards
+
+### Melhorado
+- **Search Bar**: Movido para posição de destaque com suporte a voz
+- **Busca semântica**: Embedding agora combina transcrição + resumo AI para melhor relevância
+
+### Técnico
+- Novo campo `ai_summary` na tabela items com migração automática
+- Mensagem `UPDATE_ITEM` para atualização de campos com regeneração de embedding
+- Content script para extração de texto de páginas via `chrome.scripting`
+- Testes unitários com Vitest para a feature de AI summary
+
 ## [0.2.0] - 2026-01-25
 
 ### Adicionado

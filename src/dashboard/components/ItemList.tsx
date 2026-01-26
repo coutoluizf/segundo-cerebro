@@ -18,6 +18,7 @@ interface ItemListProps {
   onDelete: (id: string) => void
   onOpen: (url: string) => void
   onUpdateProject: (itemId: string, projectId: string | null) => void
+  onItemClick?: (item: VoiceItem | SearchResult) => void // Click to expand item
 }
 
 // Type guard to check if item has similarity score
@@ -28,8 +29,9 @@ function isSearchResult(item: VoiceItem | SearchResult): item is SearchResult {
 /**
  * ItemList - Grid display of saved items with luminous card design
  * Features similarity badges, project selectors, and action buttons
+ * Click on card to expand in drawer
  */
-export function ItemList({ items, projects, columns = 1, onDelete, onOpen, onUpdateProject }: ItemListProps) {
+export function ItemList({ items, projects, columns = 1, onDelete, onOpen, onUpdateProject, onItemClick }: ItemListProps) {
   // Get project by ID
   const getProject = (projectId: string | null): Project | undefined => {
     if (!projectId) return undefined
@@ -84,8 +86,20 @@ export function ItemList({ items, projects, columns = 1, onDelete, onOpen, onUpd
         return (
           <div
             key={item.id}
-            className="card-luminous rounded-2xl p-5 hover-glow animate-fade-in-up"
+            className={cn(
+              "card-luminous rounded-2xl p-5 hover-glow animate-fade-in-up",
+              onItemClick && "cursor-pointer"
+            )}
             style={{ animationDelay: `${index * 50}ms` }}
+            onClick={() => onItemClick?.(item)}
+            role={onItemClick ? "button" : undefined}
+            tabIndex={onItemClick ? 0 : undefined}
+            onKeyDown={(e) => {
+              if (onItemClick && (e.key === 'Enter' || e.key === ' ')) {
+                e.preventDefault()
+                onItemClick(item)
+              }
+            }}
           >
             {/* Header row */}
             <div className="flex items-start justify-between gap-3 mb-4">
@@ -140,7 +154,7 @@ export function ItemList({ items, projects, columns = 1, onDelete, onOpen, onUpd
             </div>
 
             {/* Transcription - Quote style */}
-            <div className="relative mb-4">
+            <div className="relative mb-3">
               <div className="absolute -left-1 top-0 bottom-0 w-0.5 bg-gradient-to-b from-primary/50 to-primary/0 rounded-full" />
               <div className="pl-3">
                 <Quote className="h-3 w-3 text-muted-foreground/40 mb-1" />
@@ -150,8 +164,26 @@ export function ItemList({ items, projects, columns = 1, onDelete, onOpen, onUpd
               </div>
             </div>
 
+            {/* AI Summary - Subtle AI-generated section */}
+            {item.aiSummary && (
+              <div className="mb-4 px-3 py-2 bg-primary/5 rounded-xl border border-primary/10">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <Sparkles className="h-3 w-3 text-primary/60" />
+                  <span className="text-[10px] font-medium text-primary/60 uppercase tracking-wider">
+                    Resumo AI
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">
+                  {item.aiSummary}
+                </p>
+              </div>
+            )}
+
             {/* Footer */}
-            <div className="flex items-center justify-between pt-3 border-t border-border/50">
+            <div
+              className="flex items-center justify-between pt-3 border-t border-border/50"
+              onClick={(e) => e.stopPropagation()}
+            >
               {/* Left side - Project + Date */}
               <div className="flex items-center gap-3">
                 {/* Project selector dropdown */}

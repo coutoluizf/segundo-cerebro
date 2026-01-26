@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { SearchBar } from './components/SearchBar'
 import { ProjectFilter } from './components/ProjectFilter'
 import { ItemList } from './components/ItemList'
+import { ItemDetail } from './components/ItemDetail'
 import { Toaster } from '@/components/ui/toaster'
 import { useToast } from '@/components/ui/use-toast'
 import { sendMessage, onItemsChanged } from '@/shared/messaging'
@@ -42,6 +43,9 @@ export function Dashboard() {
   const [isLoading, setIsLoading] = useState(true)
   const [columns, setColumns] = useState<1 | 2 | 3>(getSavedColumns)
   const [theme, setThemeState] = useState<'light' | 'dark' | 'system'>(getStoredTheme)
+  // Item detail drawer state
+  const [selectedItem, setSelectedItem] = useState<VoiceItem | SearchResult | null>(null)
+  const [isDetailOpen, setIsDetailOpen] = useState(false)
   const { toast } = useToast()
 
   // Save columns preference when it changes
@@ -196,6 +200,51 @@ export function Dashboard() {
   // Open item URL
   const handleOpen = (url: string) => {
     chrome.tabs.create({ url })
+  }
+
+  // Handle item click - open detail drawer
+  const handleItemClick = (item: VoiceItem | SearchResult) => {
+    setSelectedItem(item)
+    setIsDetailOpen(true)
+  }
+
+  // Navigate to another item in the drawer
+  const handleNavigateItem = (item: VoiceItem | SearchResult) => {
+    setSelectedItem(item)
+  }
+
+  // Handle item update (title, transcription, aiSummary)
+  const handleUpdateItem = async (
+    itemId: string,
+    updates: { title?: string; transcription?: string; aiSummary?: string }
+  ) => {
+    try {
+      const response = await sendMessage({ type: 'UPDATE_ITEM', id: itemId, updates })
+      if (response.success && response.item) {
+        // Update item locally
+        setItems((prevItems) =>
+          prevItems.map((item) =>
+            item.id === itemId ? { ...item, ...updates } : item
+          )
+        )
+        // Update selected item if it's the one being edited
+        if (selectedItem?.id === itemId) {
+          setSelectedItem({ ...selectedItem, ...updates })
+        }
+        toast({
+          variant: 'success',
+          title: 'Atualizado',
+          description: 'Item atualizado com sucesso.',
+        })
+      }
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Erro',
+        description: 'Erro ao atualizar item.',
+      })
+      throw error // Re-throw so ItemDetail can handle it
+    }
   }
 
   // Open options
@@ -383,12 +432,27 @@ export function Dashboard() {
                   onDelete={handleDelete}
                   onOpen={handleOpen}
                   onUpdateProject={handleUpdateProject}
+                  onItemClick={handleItemClick}
                 />
               </>
             )}
           </main>
         </div>
       </div>
+
+      {/* Item detail drawer */}
+      <ItemDetail
+        item={selectedItem}
+        items={items}
+        projects={projects}
+        open={isDetailOpen}
+        onOpenChange={setIsDetailOpen}
+        onDelete={handleDelete}
+        onOpen={handleOpen}
+        onUpdateProject={handleUpdateProject}
+        onNavigate={handleNavigateItem}
+        onUpdate={handleUpdateItem}
+      />
 
       <Toaster />
     </div>

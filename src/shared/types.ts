@@ -24,6 +24,7 @@ export interface VoiceItem {
   favicon: string | null
   source: string | null // Optional source for notes (e.g., "Twitter @user", "Conversa com João")
   transcription: string
+  aiSummary: string | null // AI-generated summary of page content
   projectId: string | null
   reason: string | null
   contextTabs: string[] // JSON array of related tab URLs

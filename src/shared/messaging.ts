@@ -4,6 +4,7 @@
  */
 
 import type { VoiceItem, Project, CapturedContext, SearchResult, ApiKeys } from './types'
+import type { UserSettings } from './settings'
 import * as db from './db'
 
 // Check if we're running in extension context
@@ -33,7 +34,7 @@ function setDevApiKeys(keys: Partial<ApiKeys>): void {
 
 // Message types from UI to Background
 export type BgMessage =
-  | { type: 'SAVE_VOICE_ITEM'; item: Partial<VoiceItem>; transcription: string }
+  | { type: 'SAVE_VOICE_ITEM'; item: Partial<VoiceItem>; transcription: string; pageContent?: string }
   | { type: 'GET_ITEMS'; limit?: number; projectId?: string }
   | { type: 'SEMANTIC_SEARCH'; query: string; limit?: number }
   | { type: 'GET_PROJECTS' }
@@ -42,10 +43,13 @@ export type BgMessage =
   | { type: 'DELETE_PROJECT'; id: string }
   | { type: 'GET_CONTEXT' }
   | { type: 'DELETE_ITEM'; id: string }
+  | { type: 'UPDATE_ITEM'; id: string; updates: { title?: string; transcription?: string; aiSummary?: string } }
   | { type: 'UPDATE_ITEM_PROJECT'; id: string; projectId: string | null }
   | { type: 'GET_API_KEYS' }
   | { type: 'SET_API_KEYS'; elevenlabs?: string; openai?: string }
   | { type: 'CHECK_API_KEYS' }
+  | { type: 'GET_SETTINGS' }
+  | { type: 'SET_SETTINGS'; settings: Partial<UserSettings> }
 
 // Response types based on message type
 export type BgResponse<T extends BgMessage['type']> =
@@ -58,10 +62,13 @@ export type BgResponse<T extends BgMessage['type']> =
   T extends 'DELETE_PROJECT' ? { success: boolean; error?: string } :
   T extends 'GET_CONTEXT' ? CapturedContext :
   T extends 'DELETE_ITEM' ? { success: boolean; error?: string } :
+  T extends 'UPDATE_ITEM' ? { success: boolean; item?: VoiceItem; error?: string } :
   T extends 'UPDATE_ITEM_PROJECT' ? { success: boolean; error?: string } :
   T extends 'GET_API_KEYS' ? ApiKeys :
   T extends 'SET_API_KEYS' ? { success: boolean; error?: string } :
   T extends 'CHECK_API_KEYS' ? { hasKeys: boolean; elevenlabs: boolean; openai: boolean } :
+  T extends 'GET_SETTINGS' ? UserSettings :
+  T extends 'SET_SETTINGS' ? { success: boolean; settings?: UserSettings; error?: string } :
   never
 
 // Helper function to send typed messages to background
@@ -107,6 +114,17 @@ async function handleDevMessage(message: BgMessage): Promise<unknown> {
       setDevApiKeys({ elevenlabs: message.elevenlabs, openai: message.openai })
       return { success: true }
 
+    case 'GET_SETTINGS': {
+      const { getSettings } = await import('./settings')
+      return await getSettings()
+    }
+
+    case 'SET_SETTINGS': {
+      const { saveSettings } = await import('./settings')
+      const settings = await saveSettings(message.settings)
+      return { success: true, settings }
+    }
+
     case 'GET_PROJECTS':
       return { projects: await db.getProjects() }
 
@@ -135,6 +153,37 @@ async function handleDevMessage(message: BgMessage): Promise<unknown> {
       await db.updateItemProject(message.id, message.projectId)
       return { success: true }
 
+    case 'UPDATE_ITEM': {
+      const keys = getDevApiKeys()
+      const { id, updates } = message
+
+      // Get the current item
+      const currentItem = await db.getItemById(id)
+      if (!currentItem) {
+        return { success: false, error: 'Item not found' }
+      }
+
+      // Regenerate embedding if content changed
+      let newEmbedding: number[] | null | undefined = undefined
+      const transcriptionChanged = updates.transcription !== undefined && updates.transcription !== currentItem.transcription
+      const aiSummaryChanged = updates.aiSummary !== undefined && updates.aiSummary !== currentItem.aiSummary
+
+      if ((transcriptionChanged || aiSummaryChanged) && keys.openai) {
+        try {
+          const { generateEmbedding } = await import('./embeddings')
+          const transcription = updates.transcription ?? currentItem.transcription
+          const aiSummary = updates.aiSummary ?? currentItem.aiSummary
+          const textForEmbedding = aiSummary ? `${transcription}\n\n${aiSummary}` : transcription
+          newEmbedding = await generateEmbedding(textForEmbedding, keys.openai)
+        } catch (e) {
+          console.error('[Dev] Error regenerating embedding:', e)
+        }
+      }
+
+      const updatedItem = await db.updateItem(id, updates, newEmbedding)
+      return { success: true, item: updatedItem }
+    }
+
     case 'GET_CONTEXT':
       // Mock context in dev mode
       return {
@@ -146,21 +195,43 @@ async function handleDevMessage(message: BgMessage): Promise<unknown> {
 
     case 'SAVE_VOICE_ITEM': {
       const keys = getDevApiKeys()
-      let embedding: number[] | null = null
-
-      // Generate embedding if OpenAI key is available
-      if (keys.openai && message.transcription) {
-        try {
-          const { generateEmbedding } = await import('./embeddings')
-          embedding = await generateEmbedding(message.transcription, keys.openai)
-        } catch (e) {
-          console.error('[Dev] Error generating embedding:', e)
-        }
-      }
 
       // Determine item type: 'note' if explicitly set, 'tab' otherwise
       const itemType = message.item.type || 'tab'
       const isNote = itemType === 'note'
+
+      // Get user settings and generate AI summary if enabled (dev mode)
+      const { getSettings } = await import('./settings')
+      const settings = await getSettings()
+      let aiSummary: string | null = null
+
+      // Generate AI summary for tab items if enabled
+      if (!isNote && settings.autoSummarize && keys.openai) {
+        const pageContent = message.pageContent || document.body.innerText?.substring(0, 15000)
+        if (pageContent && pageContent.length > 100) {
+          try {
+            const { generateSummary } = await import('./summarize')
+            aiSummary = await generateSummary(pageContent, settings.language, keys.openai)
+          } catch (e) {
+            console.error('[Dev] Error generating AI summary:', e)
+          }
+        }
+      }
+
+      // Generate embedding if OpenAI key is available
+      let embedding: number[] | null = null
+      if (keys.openai && message.transcription) {
+        try {
+          const { generateEmbedding } = await import('./embeddings')
+          // Combine transcription and AI summary for richer embedding
+          const textForEmbedding = aiSummary
+            ? `${message.transcription}\n\n${aiSummary}`
+            : message.transcription
+          embedding = await generateEmbedding(textForEmbedding, keys.openai)
+        } catch (e) {
+          console.error('[Dev] Error generating embedding:', e)
+        }
+      }
 
       const item = await db.saveItem(
         {
@@ -170,6 +241,7 @@ async function handleDevMessage(message: BgMessage): Promise<unknown> {
           favicon: message.item.favicon || null,
           source: message.item.source || null,
           transcription: message.transcription,
+          aiSummary,
           projectId: message.item.projectId || null,
           reason: message.item.reason || null,
           contextTabs: [],
