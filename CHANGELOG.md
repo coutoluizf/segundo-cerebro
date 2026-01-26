@@ -12,6 +12,16 @@ Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 - **Close Tab on Save**: Nova configuração para fechar a tab automaticamente após salvar
 - **Offscreen Document**: Documento offscreen para reproduzir som mesmo com popup fechado
 - **Fallback de áudio**: Geração de tom via Web Audio API quando arquivo de som não disponível
+- **Thumbnails automáticos**: Screenshot da tab capturado automaticamente ao salvar (JPEG 400px, ~30KB)
+- **Carrossel de Recentes**: Seção horizontal no topo do dashboard mostrando os últimos 8 itens
+- **Quick Glance (Hover Preview)**: Preview expandido ao passar o mouse sobre cards (delay 400ms)
+- **Visão por Projetos**: Toggle para visualizar projetos como cards visuais com grid 2x2 de thumbnails
+- **Fallback com Favicon**: Cards sem thumbnail exibem favicon grande com fundo colorido baseado no projeto
+
+### Melhorado
+- **Cards visuais**: Thumbnail em destaque no topo de cada card com gradient overlay
+- **Item Detail Drawer**: Thumbnail exibido no topo do drawer para contexto visual
+- **Navegação visual**: Thumbnails facilitam identificação rápida de itens salvos
 
 ### Técnico
 - Nova permissão: `alarms` para agendamento de lembretes
@@ -22,6 +32,13 @@ Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 - Mensagem `UPDATE_ITEM_REMINDER` para atualização de lembretes
 - Recreação automática de alarms do banco ao reiniciar o browser
 - Cancelamento automático de alarm ao deletar item
+- Novo campo `thumbnail TEXT` na tabela items com migração automática
+- Utilitário `screenshot.ts` usando `chrome.tabs.captureVisibleTab()` com compressão JPEG
+- Componente `FaviconFallback` para fallback visual consistente
+- Componente `RecentCarousel` com scroll horizontal e botões de navegação
+- Componente `HoverPreview` usando Radix Tooltip com delay configurável
+- Componente `ProjectGrid` com grid de projetos e contagem de itens
+- ViewMode toggle persistido em localStorage
 
 ## [0.3.0] - 2026-01-25
 

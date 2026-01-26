@@ -8,8 +8,11 @@ import { Toaster } from '@/components/ui/toaster'
 import { useToast } from '@/components/ui/use-toast'
 import { sendMessage } from '@/shared/messaging'
 import type { Project, ItemType } from '@/shared/types'
-import { Settings, ExternalLink, Mic, Brain, FileText, Globe, Clipboard, Sparkles } from 'lucide-react'
+import { Settings, ExternalLink, Mic, Brain, FileText, Globe, Clipboard, Sparkles, ChevronRight, X, LayoutDashboard } from 'lucide-react'
 import { cn } from '@/lib/utils'
+
+// Key for storing whether the dashboard banner was shown (v2 = floating card after save)
+const DASHBOARD_BANNER_SHOWN_KEY = 'segundo-cerebro-dashboard-banner-v2-shown'
 
 // Permission states
 type MicPermission = 'checking' | 'granted' | 'prompt' | 'denied'
@@ -30,6 +33,8 @@ export function Popup() {
     title: string
     favicon?: string
   } | null>(null)
+  const [itemCount, setItemCount] = useState<number>(0) // Total saved items
+  const [showDashboardBanner, setShowDashboardBanner] = useState(false) // First-time banner
   const { toast } = useToast()
 
   // Check API keys, mic permission, and get current tab on mount
@@ -47,6 +52,11 @@ export function Popup() {
     // Get current tab info
     sendMessage({ type: 'GET_CONTEXT' }).then((context) => {
       setCurrentTab(context.activeTab)
+    })
+
+    // Get item count for footer link
+    sendMessage({ type: 'GET_ITEMS' }).then((response) => {
+      setItemCount(response.items.length)
     })
 
     // Check microphone permission
@@ -146,12 +156,27 @@ export function Popup() {
           title: 'Salvo!',
           description: mode === 'tab' ? 'Tab salva com sucesso.' : 'Nota salva com sucesso.',
         })
-        // Reset after save
+
+        // Update item count
+        setItemCount((prev) => prev + 1)
+
+        // Reset form
         setTranscription('')
         setSource('')
         setReminderAt(null)
-        // Close popup after short delay
-        setTimeout(() => window.close(), 1000)
+
+        // Check if dashboard banner was already shown
+        chrome.storage.local.get(DASHBOARD_BANNER_SHOWN_KEY, (result) => {
+          if (!result[DASHBOARD_BANNER_SHOWN_KEY]) {
+            // Show the floating banner (first save after feature deployment)
+            setShowDashboardBanner(true)
+            // Mark as shown
+            chrome.storage.local.set({ [DASHBOARD_BANNER_SHOWN_KEY]: true })
+          } else {
+            // Close popup after short delay
+            setTimeout(() => window.close(), 1500)
+          }
+        })
       } else {
         throw new Error(response.error || 'Erro ao salvar')
       }
@@ -412,6 +437,63 @@ export function Popup() {
           'Salvar Nota'
         )}
       </Button>
+
+      {/* Footer link to dashboard */}
+      {itemCount > 0 && (
+        <button
+          onClick={openDashboard}
+          className="w-full flex items-center justify-center gap-2 py-2 text-sm text-muted-foreground hover:text-primary transition-colors group"
+        >
+          <LayoutDashboard className="h-4 w-4" />
+          <span>
+            Ver seus <span className="font-medium text-foreground">{itemCount}</span> {itemCount === 1 ? 'item salvo' : 'itens salvos'}
+          </span>
+          <ChevronRight className="h-4 w-4 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+        </button>
+      )}
+
+      {/* First-time dashboard floating card */}
+      {showDashboardBanner && (
+        <div className="fixed bottom-4 left-4 right-4 z-50 animate-in slide-in-from-bottom-4 fade-in-0 duration-300">
+          <div className="bg-background border border-border/50 rounded-2xl shadow-2xl p-4">
+            {/* Close button */}
+            <button
+              onClick={() => {
+                setShowDashboardBanner(false)
+                setTimeout(() => window.close(), 300)
+              }}
+              className="absolute top-2 right-2 p-1.5 rounded-full hover:bg-secondary/70 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+
+            {/* Content */}
+            <div className="flex items-start gap-3">
+              {/* Icon */}
+              <div className="shrink-0 w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                <Sparkles className="h-5 w-5 text-primary" />
+              </div>
+
+              <div className="flex-1 min-w-0">
+                <h3 className="font-medium text-sm">Item salvo!</h3>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Conheça o Dashboard com busca semântica e organização por projetos.
+                </p>
+
+                {/* CTA */}
+                <button
+                  onClick={openDashboard}
+                  className="mt-2 flex items-center gap-1.5 text-xs font-medium text-primary hover:underline"
+                >
+                  <LayoutDashboard className="h-3.5 w-3.5" />
+                  Abrir Dashboard
+                  <ChevronRight className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <Toaster />
     </div>

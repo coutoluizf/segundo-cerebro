@@ -22,6 +22,7 @@ export interface VoiceItem {
   urlHash: string
   title: string | null
   favicon: string | null
+  thumbnail: string | null // Data URL base64 screenshot of the tab
   source: string | null // Optional source for notes (e.g., "Twitter @user", "Conversa com João")
   transcription: string
   aiSummary: string | null // AI-generated summary of page content

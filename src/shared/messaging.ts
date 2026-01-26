@@ -249,6 +249,7 @@ async function handleDevMessage(message: BgMessage): Promise<unknown> {
           url: isNote ? '' : (message.item.url || window.location.href), // Empty string for notes, saveItem handles it
           title: message.item.title || (isNote ? null : document.title),
           favicon: message.item.favicon || null,
+          thumbnail: null, // Thumbnail only captured in extension context
           source: message.item.source || null,
           transcription: message.transcription,
           aiSummary,
