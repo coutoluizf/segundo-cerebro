@@ -2,26 +2,67 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.7.1] - 2026-01-27
+
+### Adicionado
+- **RajiLogo Component**: Novo componente React reutilizável para o mascote
+- **Mascote French Bulldog**: Design "A2" com orelhas de morcego que transbordam o círculo
+- **Gradiente laranja/âmbar**: Cores #ff7733 → #f59e0b mantendo identidade visual do app
+
+### Atualizado
+- **Dashboard header**: Brain icon substituído por RajiLogo (28px)
+- **Dashboard empty state**: Brain icon substituído por RajiLogo (40px)
+- **Popup header**: Brain icon substituído por RajiLogo (20px)
+- **Popup states**: Todos os estados (loading, sem API, sem mic) com RajiLogo (24px)
+- **Recorder header**: Brain icon substituído por RajiLogo (24px)
+- **Options header**: Brain icon substituído por RajiLogo (32px)
+
+### Técnico
+- Novo componente: `src/components/RajiLogo.tsx`
+- Props: `size` (número em pixels) e `className` (estilos adicionais)
+- SVG inline com gradiente e comentários explicativos
+- Removido import de `Brain` do lucide-react em todos os arquivos
+
+## [0.7.0] - 2026-01-27
+
+### Adicionado
+- **Lixeira (Trash)**: Itens deletados vão para lixeira com opção de restaurar ou excluir permanentemente
+- **Botão de Lixeira no sidebar**: Acesso rápido à lixeira com contador de itens
+- **Restaurar itens**: Recupere itens excluídos acidentalmente com um clique
+- **Esvaziar lixeira**: Opção para excluir permanentemente todos os itens da lixeira
+- **Confirmação de exclusão**: Dialog de confirmação antes de deletar qualquer item
+
+### Melhorado
+- **Embeddings incluem URL e título**: Busca semântica agora considera URL e título do site para melhor relevância (~35% mais preciso)
+- **Hover Preview mais controlado**: Delay aumentado para 1.5s e trigger apenas no painel "Resumo AI" (não no card inteiro)
+- **Botão "Abrir" mais visível**: Background laranja com texto branco para maior destaque
+- **Botão "Excluir" separado**: Movido para longe do "Abrir" para evitar cliques acidentais
+- **Transcrição opcional para tabs**: Tabs podem ser salvas sem transcrição (apenas notas exigem texto)
+
+### Técnico
+- Novo helper `buildTextForEmbedding()` em `embeddings.ts` para construir texto para embedding
+- Novas mensagens: `GET_DELETED_ITEMS`, `RESTORE_ITEM`, `PERMANENT_DELETE_ITEM`, `EMPTY_TRASH`
+- Novas funções no banco: `getDeletedItems()`, `restoreItem()`, `emptyTrashItem()`, `emptyAllTrash()`
+- Novo componente `TrashView.tsx` para visualização e gerenciamento da lixeira
+- Soft delete mantido (status = 'deleted') - dados nunca são perdidos acidentalmente
+
 ## [0.6.0] - 2026-01-27
 
 ### Changed
 - **REBRANDING: Segundo Cérebro → HeyRaji** 🐕
-- **New Identity**: Named after Raji, a beloved French Bulldog
-- **New Logo**: French Bulldog silhouette with iconic bat ears
+- **New Identity**: Named after Raji, a beloved French Bulldog who passed away
 - **New Tagline**: "Your AI companion"
 
 ### Updated
 - All UI text updated to "HeyRaji"
-- New extension icons (16, 48, 128px) with Frenchie mascot
 - Package name changed to `heyraji`
 - Notification titles now show "HeyRaji - Reminder"
 - HTML page titles updated
+- CLAUDE.md updated with new project description
 
 ### Technical
-- New SVG logo: `public/icons/raji.svg`
-- PNG icons regenerated from SVG
-- CLAUDE.md updated with new project description
-- Storage keys preserved for backward compatibility
+- Storage keys preserved for backward compatibility (`segundo-cerebro-*`)
+- manifest.json `name` and `short_name` updated
 
 ## [0.5.0] - 2026-01-26
 

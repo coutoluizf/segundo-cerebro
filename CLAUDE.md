@@ -10,6 +10,31 @@ HeyRaji is a Chrome extension (Manifest V3) for voice-first tab management with 
 
 **Core hypothesis:** "If I capture WHY I'm saving something (via voice), I'll find things better later."
 
+## Branding
+
+### Mascote: Raji
+O mascote é um French Bulldog chamado Raji, homenageando o cachorro do criador. O design usa as icônicas orelhas de morcego (bat ears) características da raça.
+
+### Logo (Design A2 - "Ears Overflow")
+- **Estilo**: Badge circular com orelhas transbordando para fora
+- **Cores**: Gradiente laranja/âmbar (#ff7733 → #f59e0b)
+- **Detalhes**: Face branca, olhos escuros com brilho, nariz preto
+- **Arquivos**:
+  - SVG: `public/icons/raji.svg`
+  - PNGs: `public/icons/icon16.png`, `icon48.png`, `icon128.png`
+  - React Component: `src/components/RajiLogo.tsx`
+
+### Uso do RajiLogo
+```tsx
+import { RajiLogo } from '@/components/RajiLogo'
+
+// Tamanhos comuns
+<RajiLogo size={20} />  // Header pequeno
+<RajiLogo size={24} />  // Header padrão
+<RajiLogo size={32} />  // Header grande
+<RajiLogo size={40} />  // Empty states
+```
+
 ## Build Commands
 
 ```bash

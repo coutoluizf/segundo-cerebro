@@ -1,10 +1,29 @@
 /**
  * RajiLogo - HeyRaji mascot logo component
- * French Bulldog with bat ears that overflow the circle
+ *
+ * Design: "A2 - Ears Overflow" - French Bulldog with bat ears
+ * that overflow outside the main circle for a dynamic effect.
+ *
+ * Named after Raji, a beloved French Bulldog who inspired this project.
+ *
+ * Colors:
+ * - Primary gradient: #ff7733 → #f59e0b (orange/amber)
+ * - Inner ear detail: #e85d20 (darker orange)
+ * - Face: white
+ * - Eyes/nose/mouth: #1a1a2e (dark blue-black)
+ *
+ * Usage:
+ *   <RajiLogo size={24} />           // Default header size
+ *   <RajiLogo size={40} />           // Larger for empty states
+ *   <RajiLogo className="opacity-50" /> // With additional styles
+ *
+ * @see public/icons/raji.svg - Static SVG version for extension icons
  */
 
 interface RajiLogoProps {
+  /** Additional CSS classes for the SVG element */
   className?: string
+  /** Size in pixels (width and height are equal) */
   size?: number
 }
 
@@ -17,6 +36,7 @@ export function RajiLogo({ className, size = 24 }: RajiLogoProps) {
       className={className}
       aria-label="HeyRaji logo"
     >
+      {/* Gradient definition for the orange/amber color scheme */}
       <defs>
         <linearGradient id="rajiGrad" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" style={{ stopColor: '#ff7733' }} />

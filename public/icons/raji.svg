@@ -1,6 +1,22 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 140">
-  <!-- HeyRaji Logo - French Bulldog with Bat Ears (Overflow Style) -->
-  <!-- Design A2: Ears overflow outside the circle for dynamic effect -->
+  <!--
+    HeyRaji Logo - French Bulldog Mascot
+    Design: A2 "Ears Overflow"
+
+    Named after Raji, a beloved French Bulldog who inspired this project.
+
+    The bat ears overflow outside the main circle, creating a dynamic
+    and playful effect characteristic of the French Bulldog breed.
+
+    Colors:
+    - Primary gradient: #ff7733 → #f59e0b (orange/amber)
+    - Inner ear: #e85d20 (darker orange for depth)
+    - Face: white
+    - Features: #1a1a2e (dark blue-black)
+
+    Used for extension icons (16px, 48px, 128px) via rsvg-convert.
+    React component version: src/components/RajiLogo.tsx
+  -->
 
   <defs>
     <linearGradient id="mainGrad" x1="0%" y1="0%" x2="100%" y2="100%">
