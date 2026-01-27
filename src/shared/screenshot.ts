@@ -9,19 +9,31 @@ const THUMBNAIL_WIDTH = 800 // Increased for better quality
 const THUMBNAIL_QUALITY = 0.85 // JPEG quality (0-1) - higher for sharper text
 
 /**
- * Captures a thumbnail of the currently visible tab
+ * Captures a thumbnail of a specific tab or the currently visible tab
  * Returns base64 data URL or null if capture fails
  *
- * @param windowId - Optional window ID to capture from
+ * @param options - Optional object with tabId and/or windowId
  * @returns Promise<string | null> - Data URL of the captured thumbnail
  */
-export async function captureTabThumbnail(windowId?: number): Promise<string | null> {
+export async function captureTabThumbnail(options?: { tabId?: number; windowId?: number }): Promise<string | null> {
   try {
-    // Get the current window if not specified
-    const targetWindowId = windowId ?? chrome.windows.WINDOW_ID_CURRENT
+    const { tabId, windowId } = options || {}
 
-    // Check if we can capture the current tab
-    const [activeTab] = await chrome.tabs.query({ active: true, windowId: targetWindowId })
+    // If we have a specific tabId, get its window
+    let targetWindowId: number = windowId ?? chrome.windows.WINDOW_ID_CURRENT
+    let activeTab: chrome.tabs.Tab | undefined
+
+    if (tabId) {
+      // Get the specific tab info
+      activeTab = await chrome.tabs.get(tabId)
+      targetWindowId = activeTab.windowId
+      console.log('[Screenshot] Using specific tab:', tabId, 'in window:', targetWindowId)
+    } else {
+      // Fall back to querying active tab
+      const [tab] = await chrome.tabs.query({ active: true, windowId: targetWindowId })
+      activeTab = tab
+      console.log('[Screenshot] Using active tab query:', activeTab?.id)
+    }
 
     // Skip capture for special URLs (chrome://, about:, etc.)
     if (!activeTab?.url || isSpecialUrl(activeTab.url)) {

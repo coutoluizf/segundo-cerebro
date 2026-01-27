@@ -83,6 +83,7 @@ export type NewVoiceItem = Omit<VoiceItem, 'id' | 'createdAt' | 'embedding' | 'r
 }
 
 // Utility to generate URL hash for deduplication
+// Uses the raw URL as-is (no normalization) to preserve uniqueness of paths/params
 export function generateUrlHash(url: string): string {
   let hash = 0
   for (let i = 0; i < url.length; i++) {

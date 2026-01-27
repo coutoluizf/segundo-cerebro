@@ -8,8 +8,8 @@ import { Toaster } from '@/components/ui/toaster'
 import { useToast } from '@/components/ui/use-toast'
 import { sendMessage } from '@/shared/messaging'
 import { getSettings, saveSettings } from '@/shared/settings'
-import type { Project, ItemType } from '@/shared/types'
-import { Settings, ExternalLink, Mic, FileText, Globe, Clipboard, Sparkles, ChevronRight, X, LayoutDashboard } from 'lucide-react'
+import type { Project, ItemType, VoiceItem } from '@/shared/types'
+import { Settings, ExternalLink, Mic, FileText, Globe, Clipboard, Sparkles, ChevronRight, X, LayoutDashboard, AlertCircle, Calendar, RefreshCw } from 'lucide-react'
 import { RajiLogo } from '@/components/RajiLogo'
 import { cn } from '@/lib/utils'
 
@@ -35,9 +35,13 @@ export function Popup() {
     url: string
     title: string
     favicon?: string
+    id?: number
+    windowId?: number
   } | null>(null)
   const [itemCount, setItemCount] = useState<number>(0) // Total saved items
   const [showDashboardBanner, setShowDashboardBanner] = useState(false) // First-time banner
+  const [duplicateItem, setDuplicateItem] = useState<VoiceItem | null>(null) // Existing item with same URL
+  const [ignoreDuplicate, setIgnoreDuplicate] = useState(false) // User chose to save as new
   const { toast } = useToast()
 
   // Check API keys, mic permission, and get current tab on mount
@@ -52,9 +56,18 @@ export function Popup() {
       setProjects(response.projects)
     })
 
-    // Get current tab info
-    sendMessage({ type: 'GET_CONTEXT' }).then((context) => {
-      setCurrentTab(context.activeTab)
+    // Get current tab info directly from Chrome API (more reliable than background)
+    chrome.tabs.query({ active: true, currentWindow: true }).then(([tab]) => {
+      console.log('[Popup] Direct tab query:', tab?.id, tab?.url, 'windowId:', tab?.windowId)
+      if (tab?.url && !tab.url.startsWith('chrome://') && !tab.url.startsWith('chrome-extension://')) {
+        setCurrentTab({
+          url: tab.url,
+          title: tab.title || '',
+          favicon: tab.favIconUrl,
+          id: tab.id,
+          windowId: tab.windowId,
+        })
+      }
     })
 
     // Get item count for footer link
@@ -73,6 +86,39 @@ export function Popup() {
     // Check clipboard for text content
     checkClipboard()
   }, [])
+
+  // Check for duplicate URL when we have current tab info
+  useEffect(() => {
+    console.log('[Popup] Duplicate useEffect triggered - mode:', mode, 'currentTab:', currentTab?.url, 'ignoreDuplicate:', ignoreDuplicate)
+
+    // Only check in tab mode and if we have a URL
+    if (mode !== 'tab' || !currentTab?.url || ignoreDuplicate) {
+      console.log('[Popup] Skipping duplicate check - conditions not met')
+      return
+    }
+
+    // Skip special URLs (chrome://, about:, etc.)
+    if (currentTab.url.startsWith('chrome://') ||
+        currentTab.url.startsWith('about:') ||
+        currentTab.url.startsWith('chrome-extension://')) {
+      return
+    }
+
+    // Check if this URL already exists
+    console.log('[Popup] Checking for duplicate URL:', currentTab.url)
+    sendMessage({ type: 'CHECK_DUPLICATE_URL', url: currentTab.url }).then((response) => {
+      console.log('[Popup] Duplicate check response:', response)
+      if (response.exists && response.item) {
+        console.log('[Popup] Found duplicate item:', response.item.id, response.item.title)
+        setDuplicateItem(response.item)
+      } else {
+        console.log('[Popup] No duplicate found')
+        setDuplicateItem(null)
+      }
+    }).catch((error) => {
+      console.error('[Popup] Error checking duplicate:', error)
+    })
+  }, [currentTab?.url, mode, ignoreDuplicate])
 
   // Check clipboard for text content
   const checkClipboard = async () => {
@@ -158,6 +204,8 @@ export function Popup() {
         },
         transcription: transcription.trim(),
         closeTabOnSave: mode === 'tab' ? closeTabOnSave : undefined, // Pass override for tab mode
+        tabId: mode === 'tab' ? currentTab?.id : undefined, // Pass tab ID for screenshot capture
+        windowId: mode === 'tab' ? currentTab?.windowId : undefined, // Pass window ID for screenshot capture
       })
 
       if (response.success) {
@@ -217,6 +265,67 @@ export function Popup() {
     setCloseTabOnSave(newValue)
     // Save to global settings so it persists
     await saveSettings({ closeTabOnSave: newValue })
+  }
+
+  // Format date for duplicate item display
+  const formatDate = (timestamp: number): string => {
+    return new Date(timestamp).toLocaleDateString('pt-BR', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    })
+  }
+
+  // Handle updating existing item instead of creating new
+  const handleUpdateExisting = async () => {
+    if (!duplicateItem) return
+
+    setIsSaving(true)
+    try {
+      // Update the existing item with new transcription (if provided) and new thumbnail
+      const updates: { transcription?: string; aiSummary?: string } = {}
+      if (transcription.trim()) {
+        updates.transcription = transcription.trim()
+      }
+
+      const response = await sendMessage({
+        type: 'UPDATE_ITEM',
+        id: duplicateItem.id,
+        updates,
+        // Capture a new thumbnail since we're on the same page
+        captureNewThumbnail: true,
+        tabId: currentTab?.id,
+        windowId: currentTab?.windowId,
+      })
+
+      if (response.success) {
+        toast({
+          variant: 'success',
+          title: 'Atualizado!',
+          description: 'Item existente atualizado com sucesso.',
+        })
+        // Reset form and close
+        setTranscription('')
+        setDuplicateItem(null)
+        setTimeout(() => window.close(), 1500)
+      } else {
+        throw new Error(response.error || 'Erro ao atualizar')
+      }
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Erro',
+        description: error instanceof Error ? error.message : 'Erro ao atualizar',
+      })
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  // User chose to save as new item, ignore duplicate
+  const handleSaveAsNew = () => {
+    setIgnoreDuplicate(true)
+    setDuplicateItem(null)
   }
 
   // Loading state
@@ -402,6 +511,65 @@ export function Popup() {
           <span className="text-xs text-muted-foreground truncate">
             {currentTab.title || currentTab.url}
           </span>
+        </div>
+      )}
+
+      {/* Duplicate URL warning */}
+      {mode === 'tab' && duplicateItem && (
+        <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 space-y-3">
+          {/* Header with warning icon */}
+          <div className="flex items-start gap-3">
+            <div className="p-2 rounded-lg bg-amber-500/10">
+              <AlertCircle className="h-4 w-4 text-amber-500" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-amber-500">Você já salvou esta página</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Salvo em {formatDate(duplicateItem.createdAt)}
+              </p>
+            </div>
+          </div>
+
+          {/* Existing item preview */}
+          <div className="rounded-lg bg-background/50 p-3 space-y-1">
+            <p className="text-sm font-medium line-clamp-1">
+              {duplicateItem.title || 'Sem título'}
+            </p>
+            {duplicateItem.transcription && (
+              <p className="text-xs text-muted-foreground line-clamp-2">
+                {duplicateItem.transcription}
+              </p>
+            )}
+            {duplicateItem.projectId && (
+              <div className="flex items-center gap-1.5 mt-1">
+                <Calendar className="h-3 w-3 text-muted-foreground" />
+                <span className="text-xs text-muted-foreground">
+                  {projects.find(p => p.id === duplicateItem.projectId)?.name || 'Projeto'}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Action buttons */}
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleUpdateExisting}
+              disabled={isSaving}
+              className="flex-1 rounded-lg text-xs h-8"
+            >
+              <RefreshCw className="h-3 w-3 mr-1.5" />
+              Atualizar existente
+            </Button>
+            <Button
+              size="sm"
+              onClick={handleSaveAsNew}
+              className="flex-1 rounded-lg text-xs h-8"
+            >
+              Salvar como novo
+            </Button>
+          </div>
         </div>
       )}
 

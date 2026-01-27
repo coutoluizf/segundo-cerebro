@@ -10,6 +10,7 @@ import type { CapturedContext, TabSummary } from './types'
 export async function captureContext(): Promise<CapturedContext> {
   // Get the current active tab
   const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true })
+  console.log('[Context] captureContext - activeTab:', activeTab?.id, activeTab?.url?.substring(0, 50))
 
   if (!activeTab) {
     return {

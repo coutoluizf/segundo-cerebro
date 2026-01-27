@@ -22,6 +22,8 @@ import {
   updateItemReminder,
   getItemsWithPendingReminders,
   clearItemReminder,
+  // Duplicate detection
+  getItemByExactUrl,
   // Trash operations
   getDeletedItems,
   restoreItem,
@@ -433,10 +435,14 @@ async function handleMessage(message: BgMessage): Promise<BgResponse<BgMessage['
       const isNote = itemType === 'note'
 
       // Capture thumbnail for tab items (before any async operations)
+      // Use tabId/windowId from popup for more reliable capture
       let thumbnail: string | null = null
       if (!isNote) {
         try {
-          thumbnail = await captureTabThumbnail()
+          thumbnail = await captureTabThumbnail({
+            tabId: message.tabId,
+            windowId: message.windowId,
+          })
           if (thumbnail) {
             console.log('[Background] Thumbnail captured successfully')
           }
@@ -672,7 +678,7 @@ async function handleMessage(message: BgMessage): Promise<BgResponse<BgMessage['
 
     case 'UPDATE_ITEM': {
       const apiKeys = await getApiKeys()
-      const { id, updates } = message
+      const { id, updates, captureNewThumbnail, tabId, windowId } = message
 
       // Get the current item to check what changed
       const currentItem = await getItemById(id)
@@ -680,17 +686,32 @@ async function handleMessage(message: BgMessage): Promise<BgResponse<BgMessage['
         return { success: false, error: 'Item not found' }
       }
 
+      // Capture new thumbnail if requested (for existing items being updated)
+      const finalUpdates = { ...updates }
+      if (captureNewThumbnail && currentItem.type === 'tab') {
+        try {
+          const newThumbnail = await captureTabThumbnail({ tabId, windowId })
+          if (newThumbnail) {
+            finalUpdates.thumbnail = newThumbnail
+            console.log('[Background] Captured new thumbnail for updated item')
+          }
+        } catch (error) {
+          console.error('[Background] Error capturing thumbnail for update:', error)
+          // Continue without updating thumbnail
+        }
+      }
+
       // Determine if we need to regenerate embedding
       // Regenerate if transcription or aiSummary changed
       let newEmbedding: number[] | null | undefined = undefined
-      const transcriptionChanged = updates.transcription !== undefined && updates.transcription !== currentItem.transcription
-      const aiSummaryChanged = updates.aiSummary !== undefined && updates.aiSummary !== currentItem.aiSummary
+      const transcriptionChanged = finalUpdates.transcription !== undefined && finalUpdates.transcription !== currentItem.transcription
+      const aiSummaryChanged = finalUpdates.aiSummary !== undefined && finalUpdates.aiSummary !== currentItem.aiSummary
 
       if ((transcriptionChanged || aiSummaryChanged) && apiKeys.openai) {
         try {
           // Use the new values or fall back to current
-          const transcription = updates.transcription ?? currentItem.transcription
-          const aiSummary = updates.aiSummary ?? currentItem.aiSummary
+          const transcription = finalUpdates.transcription ?? currentItem.transcription
+          const aiSummary = finalUpdates.aiSummary ?? currentItem.aiSummary
 
           // Build text for embedding including title and URL (same as save flow)
           const textForEmbedding = buildTextForEmbedding({
@@ -709,7 +730,7 @@ async function handleMessage(message: BgMessage): Promise<BgResponse<BgMessage['
       }
 
       // Update the item
-      const updatedItem = await updateItem(id, updates, newEmbedding)
+      const updatedItem = await updateItem(id, finalUpdates, newEmbedding)
 
       if (!updatedItem) {
         return { success: false, error: 'Failed to update item' }
@@ -789,6 +810,18 @@ async function handleMessage(message: BgMessage): Promise<BgResponse<BgMessage['
       }
 
       return { success: true }
+    }
+
+    // Duplicate detection
+    case 'CHECK_DUPLICATE_URL': {
+      // Search by exact URL match (raw URL, no normalization)
+      console.log('[Background] CHECK_DUPLICATE_URL - url:', message.url)
+      const existingItem = await getItemByExactUrl(message.url)
+      console.log('[Background] CHECK_DUPLICATE_URL - existingItem:', existingItem?.id, existingItem?.title)
+      if (existingItem) {
+        return { exists: true, item: existingItem }
+      }
+      return { exists: false }
     }
 
     // Trash operations

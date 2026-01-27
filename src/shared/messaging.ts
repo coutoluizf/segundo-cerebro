@@ -34,7 +34,7 @@ function setDevApiKeys(keys: Partial<ApiKeys>): void {
 
 // Message types from UI to Background
 export type BgMessage =
-  | { type: 'SAVE_VOICE_ITEM'; item: Partial<VoiceItem>; transcription: string; pageContent?: string; closeTabOnSave?: boolean }
+  | { type: 'SAVE_VOICE_ITEM'; item: Partial<VoiceItem>; transcription: string; pageContent?: string; closeTabOnSave?: boolean; tabId?: number; windowId?: number }
   | { type: 'GET_ITEMS'; limit?: number; projectId?: string }
   | { type: 'SEMANTIC_SEARCH'; query: string; limit?: number }
   | { type: 'GET_PROJECTS' }
@@ -43,7 +43,7 @@ export type BgMessage =
   | { type: 'DELETE_PROJECT'; id: string }
   | { type: 'GET_CONTEXT' }
   | { type: 'DELETE_ITEM'; id: string }
-  | { type: 'UPDATE_ITEM'; id: string; updates: { title?: string; transcription?: string; aiSummary?: string } }
+  | { type: 'UPDATE_ITEM'; id: string; updates: { title?: string; transcription?: string; aiSummary?: string; thumbnail?: string }; captureNewThumbnail?: boolean; tabId?: number; windowId?: number }
   | { type: 'UPDATE_ITEM_PROJECT'; id: string; projectId: string | null }
   | { type: 'UPDATE_ITEM_REMINDER'; id: string; reminderAt: number | null }
   | { type: 'GET_API_KEYS' }
@@ -52,6 +52,8 @@ export type BgMessage =
   | { type: 'GET_SETTINGS' }
   | { type: 'SET_SETTINGS'; settings: Partial<UserSettings> }
   | { type: 'OPEN_ITEM_URL'; url: string; projectId: string | null }
+  // Duplicate detection
+  | { type: 'CHECK_DUPLICATE_URL'; url: string }
   // Trash operations
   | { type: 'GET_DELETED_ITEMS' }
   | { type: 'RESTORE_ITEM'; id: string }
@@ -78,6 +80,8 @@ export type BgResponse<T extends BgMessage['type']> =
   T extends 'GET_SETTINGS' ? UserSettings :
   T extends 'SET_SETTINGS' ? { success: boolean; settings?: UserSettings; error?: string } :
   T extends 'OPEN_ITEM_URL' ? { success: boolean } :
+  // Duplicate detection
+  T extends 'CHECK_DUPLICATE_URL' ? { exists: boolean; item?: VoiceItem } :
   // Trash operations
   T extends 'GET_DELETED_ITEMS' ? { items: VoiceItem[] } :
   T extends 'RESTORE_ITEM' ? { success: boolean; item?: VoiceItem; error?: string } :
@@ -298,6 +302,16 @@ async function handleDevMessage(message: BgMessage): Promise<unknown> {
       const queryEmbedding = await generateEmbedding(message.query, keys.openai)
       const results = await db.semanticSearch(queryEmbedding, { limit: message.limit })
       return { results }
+    }
+
+    // Duplicate detection
+    case 'CHECK_DUPLICATE_URL': {
+      // Search by exact URL match (raw URL, no normalization)
+      const existingItem = await db.getItemByExactUrl(message.url)
+      if (existingItem) {
+        return { exists: true, item: existingItem }
+      }
+      return { exists: false }
     }
 
     // Trash operations

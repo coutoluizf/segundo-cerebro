@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.7.2] - 2026-01-27
+
+### Adicionado
+- **Detecção de URL duplicada**: Ao tentar salvar uma tab, verifica se a URL já foi salva anteriormente
+- **Aviso visual no Popup**: Mostra preview do item existente com data de criação e projeto
+- **Opções de ação**: "Atualizar existente" ou "Salvar como novo" para controle total
+- **Verificação da URL completa**: Inclui query params para diferenciar posts do Twitter, páginas de produtos, etc.
+- **Atualizar com novo thumbnail**: Botão "Atualizar existente" agora captura novo screenshot da página
+
+### Corrigido
+- **Screenshot confiável**: Captura de thumbnail agora usa tabId/windowId do popup para maior precisão
+- **Query de tab direto**: Popup consulta `chrome.tabs.query` diretamente em vez de passar pelo background
+
+### Técnico
+- Nova função `getItemByExactUrl()` em `db.ts` para busca por URL exata (sem normalização)
+- Nova mensagem `CHECK_DUPLICATE_URL` para verificação de duplicatas
+- Parâmetros `tabId` e `windowId` adicionados às mensagens `SAVE_VOICE_ITEM` e `UPDATE_ITEM`
+- Flag `captureNewThumbnail` em `UPDATE_ITEM` para capturar novo screenshot ao atualizar
+- Função `updateItem()` agora suporta atualização de thumbnail
+
 ## [0.7.1] - 2026-01-27
 
 ### Adicionado

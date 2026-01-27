@@ -297,10 +297,10 @@ export async function updateItemProject(id: string, projectId: string | null): P
   })
 }
 
-// Update an item's content (title, transcription, aiSummary) and optionally its embedding
+// Update an item's content (title, transcription, aiSummary, thumbnail) and optionally its embedding
 export async function updateItem(
   id: string,
-  updates: { title?: string; transcription?: string; aiSummary?: string },
+  updates: { title?: string; transcription?: string; aiSummary?: string; thumbnail?: string },
   embedding?: number[] | null
 ): Promise<VoiceItem | null> {
   const database = await getDatabase()
@@ -320,6 +320,10 @@ export async function updateItem(
   if (updates.aiSummary !== undefined) {
     setClauses.push('ai_summary = ?')
     args.push(updates.aiSummary)
+  }
+  if (updates.thumbnail !== undefined) {
+    setClauses.push('thumbnail = ?')
+    args.push(updates.thumbnail)
   }
   if (embedding !== undefined) {
     setClauses.push('embedding = ?')
@@ -351,6 +355,45 @@ export async function getItemById(id: string): Promise<VoiceItem | null> {
   if (result.rows.length === 0) return null
 
   return rowToVoiceItem(result.rows[0])
+}
+
+// Get an item by URL hash (for duplicate detection)
+// Only returns saved items, not deleted ones
+export async function getItemByUrlHash(urlHash: string): Promise<VoiceItem | null> {
+  const database = await getDatabase()
+  console.log('[DB] getItemByUrlHash - searching for urlHash:', urlHash)
+  const result = await database.execute({
+    sql: 'SELECT * FROM items WHERE url_hash = ? AND status = ?',
+    args: [urlHash, 'saved'],
+  })
+  console.log('[DB] getItemByUrlHash - found rows:', result.rows.length)
+
+  if (result.rows.length === 0) return null
+
+  const item = rowToVoiceItem(result.rows[0])
+  console.log('[DB] getItemByUrlHash - returning item:', item.id, item.url)
+  return item
+}
+
+// Get an item by exact URL match (for duplicate detection)
+// Searches for items with the exact same URL (raw, no normalization)
+export async function getItemByExactUrl(url: string): Promise<VoiceItem | null> {
+  console.log('[DB] getItemByExactUrl - searching for:', url)
+
+  const database = await getDatabase()
+  // Direct SQL query for exact URL match (faster than loading all items)
+  const result = await database.execute({
+    sql: "SELECT * FROM items WHERE url = ? AND status = ? AND type = 'tab'",
+    args: [url, 'saved'],
+  })
+
+  console.log('[DB] getItemByExactUrl - found rows:', result.rows.length)
+
+  if (result.rows.length === 0) return null
+
+  const item = rowToVoiceItem(result.rows[0])
+  console.log('[DB] getItemByExactUrl - returning item:', item.id, item.title)
+  return item
 }
 
 // Permanently delete an item
