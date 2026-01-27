@@ -1,7 +1,7 @@
 /**
  * HoverPreview - Expanded preview on hover using Radix Tooltip
  * Shows large thumbnail, full title, complete transcription, and AI summary
- * Delay of 400ms before appearing to prevent accidental triggers
+ * Delay of 1.5s before appearing to prevent accidental triggers while navigating
  */
 
 import * as Tooltip from '@radix-ui/react-tooltip'
@@ -18,7 +18,8 @@ interface HoverPreviewProps {
 }
 
 // Delay before showing preview (in ms)
-const HOVER_DELAY = 400
+// 1.5 seconds to prevent accidental triggers when navigating
+const HOVER_DELAY = 1500
 
 /**
  * HoverPreview - Wrapper component that shows an expanded preview on hover
