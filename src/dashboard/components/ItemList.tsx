@@ -87,8 +87,8 @@ export function ItemList({ items, projects, columns = 1, onDelete, onOpen, onUpd
         const isNote = item.type === 'note' || isNoteUrl(item.url)
 
         return (
-          <HoverPreview key={item.id} item={item} project={project}>
           <div
+            key={item.id}
             className={cn(
               "card-luminous rounded-2xl overflow-hidden hover-glow animate-fade-in-up",
               onItemClick && "cursor-pointer"
@@ -195,19 +195,24 @@ export function ItemList({ items, projects, columns = 1, onDelete, onOpen, onUpd
               </div>
             </div>
 
-            {/* AI Summary - Subtle AI-generated section */}
+            {/* AI Summary - Hover over to see full preview */}
             {item.aiSummary && (
-              <div className="mb-4 px-3 py-2 bg-primary/5 rounded-xl border border-primary/10">
-                <div className="flex items-center gap-1.5 mb-1">
-                  <Sparkles className="h-3 w-3 text-primary/60" />
-                  <span className="text-[10px] font-medium text-primary/60 uppercase tracking-wider">
-                    Resumo AI
-                  </span>
+              <HoverPreview item={item} project={project}>
+                <div
+                  className="mb-4 px-3 py-2 bg-primary/5 rounded-xl border border-primary/10 cursor-pointer hover:bg-primary/10 hover:border-primary/20 transition-colors"
+                  onClick={(e) => e.stopPropagation()} // Don't trigger card click
+                >
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <Sparkles className="h-3 w-3 text-primary/60" />
+                    <span className="text-[10px] font-medium text-primary/60 uppercase tracking-wider">
+                      Resumo AI
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">
+                    {item.aiSummary}
+                  </p>
                 </div>
-                <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">
-                  {item.aiSummary}
-                </p>
-              </div>
+              </HoverPreview>
             )}
 
             {/* Footer */}
@@ -310,7 +315,6 @@ export function ItemList({ items, projects, columns = 1, onDelete, onOpen, onUpd
             </div>
             </div>
           </div>
-          </HoverPreview>
         )
       })}
     </div>
