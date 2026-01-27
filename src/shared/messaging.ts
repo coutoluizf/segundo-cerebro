@@ -52,6 +52,11 @@ export type BgMessage =
   | { type: 'GET_SETTINGS' }
   | { type: 'SET_SETTINGS'; settings: Partial<UserSettings> }
   | { type: 'OPEN_ITEM_URL'; url: string; projectId: string | null }
+  // Trash operations
+  | { type: 'GET_DELETED_ITEMS' }
+  | { type: 'RESTORE_ITEM'; id: string }
+  | { type: 'PERMANENT_DELETE_ITEM'; id: string }
+  | { type: 'EMPTY_TRASH' }
 
 // Response types based on message type
 export type BgResponse<T extends BgMessage['type']> =
@@ -73,6 +78,11 @@ export type BgResponse<T extends BgMessage['type']> =
   T extends 'GET_SETTINGS' ? UserSettings :
   T extends 'SET_SETTINGS' ? { success: boolean; settings?: UserSettings; error?: string } :
   T extends 'OPEN_ITEM_URL' ? { success: boolean } :
+  // Trash operations
+  T extends 'GET_DELETED_ITEMS' ? { items: VoiceItem[] } :
+  T extends 'RESTORE_ITEM' ? { success: boolean; item?: VoiceItem; error?: string } :
+  T extends 'PERMANENT_DELETE_ITEM' ? { success: boolean; error?: string } :
+  T extends 'EMPTY_TRASH' ? { success: boolean; count?: number; error?: string } :
   never
 
 // Helper function to send typed messages to background
@@ -288,6 +298,27 @@ async function handleDevMessage(message: BgMessage): Promise<unknown> {
       const queryEmbedding = await generateEmbedding(message.query, keys.openai)
       const results = await db.semanticSearch(queryEmbedding, { limit: message.limit })
       return { results }
+    }
+
+    // Trash operations
+    case 'GET_DELETED_ITEMS':
+      return { items: await db.getDeletedItems() }
+
+    case 'RESTORE_ITEM': {
+      const restoredItem = await db.restoreItem(message.id)
+      if (!restoredItem) {
+        return { success: false, error: 'Item not found' }
+      }
+      return { success: true, item: restoredItem }
+    }
+
+    case 'PERMANENT_DELETE_ITEM':
+      await db.emptyTrashItem(message.id)
+      return { success: true }
+
+    case 'EMPTY_TRASH': {
+      const count = await db.emptyAllTrash()
+      return { success: true, count }
     }
 
     default:

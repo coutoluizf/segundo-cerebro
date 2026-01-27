@@ -5,11 +5,12 @@ import { ItemList } from './components/ItemList'
 import { ItemDetail } from './components/ItemDetail'
 import { RecentCarousel } from './components/RecentCarousel'
 import { ProjectGrid } from './components/ProjectGrid'
+import { TrashView } from './components/TrashView'
 import { Toaster } from '@/components/ui/toaster'
 import { useToast } from '@/components/ui/use-toast'
 import { sendMessage, onItemsChanged } from '@/shared/messaging'
 import type { VoiceItem, SearchResult, Project } from '@/shared/types'
-import { Brain, Settings, LayoutGrid, LayoutList, Grid3X3, Sparkles, Sun, Moon, Monitor, FolderKanban } from 'lucide-react'
+import { Brain, Settings, LayoutGrid, LayoutList, Grid3X3, Sparkles, Sun, Moon, Monitor, FolderKanban, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { getStoredTheme, setTheme } from '@/shared/theme'
@@ -67,6 +68,8 @@ export function Dashboard() {
   // Item detail drawer state
   const [selectedItem, setSelectedItem] = useState<VoiceItem | SearchResult | null>(null)
   const [isDetailOpen, setIsDetailOpen] = useState(false)
+  // Trash view state
+  const [showTrash, setShowTrash] = useState(false)
   const { toast } = useToast()
 
   // Save columns preference when it changes
@@ -431,19 +434,52 @@ export function Dashboard() {
         <div className="flex gap-8">
           {/* Sidebar - Projects */}
           <aside className="w-56 shrink-0">
-            <div className="sticky top-24">
+            <div className="sticky top-24 space-y-6">
               <ProjectFilter
                 projects={projects}
                 items={allItems}
                 selectedProject={selectedProject}
-                onProjectChange={handleProjectChange}
+                onProjectChange={(projectId) => {
+                  handleProjectChange(projectId)
+                  setShowTrash(false) // Exit trash when selecting a project
+                }}
                 onProjectsUpdated={loadData}
               />
+
+              {/* Trash button */}
+              <div className="pt-4 border-t border-border/50">
+                <button
+                  onClick={() => setShowTrash(true)}
+                  className={cn(
+                    'sidebar-item w-full',
+                    showTrash && 'sidebar-item-active'
+                  )}
+                >
+                  <Trash2 className="h-4 w-4 text-muted-foreground" />
+                  <span className="flex-1 text-left">Lixeira</span>
+                </button>
+              </div>
             </div>
           </aside>
 
-          {/* Main content - Items */}
+          {/* Main content - Items or Trash */}
           <main className="flex-1 min-w-0">
+            {showTrash ? (
+              // Trash view
+              <TrashView
+                projects={projects}
+                onItemRestored={() => {
+                  loadData()
+                  toast({
+                    variant: 'success',
+                    title: 'Restaurado',
+                    description: 'Item restaurado com sucesso.',
+                  })
+                }}
+                onClose={() => setShowTrash(false)}
+              />
+            ) : (
+              <>
             {/* Hero Search Bar - Above everything for natural results flow */}
             <div className="mb-8">
               <SearchBar
@@ -520,6 +556,8 @@ export function Dashboard() {
                   onUpdateProject={handleUpdateProject}
                   onItemClick={handleItemClick}
                 />
+              </>
+            )}
               </>
             )}
           </main>

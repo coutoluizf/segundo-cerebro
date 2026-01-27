@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>HeyRaji - Option A Variations</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 100%);
+      min-height: 100vh;
+      padding: 40px 20px;
+      color: white;
+    }
+    h1 {
+      text-align: center;
+      font-size: 2.5rem;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, #ff7733, #f59e0b);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .subtitle {
+      text-align: center;
+      color: #94a3b8;
+      margin-bottom: 50px;
+    }
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 30px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    .option-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 24px;
+      padding: 30px;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+    .option-card:hover {
+      border-color: #ff7733;
+      transform: translateY(-4px);
+      box-shadow: 0 20px 40px rgba(255, 119, 51, 0.1);
+    }
+    .option-card.featured {
+      border-color: #ff7733;
+      background: rgba(255, 119, 51, 0.05);
+    }
+    .option-number {
+      display: inline-block;
+      background: linear-gradient(135deg, #ff7733, #f59e0b);
+      color: white;
+      font-weight: bold;
+      font-size: 14px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      margin-bottom: 16px;
+    }
+    .option-number.new {
+      background: linear-gradient(135deg, #10b981, #059669);
+    }
+    .option-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .option-desc {
+      color: #94a3b8;
+      font-size: 0.85rem;
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+    .logo-preview {
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .size-preview {
+      text-align: center;
+    }
+    .size-preview span {
+      display: block;
+      font-size: 11px;
+      color: #64748b;
+      margin-top: 8px;
+    }
+    .icon-box {
+      background: #0f0f1a;
+      border-radius: 16px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+    }
+    .icon-box.light {
+      background: #f8fafc;
+    }
+    .backgrounds {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin-top: 16px;
+    }
+    .tag {
+      display: inline-block;
+      background: rgba(255, 119, 51, 0.1);
+      color: #ff7733;
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 12px;
+      margin: 2px;
+    }
+    .tag.new {
+      background: rgba(16, 185, 129, 0.1);
+      color: #10b981;
+    }
+    .tags {
+      margin-top: 16px;
+    }
+    .section-title {
+      text-align: center;
+      font-size: 1.1rem;
+      color: #64748b;
+      margin: 40px 0 30px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Option A - Variations</h1>
+  <p class="subtitle">Classic Frenchie Badge com diferentes estilos de orelha e proporções</p>
+
+  <div class="options-grid">
+
+    <!-- A1: Original (reference) -->
+    <div class="option-card">
+      <div class="option-number">A1</div>
+      <h3 class="option-title">Original</h3>
+      <p class="option-desc">A versão original para referência. Orelhas dentro do círculo.</p>
+      <div class="logo-preview">
+        <div class="size-preview">
+          <div class="icon-box">
+            <svg width="80" height="80" viewBox="0 0 128 128">
+              <defs>
+                <linearGradient id="gradA1" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#ff7733"/>
+                  <stop offset="100%" style="stop-color:#f59e0b"/>
+                </linearGradient>
+              </defs>
+              <circle cx="64" cy="64" r="60" fill="url(#gradA1)"/>
+              <!-- Ears inside circle -->
+              <path fill="white" d="M24 55 C22 35, 30 18, 38 18 C44 18, 47 28, 47 38 L47 52 C40 55, 28 56, 24 55 Z"/>
+              <path fill="white" d="M104 55 C106 35, 98 18, 90 18 C84 18, 81 28, 81 38 L81 52 C88 55, 100 56, 104 55 Z"/>
+              <path fill="#ffccb3" d="M30 50 C29 38, 34 26, 38 26 C42 26, 44 32, 44 40 L44 48 C40 50, 32 51, 30 50 Z"/>
+              <path fill="#ffccb3" d="M98 50 C99 38, 94 26, 90 26 C86 26, 84 32, 84 40 L84 48 C88 50, 96 51, 98 50 Z"/>
+              <ellipse cx="64" cy="72" rx="32" ry="30" fill="white"/>
+              <ellipse cx="50" cy="68" rx="7" ry="8" fill="#1a1a2e"/>
+              <ellipse cx="78" cy="68" rx="7" ry="8" fill="#1a1a2e"/>
+              <circle cx="48" cy="66" r="2" fill="white"/>
+              <circle cx="76" cy="66" r="2" fill="white"/>
+              <ellipse cx="64" cy="82" rx="8" ry="5" fill="#1a1a2e"/>
+              <path d="M56 90 Q64 96, 72 90" stroke="#1a1a2e" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <span>80px</span>
+        </div>
+        <div class="size-preview">
+          <div class="icon-box">
+            <svg width="48" height="48" viewBox="0 0 128 128">
+              <defs><linearGradient id="gradA1b" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#ff7733"/><stop offset="100%" style="stop-color:#f59e0b"/></linearGradient></defs>
+              <circle cx="64" cy="64" r="60" fill="url(#gradA1b)"/>
+              <path fill="white" d="M24 55 C22 35, 30 18, 38 18 C44 18, 47 28, 47 38 L47 52 C40 55, 28 56, 24 55 Z"/>
+              <path fill="white" d="M104 55 C106 35, 98 18, 90 18 C84 18, 81 28, 81 38 L81 52 C88 55, 100 56, 104 55 Z"/>
+              <ellipse cx="64" cy="72" rx="32" ry="30" fill="white"/>
+              <ellipse cx="50" cy="68" rx="7" ry="8" fill="#1a1a2e"/>
+              <ellipse cx="78" cy="68" rx="7" ry="8" fill="#1a1a2e"/>
+              <ellipse cx="64" cy="82" rx="8" ry="5" fill="#1a1a2e"/>
+            </svg>
+          </div>
+          <span>48px</span>
+        </div>
+        <div class="size-preview">
+          <div class="icon-box">
+            <svg width="16" height="16" viewBox="0 0 128 128">
+              <defs><linearGradient id="gradA1c" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#ff7733"/><stop offset="100%" style="stop-color:#f59e0b"/></linearGradient></defs>
+              <circle cx="64" cy="64" r="60" fill="url(#gradA1c)"/>
+              <path fill="white" d="M24 55 C22 35, 30 18, 38 18 C44 18, 47 28, 47 38 L47 52 C40 55, 28 56, 24 55 Z"/>
+              <path fill="white" d="M104 55 C106 35, 98 18, 90 18 C84 18, 81 28, 81 38 L81 52 C88 55, 100 56, 104 55 Z"/>
+              <ellipse cx="64" cy="72" rx="32" ry="30" fill="white"/>
+              <ellipse cx="50" cy="68" rx="8" ry="9" fill="#1a1a2e"/>
+              <ellipse cx="78" cy="68" rx="8" ry="9" fill="#1a1a2e"/>
+            </svg>
+          </div>
+          <span>16px</span>
+        </div>
+      </div>
+      <div class="backgrounds">
+        <div class="size-preview">
+          <div class="icon-box light">
+            <svg width="56" height="56" viewBox="0 0 128 128">
+              <defs><linearGradient id="gradA1d" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#ff7733"/><stop offset="100%" style="stop-color:#f59e0b"/></linearGradient></defs>
+              <circle cx="64" cy="64" r="60" fill="url(#gradA1d)"/>
+              <path fill="white" d="M24 55 C22 35, 30 18, 38 18 C44 18, 47 28, 47 38 L47 52 C40 55, 28 56, 24 55 Z"/>
+              <path fill="white" d="M104 55 C106 35, 98 18, 90 18 C84 18, 81 28, 81 38 L81 52 C88 55, 100 56, 104 55 Z"/>
+              <path fill="#ffccb3" d="M30 50 C29 38, 34 26, 38 26 C42 26, 44 32, 44 40 L44 48 C40 50, 32 51, 30 50 Z"/>
+              <path fill="#ffccb3" d="M98 50 C99 38, 94 26, 90 26 C86 26, 84 32, 84 40 L84 48 C88 50, 96 51, 98 50 Z"/>
+              <ellipse cx="64" cy="72" rx="32" ry="30" fill="white"/>
+              <ellipse cx="50" cy="68" rx="7" ry="8" fill="#1a1a2e"/>
+              <ellipse cx="78" cy="68" rx="7" ry="8" fill="#1a1a2e"/>
+              <circle cx="48" cy="66" r="2" fill="white"/>
+              <circle cx="76" cy="66" r="2" fill="white"/>
+              <ellipse cx="64" cy="82" rx="8" ry="5" fill="#1a1a2e"/>
+            </svg>
+          </div>
+          <span>Light</span>
+        </div>
+      </div>
+      <div class="tags">
+        <span class="tag">Referência</span>
+      </div>
+    </div>
+
+    <!-- A2: Ears Overflow -->
+    <div class="option-card featured">
+      <div class="option-number new">A2</div>
+      <h3 class="option-title">Ears Overflow ⭐</h3>
+      <p class="option-desc">Orelhas transbordam o círculo! Mais dinâmico e distintivo.</p>
+      <div class="logo-preview">
+        <div class="size-preview">
+          <div class="icon-box">
+            <svg width="80" height="80" viewBox="0 0 140 140">
+              <defs>
+                <linearGradient id="gradA2" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#ff7733"/>
+                  <stop offset="100%" style="stop-color:#f59e0b"/>
+                </linearGradient>
+              </defs>
+              <!-- Ears OUTSIDE/BEHIND circle -->
+              <path fill="url(#gradA2)" d="M18 62 C14 36, 26 8, 38 8 C48 8, 52 24, 50 40 L48 58 C38 62, 24 64, 18 62 Z"/>
+              <path fill="url(#gradA2)" d="M122 62 C126 36, 114 8, 102 8 C92 8, 88 24, 90 40 L92 58 C102 62, 116 64, 122 62 Z"/>
+              <!-- Inner ear -->
+              <path fill="#e85d20" d="M26 54 C24 38, 32 18, 38 18 C44 18, 46 28, 45 40 L44 52 C38 55, 30 56, 26 54 Z"/>
+              <path fill="#e85d20" d="M114 54 C116 38, 108 18, 102 18 C96 18, 94 28, 95 40 L96 52 C102 55, 110 56, 114 54 Z"/>
+              <!-- Circle on top -->
+              <circle cx="70" cy="76" r="54" fill="url(#gradA2)"/>
+              <!-- Face -->
+              <ellipse cx="70" cy="82" rx="36" ry="34" fill="white"/>
+              <!-- Eyes -->
+              <ellipse cx="54" cy="78" rx="8" ry="9" fill="#1a1a2e"/>
+              <ellipse cx="86" cy="78" rx="8" ry="9" fill="#1a1a2e"/>
+              <circle cx="52" cy="76" r="2.5" fill="white"/>
+              <circle cx="84" cy="76" r="2.5" fill="white"/>
+              <!-- Nose -->
+              <ellipse cx="70" cy="94" rx="9" ry="6" fill="#1a1a2e"/>
+              <!-- Mouth -->
+              <path d="M60 102 Q70 110, 80 102" stroke="#1a1a2e" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <span>80px</span>
+        </div>
+        <div class="size-preview">
+          <div class="icon-box">
+            <svg width="48" height="48" viewBox="0 0 140 140">
+              <defs><linearGradient id="gradA2b" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#ff7733"/><stop offset="100%" style="stop-color:#f59e0b"/></linearGradient></defs>
+              <path fill="url(#gradA2b)" d="M18 62 C14 36, 26 8, 38 8 C48 8, 52 24, 50 40 L48 58 C38 62, 24 64, 18 62 Z"/>
+              <path fill="url(#gradA2b)" d="M122 62 C126 36, 114 8, 102 8 C92 8, 88 24, 90 40 L92 58 C102 62, 116 64, 122 62 Z"/>
+              <circle cx="70" cy="76" r="54" fill="url(#gradA2b)"/>
+              <ellipse cx="70" cy="82" rx="36" ry="34" fill="white"/>
+              <ellipse cx="54" cy="78" rx="8" ry="9" fill="#1a1a2e"/>
+              <ellipse cx="86" cy="78" rx="8" ry="9" fill="#1a1a2e"/>
+              <ellipse cx="70" cy="94" rx="9" ry="6" fill="#1a1a2e"/>
+            </svg>
+          </div>
+          <span>48px</span>
+        </div>
+        <div class="size-preview">
+          <div class="icon-box">
+            <svg width="16" height="16" viewBox="0 0 140 140">
+              <defs><linearGradient id="gradA2c" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#ff7733"/><stop offset="100%" style="stop-color:#f59e0b"/></linearGradient></defs>
+              <path fill="url(#gradA2c)" d="M18 62 C14 36, 26 8, 38 8 C48 8, 52 24, 50 40 L48 58 C38 62, 24 64, 18 62 Z"/>
+              <path fill="url(#gradA2c)" d="M122 62 C126 36, 114 8, 102 8 C92 8, 88 24, 90 40 L92 58 C102 62, 116 64, 122 62 Z"/>
+              <circle cx="70" cy="76" r="54" fill="url(#gradA2c)"/>
+              <ellipse cx="70" cy="82" rx="36" ry="34" fill="white"/>
+              <ellipse cx="54" cy="78" rx="9" ry="10" fill="#1a1a2e"/>
+              <ellipse cx="86" cy="78" rx="9" ry="10" fill="#1a1a2e"/>
+            </svg>
+          </div>
+          <span>16px</span>
+        </div>
+      </div>
+      <div class="backgrounds">
+        <div class="size-preview">
+          <div class="icon-box light">
+            <svg width="56" height="56" viewBox="0 0 140 140">
+              <defs><linearGradient id="gradA2d" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#ff7733"/><stop offset="100%" style="stop-color:#f59e0b"/></linearGradient></defs>
+              <path fill="url(#gradA2d)" d="M18 62 C14 36, 26 8, 38 8 C48 8, 52 24, 50 40 L48 58 C38 62, 24 64, 18 62 Z"/>
+              <path fill="url(#gradA2d)" d="M122 62 C126 36, 114 8, 102 8 C92 8, 88 24, 90 40 L92 58 C102 62, 116 64, 122 62 Z"/>
+              <path fill="#e85d20" d="M26 54 C24 38, 32 18, 38 18 C44 18, 46 28, 45 40 L44 52 C38 55, 30 56, 26 54 Z"/>
+              <path fill="#e85d20" d="M114 54 C116 38, 108 18, 102 18 C96 18, 94 28, 95 40 L96 52 C102 55, 110 56, 114 54 Z"/>
+              <circle cx="70" cy="76" r="54" fill="url(#gradA2d)"/>
+              <ellipse cx="70" cy="82" rx="36" ry="34" fill="white"/>
+              <ellipse cx="54" cy="78" rx="8" ry="9" fill="#1a1a2e"/>
+              <ellipse cx="86" cy="78" rx="8" ry="9" fill="#1a1a2e"/>
+              <circle cx="52" cy="76" r="2.5" fill="white"/>
+              <circle cx="84" cy="76" r="2.5" fill="white"/>
+              <ellipse cx="70" cy="94" rx="9" ry="6" fill="#1a1a2e"/>
+              <path d="M60 102 Q70 110, 80 102" stroke="#1a1a2e" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <span>Light</span>
+        </div>
+      </div>
+      <div class="tags">
+        <span class="tag new">Orelhas fora</span>
+        <span class="tag new">Dinâmico</span>
+        <span class="tag new">Destaque</span>
+      </div>
+    </div>
+
+    <!-- A3: More Pointed Ears Overflow -->
+    <div class="option-card">
+      <div class="option-number new">A3</div>
+      <h3 class="option-title">Sharp Ears Overflow</h3>
+      <p class="option-desc">Orelhas mais pontiagudas e altas, transbordando o círculo. Mais "bat-like".</p>
+      <div class="logo-preview">
+        <div class="size-preview">
+          <div class="icon-box">
+            <svg width="80" height="80" viewBox="0 0 140 140">
+              <defs>
+                <linearGradient id="gradA3" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#ff7733"/>
+                  <stop offset="100%" style="stop-color:#f59e0b"/>
+                </linearGradient>
+              </defs>
+              <!-- Sharp pointy ears -->
+              <path fill="url(#gradA3)" d="M20 65 C12 40, 28 2, 42 2 C52 2, 50 30, 48 50 L46 62 C36 66, 26 66, 20 65 Z"/>
+              <path fill="url(#gradA3)" d="M120 65 C128 40, 112 2, 98 2 C88 2, 90 30, 92 50 L94 62 C104 66, 114 66, 120 65 Z"/>
+              <!-- Inner ear -->
+              <path fill="#e85d20" d="M28 58 C24 42, 34 14, 42 14 C48 14, 47 34, 46 48 L45 56 C38 58, 32 58, 28 58 Z"/>
+              <path fill="#e85d20" d="M112 58 C116 42, 106 14, 98 14 C92 14, 93 34, 94 48 L95 56 C102 58, 108 58, 112 58 Z"/>
+              <!-- Circle -->
+              <circle cx="70" cy="78" r="52" fill="url(#gradA3)"/>
+              <!-- Face -->
+              <ellipse cx="70" cy="84" rx="34" ry="32" fill="white"/>
+              <!-- Eyes -->
+              <ellipse cx="54" cy="80" rx="7" ry="8" fill="#1a1a2e"/>
+              <ellipse cx="86" cy="80" rx="7" ry="8" fill="#1a1a2e"/>
+              <circle cx="52" cy="78" r="2" fill="white"/>
+              <circle cx="84" cy="78" r="2" fill="white"/>
+              <!-- Nose -->
+              <ellipse cx="70" cy="94" rx="8" ry="5" fill="#1a1a2e"/>
+              <!-- Mouth -->
+              <path d="M62 102 Q70 108, 78 102" stroke="#1a1a2e" stroke-width="2" fill="none" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <span>80px</span>
+        </div>
+        <div class="size-preview">
+          <div class="icon-box">
+            <svg width="48" height="48" viewBox="0 0 140 140">
+              <defs><linearGradient id="gradA3b" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#ff7733"/><stop offset="100%" style="stop-color:#f59e0b"/></linearGradient></defs>
+              <path fill="url(#gradA3b)" d="M20 65 C12 40, 28 2, 42 2 C52 2, 50 30, 48 50 L46 62 C36 66, 26 66, 20 65 Z"/>
+              <path fill="url(#gradA3b)" d="M120 65 C128 40, 112 2, 98 2 C88 2, 90 30, 92 50 L94 62 C104 66, 114 66, 120 65 Z"/>
+              <circle cx="70" cy="78" r="52" fill="url(#gradA3b)"/>
+              <ellipse cx="70" cy="84" rx="34" ry="32" fill="white"/>
+              <ellipse cx="54" cy="80" rx="7" ry="8" fill="#1a1a2e"/>
+              <ellipse cx="86" cy="80" rx="7" ry="8" fill="#1a1a2e"/>
+              <ellipse cx="70" cy="94" rx="8" ry="5" fill="#1a1a2e"/>
+            </svg>
+          </div>
+          <span>48px</span>
+        </div>
+        <div class="size-preview">
+          <div class="icon-box">
+            <svg width="16" height="16" viewBox="0 0 140 140">
+              <defs><linearGradient id="gradA3c" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#ff7733"/><stop offset="100%" style="stop-color:#f59e0b"/></linearGradient></defs>
+              <path fill="url(#gradA3c)" d="M20 65 C12 40, 28 2, 42 2 C52 2, 50 30, 48 50 L46 62 C36 66, 26 66, 20 65 Z"/>
+              <path fill="url(#gradA3c)" d="M120 65 C128 40, 112 2, 98 2 C88 2, 90 30, 92 50 L94 62 C104 66, 114 66, 120 65 Z"/>
+              <circle cx="70" cy="78" r="52" fill="url(#gradA3c)"/>
+              <ellipse cx="70" cy="84" rx="34" ry="32" fill="white"/>
+              <ellipse cx="54" cy="80" rx="8" ry="9" fill="#1a1a2e"/>
+              <ellipse cx="86" cy="80" rx="8" ry="9" fill="#1a1a2e"/>
+            </svg>
+          </div>
+          <span>16px</span>
+        </div>
+      </div>
+      <div class="backgrounds">
+        <div class="size-preview">
+          <div class="icon-box light">
+            <svg width="56" height="56" viewBox="0 0 140 140">
+              <defs><linearGradient id="gradA3d" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#ff7733"/><stop offset="100%" style="stop-color:#f59e0b"/></linearGradient></defs>
+              <path fill="url(#gradA3d)" d="M20 65 C12 40, 28 2, 42 2 C52 2, 50 30, 48 50 L46 62 C36 66, 26 66, 20 65 Z"/>
+              <path fill="url(#gradA3d)" d="M120 65 C128 40, 112 2, 98 2 C88 2, 90 30, 92 50 L94 62 C104 66, 114 66, 120 65 Z"/>
+              <path fill="#e85d20" d="M28 58 C24 42, 34 14, 42 14 C48 14, 47 34, 46 48 L45 56 C38 58, 32 58, 28 58 Z"/>
+              <path fill="#e85d20" d="M112 58 C116 42, 106 14, 98 14 C92 14, 93 34, 94 48 L95 56 C102 58, 108 58, 112 58 Z"/>
+              <circle cx="70" cy="78" r="52" fill="url(#gradA3d)"/>
+              <ellipse cx="70" cy="84" rx="34" ry="32" fill="white"/>
+              <ellipse cx="54" cy="80" rx="7" ry="8" fill="#1a1a2e"/>
+              <ellipse cx="86" cy="80" rx="7" ry="8" fill="#1a1a2e"/>
+              <circle cx="52" cy="78" r="2" fill="white"/>
+              <circle cx="84" cy="78" r="2" fill="white"/>
+              <ellipse cx="70" cy="94" rx="8" ry="5" fill="#1a1a2e"/>
+            </svg>
+          </div>
+          <span>Light</span>
+        </div>
+      </div>
+      <div class="tags">
+        <span class="tag new">Muito pontiagudo</span>
+        <span class="tag">Bat-like</span>
+      </div>
+    </div>
+
+    <!-- A4: Wider Ears Overflow -->
+    <div class="option-card">
+      <div class="option-number new">A4</div>
+      <h3 class="option-title">Wide Ears Overflow</h3>
+      <p class="option-desc">Orelhas mais largas e abertas, transbordando lateralmente. Mais imponente.</p>
+      <div class="logo-preview">
+        <div class="size-preview">
+          <div class="icon-box">
+            <svg width="80" height="80" viewBox="0 0 150 140">
+              <defs>
+                <linearGradient id="gradA4" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#ff7733"/>
+                  <stop offset="100%" style="stop-color:#f59e0b"/>
+                </linearGradient>
+              </defs>
+              <!-- Wide spread ears -->
+              <path fill="url(#gradA4)" d="M8 68 C2 42, 18 12, 35 10 C48 8, 52 28, 50 48 L48 64 C35 70, 16 70, 8 68 Z"/>
+              <path fill="url(#gradA4)" d="M142 68 C148 42, 132 12, 115 10 C102 8, 98 28, 100 48 L102 64 C115 70, 134 70, 142 68 Z"/>
+              <!-- Inner ear -->
+              <path fill="#e85d20" d="M18 60 C14 44, 26 22, 35 22 C44 22, 48 36, 47 48 L46 58 C38 62, 24 62, 18 60 Z"/>
+              <path fill="#e85d20" d="M132 60 C136 44, 124 22, 115 22 C106 22, 102 36, 103 48 L104 58 C112 62, 126 62, 132 60 Z"/>
+              <!-- Circle -->
+              <circle cx="75" cy="78" r="52" fill="url(#gradA4)"/>
+              <!-- Face -->
+              <ellipse cx="75" cy="84" rx="36" ry="34" fill="white"/>
+              <!-- Eyes -->
+              <ellipse cx="58" cy="80" rx="8" ry="9" fill="#1a1a2e"/>
+              <ellipse cx="92" cy="80" rx="8" ry="9" fill="#1a1a2e"/>
+              <circle cx="56" cy="78" r="2.5" fill="white"/>
+              <circle cx="90" cy="78" r="2.5" fill="white"/>
+              <!-- Nose -->
+              <ellipse cx="75" cy="96" rx="9" ry="6" fill="#1a1a2e"/>
+              <!-- Mouth -->
+              <path d="M65 104 Q75 112, 85 104" stroke="#1a1a2e" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <span>80px</span>
+        </div>
+        <div class="size-preview">
+          <div class="icon-box">
+            <svg width="48" height="48" viewBox="0 0 150 140">
+              <defs><linearGradient id="gradA4b" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#ff7733"/><stop offset="100%" style="stop-color:#f59e0b"/></linearGradient></defs>
+              <path fill="url(#gradA4b)" d="M8 68 C2 42, 18 12, 35 10 C48 8, 52 28, 50 48 L48 64 C35 70, 16 70, 8 68 Z"/>
+              <path fill="url(#gradA4b)" d="M142 68 C148 42, 132 12, 115 10 C102 8, 98 28, 100 48 L102 64 C115 70, 134 70, 142 68 Z"/>
+              <circle cx="75" cy="78" r="52" fill="url(#gradA4b)"/>
+              <ellipse cx="75" cy="84" rx="36" ry="34" fill="white"/>
+              <ellipse cx="58" cy="80" rx="8" ry="9" fill="#1a1a2e"/>
+              <ellipse cx="92" cy="80" rx="8" ry="9" fill="#1a1a2e"/>
+              <ellipse cx="75" cy="96" rx="9" ry="6" fill="#1a1a2e"/>
+            </svg>
+          </div>
+          <span>48px</span>
+        </div>
+        <div class="size-preview">
+          <div class="icon-box">
+            <svg width="16" height="16" viewBox="0 0 150 140">
+              <defs><linearGradient id="gradA4c" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#ff7733"/><stop offset="100%" style="stop-color:#f59e0b"/></linearGradient></defs>
+              <path fill="url(#gradA4c)" d="M8 68 C2 42, 18 12, 35 10 C48 8, 52 28, 50 48 L48 64 C35 70, 16 70, 8 68 Z"/>
+              <path fill="url(#gradA4c)" d="M142 68 C148 42, 132 12, 115 10 C102 8, 98 28, 100 48 L102 64 C115 70, 134 70, 142 68 Z"/>
+              <circle cx="75" cy="78" r="52" fill="url(#gradA4c)"/>
+              <ellipse cx="75" cy="84" rx="36" ry="34" fill="white"/>
+              <ellipse cx="58" cy="80" rx="9" ry="10" fill="#1a1a2e"/>
+              <ellipse cx="92" cy="80" rx="9" ry="10" fill="#1a1a2e"/>
+            </svg>
+          </div>
+          <span>16px</span>
+        </div>
+      </div>
+      <div class="backgrounds">
+        <div class="size-preview">
+          <div class="icon-box light">
+            <svg width="56" height="56" viewBox="0 0 150 140">
+              <defs><linearGradient id="gradA4d" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#ff7733"/><stop offset="100%" style="stop-color:#f59e0b"/></linearGradient></defs>
+              <path fill="url(#gradA4d)" d="M8 68 C2 42, 18 12, 35 10 C48 8, 52 28, 50 48 L48 64 C35 70, 16 70, 8 68 Z"/>
+              <path fill="url(#gradA4d)" d="M142 68 C148 42, 132 12, 115 10 C102 8, 98 28, 100 48 L102 64 C115 70, 134 70, 142 68 Z"/>
+              <path fill="#e85d20" d="M18 60 C14 44, 26 22, 35 22 C44 22, 48 36, 47 48 L46 58 C38 62, 24 62, 18 60 Z"/>
+              <path fill="#e85d20" d="M132 60 C136 44, 124 22, 115 22 C106 22, 102 36, 103 48 L104 58 C112 62, 126 62, 132 60 Z"/>
+              <circle cx="75" cy="78" r="52" fill="url(#gradA4d)"/>
+              <ellipse cx="75" cy="84" rx="36" ry="34" fill="white"/>
+              <ellipse cx="58" cy="80" rx="8" ry="9" fill="#1a1a2e"/>
+              <ellipse cx="92" cy="80" rx="8" ry="9" fill="#1a1a2e"/>
+              <circle cx="56" cy="78" r="2.5" fill="white"/>
+              <circle cx="90" cy="78" r="2.5" fill="white"/>
+              <ellipse cx="75" cy="96" rx="9" ry="6" fill="#1a1a2e"/>
+            </svg>
+          </div>
+          <span>Light</span>
+        </div>
+      </div>
+      <div class="tags">
+        <span class="tag new">Orelhas largas</span>
+        <span class="tag">Imponente</span>
+      </div>
+    </div>
+
+    <!-- A5: Subtle Overflow -->
+    <div class="option-card">
+      <div class="option-number new">A5</div>
+      <h3 class="option-title">Subtle Overflow</h3>
+      <p class="option-desc">Orelhas transbordando sutilmente, só as pontas saem. Equilíbrio elegante.</p>
+      <div class="logo-preview">
+        <div class="size-preview">
+          <div class="icon-box">
+            <svg width="80" height="80" viewBox="0 0 128 134">
+              <defs>
+                <linearGradient id="gradA5" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#ff7733"/>
+                  <stop offset="100%" style="stop-color:#f59e0b"/>
+                </linearGradient>
+              </defs>
+              <!-- Subtle overflow ears - just tips outside -->
+              <path fill="url(#gradA5)" d="M22 56 C18 34, 28 8, 40 8 C48 8, 50 24, 48 40 L46 54 C38 58, 28 58, 22 56 Z"/>
+              <path fill="url(#gradA5)" d="M106 56 C110 34, 100 8, 88 8 C80 8, 78 24, 80 40 L82 54 C90 58, 100 58, 106 56 Z"/>
+              <!-- Inner ear -->
+              <path fill="#e85d20" d="M28 50 C26 38, 33 18, 40 18 C45 18, 47 28, 46 38 L45 48 C40 51, 32 51, 28 50 Z"/>
+              <path fill="#e85d20" d="M100 50 C102 38, 95 18, 88 18 C83 18, 81 28, 82 38 L83 48 C88 51, 96 51, 100 50 Z"/>
+              <!-- Circle positioned lower -->
+              <circle cx="64" cy="72" r="56" fill="url(#gradA5)"/>
+              <!-- Face -->
+              <ellipse cx="64" cy="78" rx="34" ry="32" fill="white"/>
+              <!-- Eyes -->
+              <ellipse cx="50" cy="74" rx="7" ry="8" fill="#1a1a2e"/>
+              <ellipse cx="78" cy="74" rx="7" ry="8" fill="#1a1a2e"/>
+              <circle cx="48" cy="72" r="2" fill="white"/>
+              <circle cx="76" cy="72" r="2" fill="white"/>
+              <!-- Nose -->
+              <ellipse cx="64" cy="88" rx="8" ry="5" fill="#1a1a2e"/>
+              <!-- Mouth -->
+              <path d="M56 96 Q64 102, 72 96" stroke="#1a1a2e" stroke-width="2" fill="none" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <span>80px</span>
+        </div>
+        <div class="size-preview">
+          <div class="icon-box">
+            <svg width="48" height="48" viewBox="0 0 128 134">
+              <defs><linearGradient id="gradA5b" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#ff7733"/><stop offset="100%" style="stop-color:#f59e0b"/></linearGradient></defs>
+              <path fill="url(#gradA5b)" d="M22 56 C18 34, 28 8, 40 8 C48 8, 50 24, 48 40 L46 54 C38 58, 28 58, 22 56 Z"/>
+              <path fill="url(#gradA5b)" d="M106 56 C110 34, 100 8, 88 8 C80 8, 78 24, 80 40 L82 54 C90 58, 100 58, 106 56 Z"/>
+              <circle cx="64" cy="72" r="56" fill="url(#gradA5b)"/>
+              <ellipse cx="64" cy="78" rx="34" ry="32" fill="white"/>
+              <ellipse cx="50" cy="74" rx="7" ry="8" fill="#1a1a2e"/>
+              <ellipse cx="78" cy="74" rx="7" ry="8" fill="#1a1a2e"/>
+              <ellipse cx="64" cy="88" rx="8" ry="5" fill="#1a1a2e"/>
+            </svg>
+          </div>
+          <span>48px</span>
+        </div>
+        <div class="size-preview">
+          <div class="icon-box">
+            <svg width="16" height="16" viewBox="0 0 128 134">
+              <defs><linearGradient id="gradA5c" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#ff7733"/><stop offset="100%" style="stop-color:#f59e0b"/></linearGradient></defs>
+              <path fill="url(#gradA5c)" d="M22 56 C18 34, 28 8, 40 8 C48 8, 50 24, 48 40 L46 54 C38 58, 28 58, 22 56 Z"/>
+              <path fill="url(#gradA5c)" d="M106 56 C110 34, 100 8, 88 8 C80 8, 78 24, 80 40 L82 54 C90 58, 100 58, 106 56 Z"/>
+              <circle cx="64" cy="72" r="56" fill="url(#gradA5c)"/>
+              <ellipse cx="64" cy="78" rx="34" ry="32" fill="white"/>
+              <ellipse cx="50" cy="74" rx="8" ry="9" fill="#1a1a2e"/>
+              <ellipse cx="78" cy="74" rx="8" ry="9" fill="#1a1a2e"/>
+            </svg>
+          </div>
+          <span>16px</span>
+        </div>
+      </div>
+      <div class="backgrounds">
+        <div class="size-preview">
+          <div class="icon-box light">
+            <svg width="56" height="56" viewBox="0 0 128 134">
+              <defs><linearGradient id="gradA5d" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#ff7733"/><stop offset="100%" style="stop-color:#f59e0b"/></linearGradient></defs>
+              <path fill="url(#gradA5d)" d="M22 56 C18 34, 28 8, 40 8 C48 8, 50 24, 48 40 L46 54 C38 58, 28 58, 22 56 Z"/>
+              <path fill="url(#gradA5d)" d="M106 56 C110 34, 100 8, 88 8 C80 8, 78 24, 80 40 L82 54 C90 58, 100 58, 106 56 Z"/>
+              <path fill="#e85d20" d="M28 50 C26 38, 33 18, 40 18 C45 18, 47 28, 46 38 L45 48 C40 51, 32 51, 28 50 Z"/>
+              <path fill="#e85d20" d="M100 50 C102 38, 95 18, 88 18 C83 18, 81 28, 82 38 L83 48 C88 51, 96 51, 100 50 Z"/>
+              <circle cx="64" cy="72" r="56" fill="url(#gradA5d)"/>
+              <ellipse cx="64" cy="78" rx="34" ry="32" fill="white"/>
+              <ellipse cx="50" cy="74" rx="7" ry="8" fill="#1a1a2e"/>
+              <ellipse cx="78" cy="74" rx="7" ry="8" fill="#1a1a2e"/>
+              <circle cx="48" cy="72" r="2" fill="white"/>
+              <circle cx="76" cy="72" r="2" fill="white"/>
+              <ellipse cx="64" cy="88" rx="8" ry="5" fill="#1a1a2e"/>
+            </svg>
+          </div>
+          <span>Light</span>
+        </div>
+      </div>
+      <div class="tags">
+        <span class="tag new">Sutil</span>
+        <span class="tag">Elegante</span>
+        <span class="tag">Equilibrado</span>
+      </div>
+    </div>
+
+    <!-- A6: Ears in Front -->
+    <div class="option-card">
+      <div class="option-number new">A6</div>
+      <h3 class="option-title">Ears in Front</h3>
+      <p class="option-desc">Orelhas brancas NA FRENTE do círculo, junto com o rosto. Efeito 3D.</p>
+      <div class="logo-preview">
+        <div class="size-preview">
+          <div class="icon-box">
+            <svg width="80" height="80" viewBox="0 0 128 128">
+              <defs>
+                <linearGradient id="gradA6" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#ff7733"/>
+                  <stop offset="100%" style="stop-color:#f59e0b"/>
+                </linearGradient>
+              </defs>
+              <!-- Background circle first -->
+              <circle cx="64" cy="64" r="58" fill="url(#gradA6)"/>
+              <!-- White ears IN FRONT of circle (same color as face) -->
+              <path fill="white" d="M18 52 C14 30, 26 10, 38 10 C48 10, 50 26, 48 42 L46 52 C38 56, 24 56, 18 52 Z"/>
+              <path fill="white" d="M110 52 C114 30, 102 10, 90 10 C80 10, 78 26, 80 42 L82 52 C90 56, 104 56, 110 52 Z"/>
+              <!-- Inner ear pink -->
+              <path fill="#ffccb3" d="M26 46 C24 34, 32 20, 38 20 C44 20, 46 30, 45 40 L44 48 C38 50, 30 50, 26 46 Z"/>
+              <path fill="#ffccb3" d="M102 46 C104 34, 96 20, 90 20 C84 20, 82 30, 83 40 L84 48 C90 50, 98 50, 102 46 Z"/>
+              <!-- Face (connected to ears visually) -->
+              <ellipse cx="64" cy="74" rx="36" ry="32" fill="white"/>
+              <!-- Connect ears to face -->
+              <rect x="28" y="50" width="20" height="20" fill="white"/>
+              <rect x="80" y="50" width="20" height="20" fill="white"/>
+              <!-- Eyes -->
+              <ellipse cx="48" cy="70" rx="8" ry="9" fill="#1a1a2e"/>
+              <ellipse cx="80" cy="70" rx="8" ry="9" fill="#1a1a2e"/>
+              <circle cx="46" cy="68" r="2.5" fill="white"/>
+              <circle cx="78" cy="68" r="2.5" fill="white"/>
+              <!-- Nose -->
+              <ellipse cx="64" cy="86" rx="9" ry="6" fill="#1a1a2e"/>
+              <!-- Mouth -->
+              <path d="M54 94 Q64 102, 74 94" stroke="#1a1a2e" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <span>80px</span>
+        </div>
+        <div class="size-preview">
+          <div class="icon-box">
+            <svg width="48" height="48" viewBox="0 0 128 128">
+              <defs><linearGradient id="gradA6b" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#ff7733"/><stop offset="100%" style="stop-color:#f59e0b"/></linearGradient></defs>
+              <circle cx="64" cy="64" r="58" fill="url(#gradA6b)"/>
+              <path fill="white" d="M18 52 C14 30, 26 10, 38 10 C48 10, 50 26, 48 42 L46 52 C38 56, 24 56, 18 52 Z"/>
+              <path fill="white" d="M110 52 C114 30, 102 10, 90 10 C80 10, 78 26, 80 42 L82 52 C90 56, 104 56, 110 52 Z"/>
+              <ellipse cx="64" cy="74" rx="36" ry="32" fill="white"/>
+              <rect x="28" y="50" width="20" height="20" fill="white"/>
+              <rect x="80" y="50" width="20" height="20" fill="white"/>
+              <ellipse cx="48" cy="70" rx="8" ry="9" fill="#1a1a2e"/>
+              <ellipse cx="80" cy="70" rx="8" ry="9" fill="#1a1a2e"/>
+              <ellipse cx="64" cy="86" rx="9" ry="6" fill="#1a1a2e"/>
+            </svg>
+          </div>
+          <span>48px</span>
+        </div>
+        <div class="size-preview">
+          <div class="icon-box">
+            <svg width="16" height="16" viewBox="0 0 128 128">
+              <defs><linearGradient id="gradA6c" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#ff7733"/><stop offset="100%" style="stop-color:#f59e0b"/></linearGradient></defs>
+              <circle cx="64" cy="64" r="58" fill="url(#gradA6c)"/>
+              <path fill="white" d="M18 52 C14 30, 26 10, 38 10 C48 10, 50 26, 48 42 L46 52 C38 56, 24 56, 18 52 Z"/>
+              <path fill="white" d="M110 52 C114 30, 102 10, 90 10 C80 10, 78 26, 80 42 L82 52 C90 56, 104 56, 110 52 Z"/>
+              <ellipse cx="64" cy="74" rx="36" ry="32" fill="white"/>
+              <rect x="28" y="50" width="20" height="20" fill="white"/>
+              <rect x="80" y="50" width="20" height="20" fill="white"/>
+              <ellipse cx="48" cy="70" rx="9" ry="10" fill="#1a1a2e"/>
+              <ellipse cx="80" cy="70" rx="9" ry="10" fill="#1a1a2e"/>
+            </svg>
+          </div>
+          <span>16px</span>
+        </div>
+      </div>
+      <div class="backgrounds">
+        <div class="size-preview">
+          <div class="icon-box light">
+            <svg width="56" height="56" viewBox="0 0 128 128">
+              <defs><linearGradient id="gradA6d" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#ff7733"/><stop offset="100%" style="stop-color:#f59e0b"/></linearGradient></defs>
+              <circle cx="64" cy="64" r="58" fill="url(#gradA6d)"/>
+              <path fill="white" d="M18 52 C14 30, 26 10, 38 10 C48 10, 50 26, 48 42 L46 52 C38 56, 24 56, 18 52 Z"/>
+              <path fill="white" d="M110 52 C114 30, 102 10, 90 10 C80 10, 78 26, 80 42 L82 52 C90 56, 104 56, 110 52 Z"/>
+              <path fill="#ffccb3" d="M26 46 C24 34, 32 20, 38 20 C44 20, 46 30, 45 40 L44 48 C38 50, 30 50, 26 46 Z"/>
+              <path fill="#ffccb3" d="M102 46 C104 34, 96 20, 90 20 C84 20, 82 30, 83 40 L84 48 C90 50, 98 50, 102 46 Z"/>
+              <ellipse cx="64" cy="74" rx="36" ry="32" fill="white"/>
+              <rect x="28" y="50" width="20" height="20" fill="white"/>
+              <rect x="80" y="50" width="20" height="20" fill="white"/>
+              <ellipse cx="48" cy="70" rx="8" ry="9" fill="#1a1a2e"/>
+              <ellipse cx="80" cy="70" rx="8" ry="9" fill="#1a1a2e"/>
+              <circle cx="46" cy="68" r="2.5" fill="white"/>
+              <circle cx="78" cy="68" r="2.5" fill="white"/>
+              <ellipse cx="64" cy="86" rx="9" ry="6" fill="#1a1a2e"/>
+            </svg>
+          </div>
+          <span>Light</span>
+        </div>
+      </div>
+      <div class="tags">
+        <span class="tag new">Orelhas brancas</span>
+        <span class="tag">Efeito 3D</span>
+        <span class="tag">Conectado</span>
+      </div>
+    </div>
+
+  </div>
+
+  <p style="text-align: center; margin-top: 50px; color: #64748b; font-size: 14px;">
+    Todas usando gradiente laranja/amber: #ff7733 → #f59e0b
+  </p>
+
+</body>
+</html>

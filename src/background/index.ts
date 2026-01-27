@@ -22,6 +22,11 @@ import {
   updateItemReminder,
   getItemsWithPendingReminders,
   clearItemReminder,
+  // Trash operations
+  getDeletedItems,
+  restoreItem,
+  emptyTrashItem,
+  emptyAllTrash,
 } from '@/shared/db'
 import {
   scheduleReminder,
@@ -784,6 +789,33 @@ async function handleMessage(message: BgMessage): Promise<BgResponse<BgMessage['
       }
 
       return { success: true }
+    }
+
+    // Trash operations
+    case 'GET_DELETED_ITEMS': {
+      const items = await getDeletedItems()
+      return { items }
+    }
+
+    case 'RESTORE_ITEM': {
+      const restoredItem = await restoreItem(message.id)
+      if (!restoredItem) {
+        return { success: false, error: 'Item not found' }
+      }
+      broadcastItemsChanged()
+      return { success: true, item: restoredItem }
+    }
+
+    case 'PERMANENT_DELETE_ITEM': {
+      await emptyTrashItem(message.id)
+      broadcastItemsChanged()
+      return { success: true }
+    }
+
+    case 'EMPTY_TRASH': {
+      const count = await emptyAllTrash()
+      broadcastItemsChanged()
+      return { success: true, count }
     }
 
     default:

@@ -482,3 +482,46 @@ export async function clearItemReminder(id: string): Promise<void> {
     args: [id],
   })
 }
+
+// ============================================
+// Trash functions (soft-deleted items)
+// ============================================
+
+// Get all deleted items (trash)
+export async function getDeletedItems(): Promise<VoiceItem[]> {
+  const database = await getDatabase()
+  const result = await database.execute({
+    sql: 'SELECT * FROM items WHERE status = ? ORDER BY created_at DESC',
+    args: ['deleted'],
+  })
+  return result.rows.map(row => rowToVoiceItem(row))
+}
+
+// Restore a deleted item (move from trash back to saved)
+export async function restoreItem(id: string): Promise<VoiceItem | null> {
+  const database = await getDatabase()
+  await database.execute({
+    sql: 'UPDATE items SET status = ? WHERE id = ?',
+    args: ['saved', id],
+  })
+  return getItemById(id)
+}
+
+// Permanently delete an item from trash
+export async function emptyTrashItem(id: string): Promise<void> {
+  const database = await getDatabase()
+  await database.execute({
+    sql: 'DELETE FROM items WHERE id = ? AND status = ?',
+    args: [id, 'deleted'],
+  })
+}
+
+// Empty all trash (permanently delete all deleted items)
+export async function emptyAllTrash(): Promise<number> {
+  const database = await getDatabase()
+  const result = await database.execute({
+    sql: 'DELETE FROM items WHERE status = ?',
+    args: ['deleted'],
+  })
+  return result.rowsAffected
+}
