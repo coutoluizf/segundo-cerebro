@@ -1,6 +1,27 @@
 # Changelog
 
-Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
+All notable changes to this project will be documented in this file.
+
+## [0.6.0] - 2026-01-27
+
+### Changed
+- **REBRANDING: Segundo Cérebro → HeyRaji** 🐕
+- **New Identity**: Named after Raji, a beloved French Bulldog
+- **New Logo**: French Bulldog silhouette with iconic bat ears
+- **New Tagline**: "Your AI companion"
+
+### Updated
+- All UI text updated to "HeyRaji"
+- New extension icons (16, 48, 128px) with Frenchie mascot
+- Package name changed to `heyraji`
+- Notification titles now show "HeyRaji - Reminder"
+- HTML page titles updated
+
+### Technical
+- New SVG logo: `public/icons/raji.svg`
+- PNG icons regenerated from SVG
+- CLAUDE.md updated with new project description
+- Storage keys preserved for backward compatibility
 
 ## [0.5.0] - 2026-01-26
 

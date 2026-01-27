@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <!-- HeyRaji Logo - French Bulldog with Bat Ears -->
+  <!-- Minimalist silhouette optimized for extension icons -->
+
+  <!-- Primary color: #8B5CF6 (violet/purple) - matches brand -->
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#A855F7"/>
+      <stop offset="100%" style="stop-color:#7C3AED"/>
+    </linearGradient>
+  </defs>
+
+  <g fill="url(#grad)">
+    <!-- Left Bat Ear - iconic pointed shape -->
+    <path d="M24 52 C18 22, 32 8, 40 38 C42 46, 38 54, 32 58 L24 52 Z"/>
+
+    <!-- Right Bat Ear - iconic pointed shape -->
+    <path d="M104 52 C110 22, 96 8, 88 38 C86 46, 90 54, 96 58 L104 52 Z"/>
+
+    <!-- Head - rounded French Bulldog shape -->
+    <path d="M32 58
+             C32 48, 40 42, 64 42
+             C88 42, 96 48, 96 58
+             C96 68, 94 78, 88 88
+             C82 98, 72 108, 64 108
+             C56 108, 46 98, 40 88
+             C34 78, 32 68, 32 58 Z"/>
+  </g>
+
+  <!-- Face details - white/light for contrast -->
+  <g fill="white">
+    <!-- Left Eye -->
+    <ellipse cx="48" cy="68" rx="8" ry="9"/>
+
+    <!-- Right Eye -->
+    <ellipse cx="80" cy="68" rx="8" ry="9"/>
+
+    <!-- Snout/Muzzle area -->
+    <ellipse cx="64" cy="88" rx="16" ry="12"/>
+  </g>
+
+  <!-- Eye pupils - dark -->
+  <g fill="#1a1a2e">
+    <circle cx="50" cy="68" r="4"/>
+    <circle cx="82" cy="68" r="4"/>
+  </g>
+
+  <!-- Nose - dark oval -->
+  <ellipse cx="64" cy="84" rx="6" ry="4" fill="#1a1a2e"/>
+
+  <!-- Mouth - subtle smile -->
+  <path d="M56 94 Q64 100, 72 94" stroke="#1a1a2e" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+</svg>

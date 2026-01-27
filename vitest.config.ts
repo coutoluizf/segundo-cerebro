@@ -1,5 +1,5 @@
 /**
- * Vitest configuration for Segundo Cérebro tests
+ * Vitest configuration for HeyRaji tests
  */
 
 import { defineConfig } from 'vitest/config'

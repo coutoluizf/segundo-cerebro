@@ -1,5 +1,5 @@
 {
-  "name": "segundo-cerebro",
+  "name": "heyraji",
   "version": "0.1.0",
   "description": "Voice-first tab stash with semantic search",
   "type": "module",
@@ -8,7 +8,7 @@
     "build": "tsc && vite build && cp manifest.json dist/",
     "typecheck": "tsc --noEmit",
     "preview": "vite preview",
-    "package": "npm run build && cd dist && zip -r ../segundo-cerebro.zip .",
+    "package": "npm run build && cd dist && zip -r ../heyraji.zip .",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui"

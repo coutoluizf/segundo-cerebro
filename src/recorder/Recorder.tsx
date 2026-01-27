@@ -185,7 +185,7 @@ export function Recorder() {
             </Button>
             <div className="flex items-center gap-2">
               <Brain className="h-6 w-6 text-primary" />
-              <h1 className="text-xl font-semibold">Segundo Cérebro</h1>
+              <h1 className="text-xl font-semibold">HeyRaji</h1>
             </div>
           </div>
           <Button variant="ghost" size="sm" onClick={openDashboard}>

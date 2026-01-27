@@ -1,6 +1,6 @@
 /**
- * Icon generation script for Segundo Cérebro
- * Creates simple brain-themed icons for the Chrome extension
+ * Icon generation script for HeyRaji
+ * Creates French Bulldog themed icons for the Chrome extension
  *
  * Run: node scripts/generate-icons.js
  *

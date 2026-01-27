@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "Segundo Cérebro",
-  "description": "Salve tabs com voz. Busca semântica.",
+  "name": "HeyRaji",
+  "description": "Your AI companion. Save tabs with voice, semantic search.",
   "version": "0.1.0",
   "permissions": [
     "tabs",

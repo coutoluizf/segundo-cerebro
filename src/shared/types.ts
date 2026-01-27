@@ -1,5 +1,5 @@
 /**
- * Core types for Segundo Cérebro
+ * Core types for HeyRaji
  * Defines the data structures for voice items, projects, and contexts
  */
 

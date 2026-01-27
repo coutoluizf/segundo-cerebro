@@ -4,7 +4,9 @@ This file provides guidance to Claude Code when working with this repository.
 
 ## Project Overview
 
-Segundo Cérebro is a Chrome extension (Manifest V3) for voice-first tab management with semantic search. Users speak the reason for saving a tab, the system transcribes it, generates embeddings, and enables semantic search across saved items.
+HeyRaji is a Chrome extension (Manifest V3) for voice-first tab management with semantic search. Users speak the reason for saving a tab, the system transcribes it, generates embeddings, and enables semantic search across saved items. Named after Raji, a beloved French Bulldog mascot.
+
+**Tagline:** "Your AI companion"
 
 **Core hypothesis:** "If I capture WHY I'm saving something (via voice), I'll find things better later."
 

@@ -241,7 +241,7 @@ export function Popup() {
             <div className="absolute inset-0 bg-primary/20 blur-lg rounded-full" />
             <Brain className="h-6 w-6 text-primary relative" />
           </div>
-          <h1 className="text-lg font-semibold tracking-tight">Segundo Cérebro</h1>
+          <h1 className="text-lg font-semibold tracking-tight">HeyRaji</h1>
         </div>
 
         {/* Setup card */}
@@ -276,7 +276,7 @@ export function Popup() {
               <div className="absolute inset-0 bg-primary/20 blur-lg rounded-full" />
               <Brain className="h-6 w-6 text-primary relative" />
             </div>
-            <h1 className="text-lg font-semibold tracking-tight">Segundo Cérebro</h1>
+            <h1 className="text-lg font-semibold tracking-tight">HeyRaji</h1>
           </div>
           <div className="flex items-center gap-1">
             <Button variant="ghost" size="icon" onClick={openDashboard} title="Abrir Dashboard" className="rounded-full">
@@ -333,7 +333,7 @@ export function Popup() {
             <div className="absolute inset-0 bg-primary/20 blur-lg rounded-full" />
             <Brain className="h-5 w-5 text-primary relative" />
           </div>
-          <h1 className="font-semibold tracking-tight">Segundo Cérebro</h1>
+          <h1 className="font-semibold tracking-tight">HeyRaji</h1>
         </div>
         <div className="flex items-center gap-1">
           <Button variant="ghost" size="icon" onClick={openDashboard} title="Abrir Dashboard" className="h-8 w-8 rounded-full">

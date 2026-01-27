@@ -298,7 +298,7 @@ export function Dashboard() {
                 <Brain className="h-7 w-7 text-primary relative" />
               </div>
               <div>
-                <h1 className="text-lg font-semibold tracking-tight">Segundo Cérebro</h1>
+                <h1 className="text-lg font-semibold tracking-tight">HeyRaji</h1>
                 <p className="text-xs text-muted-foreground">Suas ideias, organizadas</p>
               </div>
             </div>

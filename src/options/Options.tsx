@@ -212,7 +212,7 @@ export function Options() {
         {/* Header */}
         <div className="flex items-center gap-2 mb-8">
           <Brain className="h-8 w-8 text-primary" />
-          <h1 className="text-2xl font-bold">Segundo Cérebro</h1>
+          <h1 className="text-2xl font-bold">HeyRaji</h1>
         </div>
 
         <div className="space-y-6">

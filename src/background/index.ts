@@ -227,7 +227,7 @@ async function handleReminderAlarm(itemId: string): Promise<void> {
   await chrome.notifications.create(`reminder-${itemId}`, {
     type: 'basic',
     iconUrl: chrome.runtime.getURL('icons/icon128.png'),
-    title: `Segundo Cérebro - Lembrete${projectInfo}`,
+    title: `HeyRaji - Reminder${projectInfo}`,
     message: item.title || item.transcription.substring(0, 100),
     priority: 2,
   })
