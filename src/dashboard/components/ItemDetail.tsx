@@ -139,10 +139,12 @@ export function ItemDetail({
     return Math.round(similarity * 100) + '%'
   }
 
-  // Handle delete with confirmation
+  // Handle delete with confirmation dialog
   const handleDelete = () => {
-    onDelete(item.id)
-    onOpenChange(false)
+    if (window.confirm('Tem certeza que deseja excluir este item?')) {
+      onDelete(item.id)
+      onOpenChange(false)
+    }
   }
 
   // Start editing a field
@@ -543,8 +545,17 @@ export function ItemDetail({
               </Button>
             </div>
 
-            {/* Actions */}
-            <div className="flex items-center gap-2">
+            {/* Actions - delete on left (subtle), open on right (prominent) */}
+            <div className="flex items-center gap-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleDelete}
+                className="rounded-lg text-muted-foreground/60 hover:text-destructive hover:bg-destructive/10"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Excluir
+              </Button>
               {/* Open button - primary action with solid orange background */}
               {!isNote && (
                 <Button
@@ -556,15 +567,6 @@ export function ItemDetail({
                   Abrir
                 </Button>
               )}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleDelete}
-                className="rounded-lg text-destructive hover:text-destructive hover:bg-destructive/10"
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Excluir
-              </Button>
             </div>
           </div>
         </div>

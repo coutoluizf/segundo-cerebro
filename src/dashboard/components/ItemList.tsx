@@ -288,8 +288,23 @@ export function ItemList({ items, projects, columns = 1, onDelete, onOpen, onUpd
                 )}
               </div>
 
-              {/* Right side - Actions */}
-              <div className="flex items-center gap-1">
+              {/* Right side - Actions (delete moved to left, open on right for safety) */}
+              <div className="flex items-center gap-3">
+                {/* Delete button - separated from primary action */}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    if (window.confirm('Tem certeza que deseja excluir este item?')) {
+                      onDelete(item.id)
+                    }
+                  }}
+                  className="h-8 w-8 rounded-lg text-muted-foreground/50 hover:text-destructive hover:bg-destructive/10"
+                  title="Excluir"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
                 {/* Open button for tabs only - primary action with solid orange background */}
                 {!isNote && (
                   <Button
@@ -301,15 +316,6 @@ export function ItemList({ items, projects, columns = 1, onDelete, onOpen, onUpd
                     Abrir
                   </Button>
                 )}
-                {/* Delete button */}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => onDelete(item.id)}
-                  className="h-8 w-8 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </Button>
               </div>
             </div>
             </div>
