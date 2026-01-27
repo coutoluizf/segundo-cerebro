@@ -4,6 +4,46 @@
  */
 
 const OPENAI_API_URL = 'https://api.openai.com/v1/embeddings'
+
+/**
+ * Build text for embedding from item fields
+ * Combines title, URL, transcription and AI summary for better semantic search
+ * Title and URL help find items by site name, domain, or page title
+ */
+export function buildTextForEmbedding(params: {
+  title?: string | null
+  url?: string | null
+  transcription?: string | null
+  aiSummary?: string | null
+}): string {
+  const parts: string[] = []
+
+  // Add title first (important for semantic matching)
+  if (params.title?.trim()) {
+    parts.push(params.title.trim())
+  }
+
+  // Add URL (domain and path contain useful keywords like company names)
+  if (params.url?.trim() && !params.url.startsWith('note://')) {
+    // Clean URL: remove protocol and www for cleaner embedding
+    const cleanUrl = params.url
+      .replace(/^https?:\/\//, '')
+      .replace(/^www\./, '')
+    parts.push(cleanUrl)
+  }
+
+  // Add user transcription/comment
+  if (params.transcription?.trim()) {
+    parts.push(params.transcription.trim())
+  }
+
+  // Add AI summary
+  if (params.aiSummary?.trim()) {
+    parts.push(params.aiSummary.trim())
+  }
+
+  return parts.join('\n\n')
+}
 const MODEL = 'text-embedding-3-small'
 
 // Response type from OpenAI API

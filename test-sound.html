@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Teste de Som - Segundo Cérebro</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+      background: #1a1a1a;
+      color: white;
+      gap: 20px;
+    }
+    h1 { color: #f97316; margin-bottom: 10px; }
+    p { color: #888; margin-bottom: 30px; }
+    .options { display: flex; flex-direction: column; gap: 15px; }
+    button {
+      padding: 16px 32px;
+      font-size: 16px;
+      border: none;
+      border-radius: 12px;
+      background: #333;
+      color: white;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    button:hover { background: #f97316; }
+    .selected { background: #f97316 !important; }
+    .volume-control {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 20px;
+      padding: 15px;
+      background: #222;
+      border-radius: 12px;
+    }
+    input[type="range"] { width: 200px; }
+  </style>
+</head>
+<body>
+  <h1>🔔 Escolha o Som de Lembrete</h1>
+  <p>Clique para ouvir cada opção</p>
+
+  <div class="options">
+    <button onclick="playSound('original')">Opção 1: Som Original (Pixabay)</button>
+    <button onclick="playSound('new')">Opção 2: Novo Som (Pixabay)</button>
+    <button onclick="playSound('generated')">Opção 3: Som Gerado (Simples)</button>
+    <button onclick="playSound('chime')">Opção 4: Chime Duplo (Gerado)</button>
+  </div>
+
+  <div class="volume-control">
+    <span>Volume:</span>
+    <input type="range" id="volume" min="0" max="100" value="50" onchange="updateVolume()">
+    <span id="volumeLabel">50%</span>
+  </div>
+
+  <script>
+    let currentVolume = 0.5;
+
+    function updateVolume() {
+      currentVolume = document.getElementById('volume').value / 100;
+      document.getElementById('volumeLabel').textContent = Math.round(currentVolume * 100) + '%';
+    }
+
+    function playSound(type) {
+      if (type === 'original') {
+        // Original Pixabay sound (the one we downloaded before)
+        const audio = new Audio('public/sounds/reminder.mp3');
+        audio.volume = currentVolume;
+        audio.play();
+      } else if (type === 'new') {
+        // New Pixabay sound
+        const audio = new Audio('file:///tmp/sound1.mp3');
+        audio.volume = currentVolume;
+        audio.play().catch(() => {
+          alert('Não foi possível carregar este som');
+        });
+      } else if (type === 'generated') {
+        // Simple generated ding
+        playGeneratedSimple();
+      } else if (type === 'chime') {
+        // Double chime
+        playDoubleChime();
+      }
+    }
+
+    function playGeneratedSimple() {
+      const ctx = new AudioContext();
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(880, now);
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(currentVolume * 0.3, now + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.7);
+      osc.start(now);
+      osc.stop(now + 0.7);
+      setTimeout(() => ctx.close(), 800);
+    }
+
+    function playDoubleChime() {
+      const ctx = new AudioContext();
+      const now = ctx.currentTime;
+
+      // First chime - higher
+      const osc1 = ctx.createOscillator();
+      const gain1 = ctx.createGain();
+      osc1.connect(gain1);
+      gain1.connect(ctx.destination);
+      osc1.type = 'sine';
+      osc1.frequency.setValueAtTime(1047, now); // C6
+      gain1.gain.setValueAtTime(0, now);
+      gain1.gain.linearRampToValueAtTime(currentVolume * 0.25, now + 0.01);
+      gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+      osc1.start(now);
+      osc1.stop(now + 0.5);
+
+      // Second chime - lower, slightly delayed
+      const osc2 = ctx.createOscillator();
+      const gain2 = ctx.createGain();
+      osc2.connect(gain2);
+      gain2.connect(ctx.destination);
+      osc2.type = 'sine';
+      osc2.frequency.setValueAtTime(784, now + 0.15); // G5
+      gain2.gain.setValueAtTime(0, now + 0.15);
+      gain2.gain.linearRampToValueAtTime(currentVolume * 0.2, now + 0.16);
+      gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+      osc2.start(now + 0.15);
+      osc2.stop(now + 0.8);
+
+      setTimeout(() => ctx.close(), 900);
+    }
+  </script>
+</body>
+</html>

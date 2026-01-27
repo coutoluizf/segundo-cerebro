@@ -30,7 +30,7 @@ import {
   isReminderAlarm,
 } from '@/shared/reminders'
 import { captureContext } from '@/shared/context'
-import { generateEmbedding } from '@/shared/embeddings'
+import { generateEmbedding, buildTextForEmbedding } from '@/shared/embeddings'
 import { generateSummary } from '@/shared/summarize'
 import { captureTabThumbnail } from '@/shared/screenshot'
 import { getSettings, saveSettings } from '@/shared/settings'
@@ -479,13 +479,18 @@ async function handleMessage(message: BgMessage): Promise<BgResponse<BgMessage['
         }
       }
 
-      // Generate embedding from transcription + AI summary for better semantic search
+      // Generate embedding from title, URL, transcription + AI summary for better semantic search
+      // Including title and URL allows searching by site name, domain, or page title
       let embedding: number[] | null = null
+      const itemTitle = message.item.title || (isNote ? null : context.activeTab.title)
+      const itemUrl = isNote ? null : (message.item.url || context.activeTab.url)
       try {
-        // Combine transcription and AI summary for richer embedding
-        const textForEmbedding = aiSummary
-          ? `${message.transcription}\n\n${aiSummary}`
-          : message.transcription
+        const textForEmbedding = buildTextForEmbedding({
+          title: itemTitle,
+          url: itemUrl,
+          transcription: message.transcription,
+          aiSummary,
+        })
         embedding = await generateEmbedding(textForEmbedding, apiKeys.openai)
       } catch (error) {
         console.error('[Background] Error generating embedding:', error)
@@ -682,10 +687,13 @@ async function handleMessage(message: BgMessage): Promise<BgResponse<BgMessage['
           const transcription = updates.transcription ?? currentItem.transcription
           const aiSummary = updates.aiSummary ?? currentItem.aiSummary
 
-          // Combine transcription and AI summary for richer embedding (same as save flow)
-          const textForEmbedding = aiSummary
-            ? `${transcription}\n\n${aiSummary}`
-            : transcription
+          // Build text for embedding including title and URL (same as save flow)
+          const textForEmbedding = buildTextForEmbedding({
+            title: currentItem.title,
+            url: currentItem.url,
+            transcription,
+            aiSummary,
+          })
 
           newEmbedding = await generateEmbedding(textForEmbedding, apiKeys.openai)
           console.log('[Background] Regenerated embedding for updated item')

@@ -182,10 +182,16 @@ async function handleDevMessage(message: BgMessage): Promise<unknown> {
 
       if ((transcriptionChanged || aiSummaryChanged) && keys.openai) {
         try {
-          const { generateEmbedding } = await import('./embeddings')
+          const { generateEmbedding, buildTextForEmbedding } = await import('./embeddings')
           const transcription = updates.transcription ?? currentItem.transcription
           const aiSummary = updates.aiSummary ?? currentItem.aiSummary
-          const textForEmbedding = aiSummary ? `${transcription}\n\n${aiSummary}` : transcription
+          // Build text for embedding including title and URL
+          const textForEmbedding = buildTextForEmbedding({
+            title: currentItem.title,
+            url: currentItem.url,
+            transcription,
+            aiSummary,
+          })
           newEmbedding = await generateEmbedding(textForEmbedding, keys.openai)
         } catch (e) {
           console.error('[Dev] Error regenerating embedding:', e)
@@ -230,15 +236,20 @@ async function handleDevMessage(message: BgMessage): Promise<unknown> {
         }
       }
 
-      // Generate embedding if OpenAI key is available
+      // Generate embedding including title and URL for better semantic search
       let embedding: number[] | null = null
-      if (keys.openai && message.transcription) {
+      const itemTitle = message.item.title || (isNote ? null : document.title)
+      const itemUrl = isNote ? null : (message.item.url || window.location.href)
+      if (keys.openai) {
         try {
-          const { generateEmbedding } = await import('./embeddings')
-          // Combine transcription and AI summary for richer embedding
-          const textForEmbedding = aiSummary
-            ? `${message.transcription}\n\n${aiSummary}`
-            : message.transcription
+          const { generateEmbedding, buildTextForEmbedding } = await import('./embeddings')
+          // Build text for embedding including title, URL, transcription and AI summary
+          const textForEmbedding = buildTextForEmbedding({
+            title: itemTitle,
+            url: itemUrl,
+            transcription: message.transcription,
+            aiSummary,
+          })
           embedding = await generateEmbedding(textForEmbedding, keys.openai)
         } catch (e) {
           console.error('[Dev] Error generating embedding:', e)

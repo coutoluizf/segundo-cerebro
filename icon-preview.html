@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>HeyRaji - Icon Preview</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      min-height: 100vh;
+      margin: 0;
+      padding: 40px;
+      color: white;
+    }
+    h1 {
+      text-align: center;
+      font-size: 2.5rem;
+      margin-bottom: 8px;
+    }
+    .tagline {
+      text-align: center;
+      color: #a78bfa;
+      margin-bottom: 40px;
+    }
+    .preview-grid {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      flex-wrap: wrap;
+      margin-bottom: 60px;
+    }
+    .preview-item {
+      text-align: center;
+    }
+    .preview-item label {
+      display: block;
+      margin-bottom: 12px;
+      font-size: 14px;
+      color: #94a3b8;
+    }
+    .icon-container {
+      background: #0f0f23;
+      border-radius: 16px;
+      padding: 20px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #334155;
+    }
+    .icon-container.light {
+      background: #f8fafc;
+      border-color: #e2e8f0;
+    }
+    .icon-128 img { width: 128px; height: 128px; }
+    .icon-48 img { width: 48px; height: 48px; }
+    .icon-16 img { width: 16px; height: 16px; }
+
+    .section {
+      margin-bottom: 60px;
+    }
+    .section-title {
+      text-align: center;
+      font-size: 1.2rem;
+      color: #94a3b8;
+      margin-bottom: 24px;
+    }
+
+    /* Monochrome version for small sizes */
+    .mono {
+      filter: grayscale(100%) brightness(2);
+    }
+
+    /* Alternative color schemes */
+    .color-schemes {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      flex-wrap: wrap;
+    }
+    .scheme {
+      padding: 30px;
+      border-radius: 20px;
+      text-align: center;
+    }
+    .scheme.purple { background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%); }
+    .scheme.blue { background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%); }
+    .scheme.emerald { background: linear-gradient(135deg, #10B981 0%, #059669 100%); }
+    .scheme.amber { background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); }
+
+    .download-section {
+      text-align: center;
+      margin-top: 40px;
+      padding: 30px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 16px;
+    }
+    .download-section h3 {
+      margin-bottom: 16px;
+    }
+    .download-section p {
+      color: #94a3b8;
+      font-size: 14px;
+    }
+    code {
+      background: rgba(0,0,0,0.3);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <h1>HeyRaji</h1>
+  <p class="tagline">Your AI companion</p>
+
+  <!-- Size variants -->
+  <div class="section">
+    <h2 class="section-title">Icon Sizes (Dark Background)</h2>
+    <div class="preview-grid">
+      <div class="preview-item">
+        <label>128×128</label>
+        <div class="icon-container icon-128">
+          <img src="public/icons/raji.svg" alt="HeyRaji Icon 128">
+        </div>
+      </div>
+      <div class="preview-item">
+        <label>48×48</label>
+        <div class="icon-container icon-48">
+          <img src="public/icons/raji.svg" alt="HeyRaji Icon 48">
+        </div>
+      </div>
+      <div class="preview-item">
+        <label>16×16</label>
+        <div class="icon-container icon-16">
+          <img src="public/icons/raji.svg" alt="HeyRaji Icon 16">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Light background -->
+  <div class="section">
+    <h2 class="section-title">Icon Sizes (Light Background)</h2>
+    <div class="preview-grid">
+      <div class="preview-item">
+        <label>128×128</label>
+        <div class="icon-container light icon-128">
+          <img src="public/icons/raji.svg" alt="HeyRaji Icon 128">
+        </div>
+      </div>
+      <div class="preview-item">
+        <label>48×48</label>
+        <div class="icon-container light icon-48">
+          <img src="public/icons/raji.svg" alt="HeyRaji Icon 48">
+        </div>
+      </div>
+      <div class="preview-item">
+        <label>16×16</label>
+        <div class="icon-container light icon-16">
+          <img src="public/icons/raji.svg" alt="HeyRaji Icon 16">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Color variations -->
+  <div class="section">
+    <h2 class="section-title">Color Variations</h2>
+    <div class="color-schemes">
+      <div class="scheme purple">
+        <div class="icon-container icon-48" style="background:transparent;border:none;">
+          <img src="public/icons/raji.svg" alt="Purple" style="filter: brightness(1.2);">
+        </div>
+        <p style="margin-top:8px;font-size:12px;">Primary (Violet)</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Download instructions -->
+  <div class="download-section">
+    <h3>Generating PNG Icons</h3>
+    <p>To generate PNG icons from the SVG, you can:</p>
+    <p>1. Open this page in Chrome</p>
+    <p>2. Right-click each icon → Save Image As</p>
+    <p>3. Or use a tool like <code>rsvg-convert</code> or Inkscape CLI</p>
+    <p style="margin-top:16px;"><code>rsvg-convert -w 128 -h 128 public/icons/raji.svg > public/icons/icon128.png</code></p>
+  </div>
+
+</body>
+</html>
