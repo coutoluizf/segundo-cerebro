@@ -9,7 +9,8 @@ import { useToast } from '@/components/ui/use-toast'
 import { sendMessage } from '@/shared/messaging'
 import { getSettings, saveSettings } from '@/shared/settings'
 import type { Project, ItemType } from '@/shared/types'
-import { Settings, ExternalLink, Mic, Brain, FileText, Globe, Clipboard, Sparkles, ChevronRight, X, LayoutDashboard } from 'lucide-react'
+import { Settings, ExternalLink, Mic, FileText, Globe, Clipboard, Sparkles, ChevronRight, X, LayoutDashboard } from 'lucide-react'
+import { RajiLogo } from '@/components/RajiLogo'
 import { cn } from '@/lib/utils'
 
 // Key for storing whether the dashboard banner was shown (v2 = floating card after save)
@@ -239,7 +240,7 @@ export function Popup() {
         <div className="flex items-center gap-3">
           <div className="relative">
             <div className="absolute inset-0 bg-primary/20 blur-lg rounded-full" />
-            <Brain className="h-6 w-6 text-primary relative" />
+            <RajiLogo size={24} className="relative" />
           </div>
           <h1 className="text-lg font-semibold tracking-tight">HeyRaji</h1>
         </div>
@@ -274,7 +275,7 @@ export function Popup() {
           <div className="flex items-center gap-3">
             <div className="relative">
               <div className="absolute inset-0 bg-primary/20 blur-lg rounded-full" />
-              <Brain className="h-6 w-6 text-primary relative" />
+              <RajiLogo size={24} className="relative" />
             </div>
             <h1 className="text-lg font-semibold tracking-tight">HeyRaji</h1>
           </div>
@@ -331,7 +332,7 @@ export function Popup() {
         <div className="flex items-center gap-3">
           <div className="relative">
             <div className="absolute inset-0 bg-primary/20 blur-lg rounded-full" />
-            <Brain className="h-5 w-5 text-primary relative" />
+            <RajiLogo size={20} className="relative" />
           </div>
           <h1 className="font-semibold tracking-tight">HeyRaji</h1>
         </div>

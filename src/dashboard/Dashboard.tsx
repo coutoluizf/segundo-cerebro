@@ -10,7 +10,8 @@ import { Toaster } from '@/components/ui/toaster'
 import { useToast } from '@/components/ui/use-toast'
 import { sendMessage, onItemsChanged } from '@/shared/messaging'
 import type { VoiceItem, SearchResult, Project } from '@/shared/types'
-import { Brain, Settings, LayoutGrid, LayoutList, Grid3X3, Sparkles, Sun, Moon, Monitor, FolderKanban, Trash2 } from 'lucide-react'
+import { Settings, LayoutGrid, LayoutList, Grid3X3, Sparkles, Sun, Moon, Monitor, FolderKanban, Trash2 } from 'lucide-react'
+import { RajiLogo } from '@/components/RajiLogo'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { getStoredTheme, setTheme } from '@/shared/theme'
@@ -298,7 +299,7 @@ export function Dashboard() {
             <div className="flex items-center gap-3">
               <div className="relative">
                 <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full" />
-                <Brain className="h-7 w-7 text-primary relative" />
+                <RajiLogo size={28} className="relative" />
               </div>
               <div>
                 <h1 className="text-lg font-semibold tracking-tight">HeyRaji</h1>
@@ -513,7 +514,7 @@ export function Dashboard() {
                 <div className="relative mb-6">
                   <div className="absolute inset-0 bg-primary/5 blur-3xl rounded-full" />
                   <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center relative">
-                    <Brain className="h-10 w-10 text-primary/60" />
+                    <RajiLogo size={40} />
                   </div>
                 </div>
                 <h2 className="text-xl font-medium mb-2">
