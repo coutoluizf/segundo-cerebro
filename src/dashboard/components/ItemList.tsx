@@ -290,13 +290,12 @@ export function ItemList({ items, projects, columns = 1, onDelete, onOpen, onUpd
 
               {/* Right side - Actions */}
               <div className="flex items-center gap-1">
-                {/* Open button for tabs only */}
+                {/* Open button for tabs only - primary action with solid orange background */}
                 {!isNote && (
                   <Button
-                    variant="ghost"
                     size="sm"
                     onClick={() => onOpen(item.url, item.projectId)}
-                    className="h-8 px-2 rounded-lg text-xs hover:bg-primary/10 hover:text-primary"
+                    className="h-8 px-3 rounded-lg text-xs bg-primary text-primary-foreground hover:bg-primary/90"
                   >
                     <ExternalLink className="h-3.5 w-3.5 mr-1" />
                     Abrir

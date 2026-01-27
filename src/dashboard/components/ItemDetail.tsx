@@ -545,12 +545,12 @@ export function ItemDetail({
 
             {/* Actions */}
             <div className="flex items-center gap-2">
+              {/* Open button - primary action with solid orange background */}
               {!isNote && (
                 <Button
-                  variant="outline"
                   size="sm"
                   onClick={() => onOpen(item.url, item.projectId)}
-                  className="rounded-lg"
+                  className="rounded-lg bg-primary text-primary-foreground hover:bg-primary/90"
                 >
                   <ExternalLink className="h-4 w-4 mr-2" />
                   Abrir
