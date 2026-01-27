@@ -16,7 +16,8 @@ import {
 import { sendMessage } from '@/shared/messaging'
 import { AVAILABLE_LANGUAGES } from '@/shared/settings'
 import type { Project } from '@/shared/types'
-import { Brain, Key, FolderOpen, Plus, Trash2, ExternalLink, Sparkles, Globe, TabletSmartphone } from 'lucide-react'
+import { Key, FolderOpen, Plus, Trash2, ExternalLink, Sparkles, Globe, TabletSmartphone } from 'lucide-react'
+import { RajiLogo } from '@/components/RajiLogo'
 
 export function Options() {
   const [elevenlabsKey, setElevenlabsKey] = useState('')
@@ -211,7 +212,7 @@ export function Options() {
       <div className="container mx-auto px-4 py-8 max-w-2xl">
         {/* Header */}
         <div className="flex items-center gap-2 mb-8">
-          <Brain className="h-8 w-8 text-primary" />
+          <RajiLogo size={32} />
           <h1 className="text-2xl font-bold">HeyRaji</h1>
         </div>
 

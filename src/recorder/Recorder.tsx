@@ -13,7 +13,8 @@ import {
 import { ScribeClient, type ScribeConfig } from '@/shared/scribe'
 import { sendMessage } from '@/shared/messaging'
 import type { Project, ScribeState } from '@/shared/types'
-import { Mic, MicOff, Loader2, Brain, ExternalLink, ArrowLeft } from 'lucide-react'
+import { Mic, MicOff, Loader2, ExternalLink, ArrowLeft } from 'lucide-react'
+import { RajiLogo } from '@/components/RajiLogo'
 
 // Special value for "no project" since Radix Select doesn't allow empty string
 const NO_PROJECT_VALUE = '__none__'
@@ -184,7 +185,7 @@ export function Recorder() {
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div className="flex items-center gap-2">
-              <Brain className="h-6 w-6 text-primary" />
+              <RajiLogo size={24} />
               <h1 className="text-xl font-semibold">HeyRaji</h1>
             </div>
           </div>
