@@ -1,46 +1,41 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
-  <!-- HeyRaji Logo - ULTRA MINIMAL French Bulldog Bat Ears -->
-  <!-- Only the iconic bat ears - most recognizable Frenchie feature -->
-  <!-- Optimized for clarity at 16px size -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 140">
+  <!-- HeyRaji Logo - French Bulldog with Bat Ears (Overflow Style) -->
+  <!-- Design A2: Ears overflow outside the circle for dynamic effect -->
 
-  <!-- Gradients using app's orange/amber colors from tailwind config -->
   <defs>
-    <!-- Main gradient: primary orange (24, 100%, 60%) to amber glow (38, 92%, 50%) -->
-    <linearGradient id="earGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" style="stop-color:#ff7733;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#f59e0b;stop-opacity:1" />
-    </linearGradient>
-
-    <!-- Inner ear shadow for depth -->
-    <linearGradient id="innerGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" style="stop-color:#d96323;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#b45309;stop-opacity:1" />
+    <linearGradient id="mainGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ff7733"/>
+      <stop offset="100%" style="stop-color:#f59e0b"/>
     </linearGradient>
   </defs>
 
-  <!-- Left bat ear - pointed, wide base -->
-  <path
-    d="M20 38 C16 22, 8 18, 2 24 C-4 30, 2 42, 10 52 L38 76 L38 52 C38 52, 28 44, 20 38 Z"
-    fill="url(#earGradient)"
-  />
+  <!-- Ears BEHIND/OUTSIDE circle - creates overflow effect -->
+  <!-- Left ear -->
+  <path fill="url(#mainGrad)" d="M18 62 C14 36, 26 8, 38 8 C48 8, 52 24, 50 40 L48 58 C38 62, 24 64, 18 62 Z"/>
+  <!-- Right ear -->
+  <path fill="url(#mainGrad)" d="M122 62 C126 36, 114 8, 102 8 C92 8, 88 24, 90 40 L92 58 C102 62, 116 64, 122 62 Z"/>
 
-  <!-- Right bat ear - mirrored -->
-  <path
-    d="M108 38 C112 22, 120 18, 126 24 C132 30, 126 42, 118 52 L90 76 L90 52 C90 52, 100 44, 108 38 Z"
-    fill="url(#earGradient)"
-  />
+  <!-- Inner ear detail (darker orange) -->
+  <path fill="#e85d20" d="M26 54 C24 38, 32 18, 38 18 C44 18, 46 28, 45 40 L44 52 C38 55, 30 56, 26 54 Z"/>
+  <path fill="#e85d20" d="M114 54 C116 38, 108 18, 102 18 C96 18, 94 28, 95 40 L96 52 C102 55, 110 56, 114 54 Z"/>
 
-  <!-- Left inner ear detail - adds depth at larger sizes -->
-  <path
-    d="M24 42 C22 32, 16 28, 12 32 C8 36, 12 46, 18 54 L32 68 L32 54 Z"
-    fill="url(#innerGradient)"
-    opacity="0.35"
-  />
+  <!-- Main circle (on top of ears) -->
+  <circle cx="70" cy="76" r="54" fill="url(#mainGrad)"/>
 
-  <!-- Right inner ear detail - mirrored -->
-  <path
-    d="M104 42 C106 32, 112 28, 116 32 C120 36, 116 46, 110 54 L96 68 L96 54 Z"
-    fill="url(#innerGradient)"
-    opacity="0.35"
-  />
+  <!-- Face (white) -->
+  <ellipse cx="70" cy="82" rx="36" ry="34" fill="white"/>
+
+  <!-- Eyes -->
+  <ellipse cx="54" cy="78" rx="8" ry="9" fill="#1a1a2e"/>
+  <ellipse cx="86" cy="78" rx="8" ry="9" fill="#1a1a2e"/>
+
+  <!-- Eye shine -->
+  <circle cx="52" cy="76" r="2.5" fill="white"/>
+  <circle cx="84" cy="76" r="2.5" fill="white"/>
+
+  <!-- Nose -->
+  <ellipse cx="70" cy="94" rx="9" ry="6" fill="#1a1a2e"/>
+
+  <!-- Mouth -->
+  <path d="M60 102 Q70 110, 80 102" stroke="#1a1a2e" stroke-width="2.5" fill="none" stroke-linecap="round"/>
 </svg>
