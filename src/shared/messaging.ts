@@ -5,6 +5,7 @@
 
 import type { VoiceItem, Project, CapturedContext, SearchResult, ApiKeys } from './types'
 import type { UserSettings } from './settings'
+import type { Session, User } from '@supabase/supabase-js'
 import * as db from './db'
 
 // Check if we're running in extension context
@@ -59,6 +60,15 @@ export type BgMessage =
   | { type: 'RESTORE_ITEM'; id: string }
   | { type: 'PERMANENT_DELETE_ITEM'; id: string }
   | { type: 'EMPTY_TRASH' }
+  // Auth operations
+  | { type: 'AUTH_SIGN_IN'; email: string }  // Legacy - now calls AUTH_SEND_OTP
+  | { type: 'AUTH_SEND_OTP'; email: string }
+  | { type: 'AUTH_VERIFY_OTP'; email: string; code: string }
+  | { type: 'AUTH_SIGN_OUT' }
+  | { type: 'AUTH_GET_SESSION' }
+  | { type: 'AUTH_GET_USER' }
+  | { type: 'AUTH_IS_AUTHENTICATED' }
+  | { type: 'AUTH_INIT_DATABASE' }
 
 // Response types based on message type
 export type BgResponse<T extends BgMessage['type']> =
@@ -87,6 +97,15 @@ export type BgResponse<T extends BgMessage['type']> =
   T extends 'RESTORE_ITEM' ? { success: boolean; item?: VoiceItem; error?: string } :
   T extends 'PERMANENT_DELETE_ITEM' ? { success: boolean; error?: string } :
   T extends 'EMPTY_TRASH' ? { success: boolean; count?: number; error?: string } :
+  // Auth operations
+  T extends 'AUTH_SIGN_IN' ? { success: boolean; error?: string } :
+  T extends 'AUTH_SEND_OTP' ? { success: boolean; error?: string } :
+  T extends 'AUTH_VERIFY_OTP' ? { success: boolean; user?: User; error?: string } :
+  T extends 'AUTH_SIGN_OUT' ? { success: boolean; error?: string } :
+  T extends 'AUTH_GET_SESSION' ? { session: Session | null } :
+  T extends 'AUTH_GET_USER' ? { user: User | null } :
+  T extends 'AUTH_IS_AUTHENTICATED' ? { authenticated: boolean } :
+  T extends 'AUTH_INIT_DATABASE' ? { success: boolean; error?: string } :
   never
 
 // Helper function to send typed messages to background
@@ -333,6 +352,63 @@ async function handleDevMessage(message: BgMessage): Promise<unknown> {
     case 'EMPTY_TRASH': {
       const count = await db.emptyAllTrash()
       return { success: true, count }
+    }
+
+    // Auth operations (dev mode - use auth module directly)
+    case 'AUTH_SIGN_IN':
+    case 'AUTH_SEND_OTP': {
+      const { sendOtpCode } = await import('./auth')
+      try {
+        await sendOtpCode(message.email)
+        return { success: true }
+      } catch (e) {
+        return { success: false, error: e instanceof Error ? e.message : 'Failed to send OTP' }
+      }
+    }
+
+    case 'AUTH_VERIFY_OTP': {
+      const { verifyOtpCode } = await import('./auth')
+      try {
+        const session = await verifyOtpCode(message.email, message.code)
+        return { success: true, user: session.user }
+      } catch (e) {
+        return { success: false, error: e instanceof Error ? e.message : 'Invalid code' }
+      }
+    }
+
+    case 'AUTH_SIGN_OUT': {
+      const { signOut } = await import('./auth')
+      try {
+        await signOut()
+        return { success: true }
+      } catch (e) {
+        return { success: false, error: e instanceof Error ? e.message : 'Failed to sign out' }
+      }
+    }
+
+    case 'AUTH_GET_SESSION': {
+      const { getSession } = await import('./auth')
+      const session = await getSession()
+      return { session }
+    }
+
+    case 'AUTH_GET_USER': {
+      const { getCurrentUser } = await import('./auth')
+      const user = await getCurrentUser()
+      return { user }
+    }
+
+
+    case 'AUTH_IS_AUTHENTICATED': {
+      const { isAuthenticated } = await import('./auth')
+      const authenticated = await isAuthenticated()
+      return { authenticated }
+    }
+
+    case 'AUTH_INIT_DATABASE': {
+      // In dev mode, just check if database is already initialized
+      // Auth callback handles actual initialization
+      return { success: true }
     }
 
     default:

@@ -20,6 +20,12 @@ Thumbs.db
 .env.local
 .env.*.local
 
+# MCP config (local)
+.mcp.json
+
+# Supabase CLI temp files
+supabase/.temp/
+
 # Logs
 *.log
 npm-debug.log*

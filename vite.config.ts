@@ -22,6 +22,7 @@ export default defineConfig({
         options: resolve(__dirname, 'src/options/index.html'),
         recorder: resolve(__dirname, 'src/recorder/index.html'),
         offscreen: resolve(__dirname, 'src/offscreen/index.html'),
+        auth: resolve(__dirname, 'src/auth/index.html'),
         background: resolve(__dirname, 'src/background/index.ts'),
       },
       output: {

@@ -1,7 +1,13 @@
 /**
  * OpenAI Embeddings Client
  * Generates embeddings using text-embedding-3-small model
+ *
+ * Supports two modes:
+ * 1. Proxy mode (preferred): Uses Edge Function when user is authenticated
+ * 2. Direct mode (fallback): Uses OpenAI API directly with provided key
  */
+
+import { generateEmbeddingProxy, isApiProxyAvailable } from './api-proxy'
 
 const OPENAI_API_URL = 'https://api.openai.com/v1/embeddings'
 
@@ -70,11 +76,33 @@ interface ErrorResponse {
   }
 }
 
-// Generate embedding for a single text
+/**
+ * Generate embedding for a single text
+ *
+ * Tries proxy first (no API key needed), falls back to direct API.
+ * @param text - Text to embed
+ * @param apiKey - Optional API key for direct mode (required if proxy unavailable)
+ */
 export async function generateEmbedding(
   text: string,
-  apiKey: string
+  apiKey?: string
 ): Promise<number[]> {
+  // Try proxy mode first (for authenticated users)
+  try {
+    const proxyAvailable = await isApiProxyAvailable()
+    if (proxyAvailable) {
+      console.log('[Embeddings] Using proxy mode')
+      return await generateEmbeddingProxy(text)
+    }
+  } catch (error) {
+    console.log('[Embeddings] Proxy unavailable, trying direct mode:', error)
+  }
+
+  // Fall back to direct API mode
+  if (!apiKey) {
+    throw new Error('OpenAI API key required when not authenticated')
+  }
+
   const embeddings = await generateEmbeddings([text], apiKey)
   return embeddings[0]
 }

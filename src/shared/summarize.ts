@@ -1,7 +1,13 @@
 /**
  * AI-powered page summarization using OpenAI gpt-4o-mini
  * Generates concise summaries of page content in the user's preferred language
+ *
+ * Supports two modes:
+ * 1. Proxy mode (preferred): Uses Edge Function when user is authenticated
+ * 2. Direct mode (fallback): Uses OpenAI API directly with provided key
  */
+
+import { generateSummaryProxy, isApiProxyAvailable } from './api-proxy'
 
 // OpenAI API endpoint
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions'
@@ -14,19 +20,40 @@ const MAX_TOKENS = 200
 
 /**
  * Generate a summary of page content using AI
+ *
+ * Tries proxy first (no API key needed), falls back to direct API.
  * @param content - The text content of the page
  * @param language - Language code for the summary (e.g., 'pt-BR', 'en-US')
- * @param apiKey - OpenAI API key
+ * @param apiKey - Optional OpenAI API key for direct mode (required if proxy unavailable)
  * @returns The generated summary or null if failed
  */
 export async function generateSummary(
   content: string,
   language: string,
-  apiKey: string
+  apiKey?: string
 ): Promise<string | null> {
   // Don't summarize if content is too short
   if (!content || content.length < 100) {
     console.log('[Summarize] Content too short, skipping summarization')
+    return null
+  }
+
+  // Try proxy mode first (for authenticated users)
+  try {
+    const proxyAvailable = await isApiProxyAvailable()
+    if (proxyAvailable) {
+      console.log('[Summarize] Using proxy mode')
+      const summary = await generateSummaryProxy(content, language)
+      console.log('[Summarize] Generated summary via proxy:', summary.substring(0, 100) + '...')
+      return summary
+    }
+  } catch (error) {
+    console.log('[Summarize] Proxy unavailable or failed, trying direct mode:', error)
+  }
+
+  // Fall back to direct API mode
+  if (!apiKey) {
+    console.log('[Summarize] No API key available, skipping summarization')
     return null
   }
 

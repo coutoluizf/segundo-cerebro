@@ -53,18 +53,26 @@ npm run package      # Build + create zip for Chrome Web Store
 - **Options** (`src/options/`): API key configuration
 
 ### Shared Layer (`src/shared/`)
-- `db.ts`: libSQL/Turso wrapper with vector similarity search
+- `db.ts`: Supabase PostgreSQL with pgvector for semantic search
 - `messaging.ts`: Typed message protocol (`BgMessage`/`BgResponse`)
 - `types.ts`: Core types (`VoiceItem`, `Project`, `CapturedContext`)
 - `scribe.ts`: ElevenLabs Scribe v2 realtime STT client
 - `embeddings.ts`: OpenAI text-embedding-3-small client
 - `context.ts`: Tab context capture
 - `theme.ts`: Dark mode (MV3 CSP-safe)
+- `auth.ts`: Supabase OTP authentication
+- `supabase.ts`: Supabase client configuration
+
+### Database Architecture
+- **Supabase PostgreSQL**: Multi-tenant with Row Level Security (RLS)
+- **pgvector**: Vector similarity search (1536d embeddings)
+- **RLS Policies**: Users can only access their own data
+- **Schema**: `supabase/migrations/003_items_and_projects.sql`
 
 ### API Integrations
 - **ElevenLabs Scribe v2**: Real-time speech-to-text via WebSocket
 - **OpenAI Embeddings**: text-embedding-3-small for 1536d vectors
-- **libSQL (Turso)**: Local SQLite with WASM for vector storage
+- **Supabase**: PostgreSQL database + Auth (OTP email login)
 
 ### Message Flow
 UI components call `sendMessage()` → background handles via `chrome.runtime.onMessage` → returns typed response. Background broadcasts `EVENT_ITEMS_CHANGED` for real-time UI updates.

@@ -9,7 +9,7 @@ import { useToast } from '@/components/ui/use-toast'
 import { sendMessage } from '@/shared/messaging'
 import { getSettings, saveSettings } from '@/shared/settings'
 import type { Project, ItemType, VoiceItem } from '@/shared/types'
-import { Settings, ExternalLink, Mic, FileText, Globe, Clipboard, Sparkles, ChevronRight, X, LayoutDashboard, AlertCircle, Calendar, RefreshCw } from 'lucide-react'
+import { Settings, ExternalLink, Mic, FileText, Globe, Clipboard, Sparkles, ChevronRight, X, LayoutDashboard, AlertCircle, Calendar, RefreshCw, User } from 'lucide-react'
 import { RajiLogo } from '@/components/RajiLogo'
 import { cn } from '@/lib/utils'
 
@@ -20,7 +20,8 @@ const DASHBOARD_BANNER_SHOWN_KEY = 'segundo-cerebro-dashboard-banner-v2-shown'
 type MicPermission = 'checking' | 'granted' | 'prompt' | 'denied'
 
 export function Popup() {
-  const [hasApiKeys, setHasApiKeys] = useState<boolean | null>(null)
+  // Auth state - user is either authenticated or has API keys (backward compatibility)
+  const [isReady, setIsReady] = useState<boolean | null>(null)
   const [micPermission, setMicPermission] = useState<MicPermission>('checking')
   const [mode, setMode] = useState<ItemType>('tab') // 'tab' or 'note'
   const [transcription, setTranscription] = useState('')
@@ -44,11 +45,20 @@ export function Popup() {
   const [ignoreDuplicate, setIgnoreDuplicate] = useState(false) // User chose to save as new
   const { toast } = useToast()
 
-  // Check API keys, mic permission, and get current tab on mount
+  // Check auth state, API keys, mic permission, and get current tab on mount
   useEffect(() => {
-    // Check API keys
-    sendMessage({ type: 'CHECK_API_KEYS' }).then((response) => {
-      setHasApiKeys(response.hasKeys)
+    // Check both auth state and API keys (user needs one or the other)
+    Promise.all([
+      sendMessage({ type: 'AUTH_IS_AUTHENTICATED' }),
+      sendMessage({ type: 'CHECK_API_KEYS' }),
+    ]).then(([authResponse, keysResponse]) => {
+      // User is ready if authenticated OR has API keys
+      setIsReady(authResponse.authenticated || keysResponse.hasKeys)
+    }).catch(() => {
+      // If auth check fails, fall back to API keys only
+      sendMessage({ type: 'CHECK_API_KEYS' }).then((response) => {
+        setIsReady(response.hasKeys)
+      })
     })
 
     // Load projects
@@ -329,7 +339,7 @@ export function Popup() {
   }
 
   // Loading state
-  if (hasApiKeys === null || micPermission === 'checking') {
+  if (isReady === null || micPermission === 'checking') {
     return (
       <div className="w-[550px] p-5 gradient-mesh flex flex-col items-center justify-center min-h-[200px]">
         <div className="relative">
@@ -341,8 +351,8 @@ export function Popup() {
     )
   }
 
-  // No API keys configured
-  if (!hasApiKeys) {
+  // Not authenticated and no API keys - need to setup
+  if (!isReady) {
     return (
       <div className="w-[550px] p-5 gradient-mesh space-y-5">
         {/* Logo */}
@@ -357,17 +367,17 @@ export function Popup() {
         {/* Setup card */}
         <div className="card-luminous rounded-2xl p-5 text-center space-y-4">
           <div className="mx-auto w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center">
-            <Settings className="h-7 w-7 text-primary" />
+            <User className="h-7 w-7 text-primary" />
           </div>
           <div>
-            <h2 className="font-medium">Configuração necessária</h2>
+            <h2 className="font-medium">Faça login para começar</h2>
             <p className="text-sm text-muted-foreground mt-1">
-              Configure suas API keys para começar a usar.
+              Crie uma conta gratuita para salvar e sincronizar suas anotações.
             </p>
           </div>
           <Button onClick={openOptions} className="w-full rounded-xl h-11">
-            <Settings className="h-4 w-4 mr-2" />
-            Configurar API Keys
+            <User className="h-4 w-4 mr-2" />
+            Fazer Login
           </Button>
         </div>
         <Toaster />

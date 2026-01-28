@@ -2,6 +2,31 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.8.0] - 2026-01-27
+
+### Adicionado
+- **Supabase Auth**: Sistema de autenticação com OTP (código de 6 dígitos por email)
+- **Multi-tenant com RLS**: Row Level Security para isolamento de dados entre usuários
+- **pgvector**: Extensão PostgreSQL para busca semântica vetorial com índice HNSW
+- **API Proxy (Edge Functions)**: Chamadas OpenAI agora passam pelo servidor (embeddings e resumos)
+- **Script de migração**: `scripts/migrate-to-personal-db.ts` para migrar dados do Turso
+
+### Mudado
+- **Database**: Migração completa de Turso (SQLite) para Supabase (PostgreSQL)
+- **Embeddings**: Formato alterado de Float32Array blob para pgvector string `[1.0,2.0,...]`
+- **Logs**: Prefixo `[DB]` alterado para `[Supabase]` com mensagens mais claras
+- **Conexão**: Confirmação visual de conexão com PostgreSQL no console
+
+### Técnico
+- Novo cliente: `src/shared/supabase.ts` com storage via `chrome.storage.local`
+- Novo módulo: `src/shared/auth.ts` com `sendOtpCode()`, `verifyOtpCode()`, `signOut()`
+- Novo módulo: `src/shared/api-proxy.ts` para chamadas às Edge Functions
+- Callback simplificado: `src/auth/Callback.tsx` sem provisioning (Supabase já pronto)
+- Novas mensagens: `AUTH_SEND_OTP`, `AUTH_VERIFY_OTP`, `AUTH_SIGN_OUT`, `AUTH_GET_SESSION`
+- RPC function: `search_items_by_embedding()` para busca semântica no PostgreSQL
+- Dependência `@supabase/supabase-js` adicionada
+- Dependência `@libsql/client` movida para devDependencies (apenas para migração)
+
 ## [0.7.2] - 2026-01-27
 
 ### Adicionado

@@ -2,13 +2,18 @@
  * ElevenLabs Scribe v2 Realtime STT Client
  * Handles real-time speech-to-text transcription via WebSocket
  * Reference: https://elevenlabs.io/docs/api-reference/speech-to-text/v-1-speech-to-text-realtime
+ *
+ * Supports two authentication modes:
+ * 1. Proxy mode (preferred): Gets token from Edge Function when user is authenticated
+ * 2. Direct mode (fallback): Uses ElevenLabs API directly with provided key
  */
 
 import type { ScribeState } from './types'
+import { getScribeToken, isApiProxyAvailable } from './api-proxy'
 
 // Configuration for the Scribe client
 export interface ScribeConfig {
-  apiKey: string
+  apiKey?: string // Optional - only needed if proxy unavailable
   onTranscript: (text: string, isFinal: boolean) => void
   onError: (error: string) => void
   onStateChange: (state: ScribeState) => void
@@ -50,7 +55,27 @@ export class ScribeClient {
   }
 
   // Get a single-use token for WebSocket authentication
+  // Tries proxy first, falls back to direct API
   private async getSingleUseToken(): Promise<string> {
+    // Try proxy mode first (for authenticated users)
+    try {
+      const proxyAvailable = await isApiProxyAvailable()
+      if (proxyAvailable) {
+        console.log('[Scribe] Getting token via proxy...')
+        const response = await getScribeToken()
+        console.log('[Scribe] Got token via proxy, expires:', response.expiresAt)
+        return response.token
+      }
+    } catch (error) {
+      console.log('[Scribe] Proxy unavailable or failed, trying direct mode:', error)
+    }
+
+    // Fall back to direct API mode
+    if (!this.config.apiKey) {
+      throw new Error('ElevenLabs API key required when not authenticated')
+    }
+
+    console.log('[Scribe] Getting token via direct API...')
     const response = await fetch(
       'https://api.elevenlabs.io/v1/single-use-token/realtime_scribe',
       {
@@ -68,7 +93,7 @@ export class ScribeClient {
     }
 
     const data = await response.json()
-    console.log('[Scribe] Got single-use token')
+    console.log('[Scribe] Got single-use token via direct API')
     return data.token
   }
 

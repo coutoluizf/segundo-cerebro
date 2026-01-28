@@ -16,10 +16,22 @@ import {
 import { sendMessage } from '@/shared/messaging'
 import { AVAILABLE_LANGUAGES } from '@/shared/settings'
 import type { Project } from '@/shared/types'
-import { Key, FolderOpen, Plus, Trash2, ExternalLink, Sparkles, Globe, TabletSmartphone } from 'lucide-react'
+import type { User } from '@supabase/supabase-js'
+import { User as UserIcon, Key, FolderOpen, Plus, Trash2, ExternalLink, Sparkles, Globe, TabletSmartphone, LogOut, Mail, Loader2, ChevronDown, ChevronUp } from 'lucide-react'
 import { RajiLogo } from '@/components/RajiLogo'
 
 export function Options() {
+  // Auth state
+  const [user, setUser] = useState<User | null>(null)
+  const [isAuthLoading, setIsAuthLoading] = useState(true)
+  const [email, setEmail] = useState('')
+  const [otpCode, setOtpCode] = useState('')
+  const [isSigningIn, setIsSigningIn] = useState(false)
+  const [isVerifying, setIsVerifying] = useState(false)
+  const [otpSent, setOtpSent] = useState(false)
+  const [showAdvancedKeys, setShowAdvancedKeys] = useState(false)
+
+  // API Keys state (legacy/fallback)
   const [elevenlabsKey, setElevenlabsKey] = useState('')
   const [openaiKey, setOpenaiKey] = useState('')
   const [projects, setProjects] = useState<Project[]>([])
@@ -33,7 +45,15 @@ export function Options() {
 
   // Load current settings
   useEffect(() => {
-    // Load API keys
+    // Check auth state
+    sendMessage({ type: 'AUTH_GET_USER' }).then((response) => {
+      setUser(response.user)
+      setIsAuthLoading(false)
+    }).catch(() => {
+      setIsAuthLoading(false)
+    })
+
+    // Load API keys (for backward compatibility / advanced users)
     sendMessage({ type: 'GET_API_KEYS' }).then((keys) => {
       setElevenlabsKey(keys.elevenlabs || '')
       setOpenaiKey(keys.openai || '')
@@ -52,6 +72,98 @@ export function Options() {
       setUseTabGroups(settings.useTabGroups)
     })
   }, [])
+
+  // Handle sending OTP code
+  const handleSendOtp = async () => {
+    if (!email.trim()) return
+
+    setIsSigningIn(true)
+    try {
+      const response = await sendMessage({ type: 'AUTH_SEND_OTP', email: email.trim() })
+      if (response.success) {
+        setOtpSent(true)
+        toast({
+          variant: 'success',
+          title: 'Código enviado!',
+          description: `Verifique seu email ${email} e digite o código.`,
+        })
+      } else {
+        toast({
+          variant: 'destructive',
+          title: 'Erro',
+          description: response.error || 'Erro ao enviar código.',
+        })
+      }
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Erro',
+        description: 'Erro ao enviar código.',
+      })
+    } finally {
+      setIsSigningIn(false)
+    }
+  }
+
+  // Handle verifying OTP code
+  const handleVerifyOtp = async () => {
+    if (!otpCode.trim() || otpCode.length !== 6) return
+
+    setIsVerifying(true)
+    try {
+      const response = await sendMessage({
+        type: 'AUTH_VERIFY_OTP',
+        email: email.trim(),
+        code: otpCode.trim(),
+      })
+      if (response.success && response.user) {
+        setUser(response.user)
+        setOtpSent(false)
+        setOtpCode('')
+        toast({
+          variant: 'success',
+          title: 'Login realizado!',
+          description: 'Bem-vindo ao HeyRaji!',
+        })
+      } else {
+        toast({
+          variant: 'destructive',
+          title: 'Código inválido',
+          description: response.error || 'Verifique o código e tente novamente.',
+        })
+      }
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Erro',
+        description: 'Erro ao verificar código.',
+      })
+    } finally {
+      setIsVerifying(false)
+    }
+  }
+
+  // Handle sign out
+  const handleSignOut = async () => {
+    try {
+      await sendMessage({ type: 'AUTH_SIGN_OUT' })
+      setUser(null)
+      setOtpSent(false)
+      setOtpCode('')
+      setEmail('')
+      toast({
+        variant: 'success',
+        title: 'Deslogado',
+        description: 'Você saiu da sua conta.',
+      })
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Erro',
+        description: 'Erro ao sair da conta.',
+      })
+    }
+  }
 
   // Save API keys
   const handleSaveKeys = async () => {
@@ -217,84 +329,254 @@ export function Options() {
         </div>
 
         <div className="space-y-6">
-          {/* API Keys Card */}
+          {/* Account Card */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Key className="h-5 w-5" />
-                API Keys
+                <UserIcon className="h-5 w-5" />
+                Conta
               </CardTitle>
               <CardDescription>
-                Configure suas API keys para ElevenLabs e OpenAI.
+                {user
+                  ? 'Você está logado. Seus dados são sincronizados automaticamente.'
+                  : 'Faça login para sincronizar seus dados entre dispositivos.'}
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              {/* ElevenLabs Key */}
-              <div className="space-y-2">
-                <Label htmlFor="elevenlabs">ElevenLabs API Key</Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="elevenlabs"
-                    type="password"
-                    placeholder="sk_..."
-                    value={elevenlabsKey}
-                    onChange={(e) => setElevenlabsKey(e.target.value)}
-                  />
+            <CardContent>
+              {isAuthLoading ? (
+                // Loading state
+                <div className="flex items-center justify-center py-4">
+                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                </div>
+              ) : user ? (
+                // Logged in state
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+                    <div className="h-10 w-10 rounded-full bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center">
+                      <span className="text-white font-semibold text-sm">
+                        {user.email?.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{user.email}</p>
+                      <p className="text-xs text-muted-foreground">
+                        Dados sincronizados
+                      </p>
+                    </div>
+                  </div>
                   <Button
                     variant="outline"
-                    size="icon"
-                    asChild
+                    onClick={handleSignOut}
+                    className="w-full"
                   >
-                    <a
-                      href="https://elevenlabs.io/app/settings/api-keys"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      title="Obter API Key"
-                    >
-                      <ExternalLink className="h-4 w-4" />
-                    </a>
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Sair da conta
                   </Button>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Usado para transcrição de voz em tempo real.
-                </p>
-              </div>
+              ) : otpSent ? (
+                // OTP verification state
+                <div className="space-y-4">
+                  <div className="text-center py-2">
+                    <div className="flex justify-center mb-3">
+                      <div className="h-12 w-12 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                        <Mail className="h-6 w-6 text-green-600 dark:text-green-400" />
+                      </div>
+                    </div>
+                    <p className="font-medium">Verifique seu email</p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Enviamos um código para <strong>{email}</strong>
+                    </p>
+                  </div>
 
-              {/* OpenAI Key */}
-              <div className="space-y-2">
-                <Label htmlFor="openai">OpenAI API Key</Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="openai"
-                    type="password"
-                    placeholder="sk-..."
-                    value={openaiKey}
-                    onChange={(e) => setOpenaiKey(e.target.value)}
-                  />
+                  <div className="space-y-2">
+                    <Label htmlFor="otp">Código de verificação</Label>
+                    <Input
+                      id="otp"
+                      type="text"
+                      inputMode="numeric"
+                      placeholder="000000"
+                      maxLength={6}
+                      value={otpCode}
+                      onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
+                      onKeyDown={(e) => e.key === 'Enter' && handleVerifyOtp()}
+                      className="text-center text-2xl tracking-[0.3em] font-mono"
+                    />
+                  </div>
+
                   <Button
-                    variant="outline"
-                    size="icon"
-                    asChild
+                    onClick={handleVerifyOtp}
+                    disabled={isVerifying || otpCode.length !== 6}
+                    className="w-full"
                   >
-                    <a
-                      href="https://platform.openai.com/api-keys"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      title="Obter API Key"
-                    >
-                      <ExternalLink className="h-4 w-4" />
-                    </a>
+                    {isVerifying ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Verificando...
+                      </>
+                    ) : (
+                      'Verificar código'
+                    )}
                   </Button>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Usado para gerar embeddings e busca semântica.
-                </p>
-              </div>
 
-              <Button onClick={handleSaveKeys} disabled={isSaving}>
-                {isSaving ? 'Salvando...' : 'Salvar API Keys'}
-              </Button>
+                  <div className="flex justify-center gap-4">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleSendOtp}
+                      disabled={isSigningIn}
+                    >
+                      Reenviar código
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setOtpSent(false)
+                        setOtpCode('')
+                        setEmail('')
+                      }}
+                    >
+                      Usar outro email
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                // Login form
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="seu@email.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleSendOtp()}
+                    />
+                  </div>
+                  <Button
+                    onClick={handleSendOtp}
+                    disabled={isSigningIn || !email.trim()}
+                    className="w-full"
+                  >
+                    {isSigningIn ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Enviando...
+                      </>
+                    ) : (
+                      <>
+                        <Mail className="h-4 w-4 mr-2" />
+                        Enviar código de verificação
+                      </>
+                    )}
+                  </Button>
+                  <p className="text-xs text-muted-foreground text-center">
+                    Você receberá um código no seu email para fazer login.
+                  </p>
+                </div>
+              )}
             </CardContent>
+          </Card>
+
+          {/* Advanced: API Keys Card (collapsible) */}
+          <Card>
+            <CardHeader
+              className="cursor-pointer"
+              onClick={() => setShowAdvancedKeys(!showAdvancedKeys)}
+            >
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Key className="h-5 w-5" />
+                  API Keys (Avançado)
+                </div>
+                {showAdvancedKeys ? (
+                  <ChevronUp className="h-5 w-5 text-muted-foreground" />
+                ) : (
+                  <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                )}
+              </CardTitle>
+              {!showAdvancedKeys && (
+                <CardDescription>
+                  Opcional - configure suas próprias API keys se preferir.
+                </CardDescription>
+              )}
+            </CardHeader>
+            {showAdvancedKeys && (
+              <CardContent className="space-y-4">
+                <p className="text-sm text-muted-foreground border-l-2 border-amber-500 pl-3">
+                  {user
+                    ? 'Você está logado, então não precisa configurar API keys. Elas são opcionais.'
+                    : 'Se você não quiser criar uma conta, pode usar suas próprias API keys.'}
+                </p>
+
+                {/* ElevenLabs Key */}
+                <div className="space-y-2">
+                  <Label htmlFor="elevenlabs">ElevenLabs API Key</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="elevenlabs"
+                      type="password"
+                      placeholder="sk_..."
+                      value={elevenlabsKey}
+                      onChange={(e) => setElevenlabsKey(e.target.value)}
+                    />
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      asChild
+                    >
+                      <a
+                        href="https://elevenlabs.io/app/settings/api-keys"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title="Obter API Key"
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                      </a>
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Usado para transcrição de voz em tempo real.
+                  </p>
+                </div>
+
+                {/* OpenAI Key */}
+                <div className="space-y-2">
+                  <Label htmlFor="openai">OpenAI API Key</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="openai"
+                      type="password"
+                      placeholder="sk-..."
+                      value={openaiKey}
+                      onChange={(e) => setOpenaiKey(e.target.value)}
+                    />
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      asChild
+                    >
+                      <a
+                        href="https://platform.openai.com/api-keys"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title="Obter API Key"
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                      </a>
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Usado para gerar embeddings e busca semântica.
+                  </p>
+                </div>
+
+                <Button onClick={handleSaveKeys} disabled={isSaving}>
+                  {isSaving ? 'Salvando...' : 'Salvar API Keys'}
+                </Button>
+              </CardContent>
+            )}
           </Card>
 
           {/* AI Settings Card */}

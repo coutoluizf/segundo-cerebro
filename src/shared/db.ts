@@ -1,155 +1,129 @@
 /**
- * Database wrapper using libSQL (Turso Cloud)
- * Stores data in Turso Cloud for persistence and sync
- * Supports vector similarity search for semantic queries
+ * Database wrapper using Supabase PostgreSQL
+ * Stores data in Supabase Cloud with pgvector for semantic search
+ *
+ * Multi-tenant architecture:
+ * - Each user's data is isolated via Row Level Security (RLS)
+ * - user_id is automatically set based on authenticated user
+ * - All queries are filtered by auth.uid() via RLS policies
  */
 
-import { createClient, type Client } from '@libsql/client/web'
+import { getSupabaseClient, getSession } from './supabase'
 import type { VoiceItem, Project, SearchResult } from './types'
 import { generateId, generateUrlHash, NOTE_URL_PREFIX } from './types'
 
-// Turso Cloud configuration
-const TURSO_URL = 'libsql://segundo-cerebro-luizcouto.aws-us-east-1.turso.io'
-const TURSO_AUTH_TOKEN = 'eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3NjkyOTgwMjUsImlkIjoiZDQ4YTNhZjMtMWFjOC00YzExLTk4ZjQtZmZhNjRjMjQ1YWZiIiwicmlkIjoiYTk5MTZiOTgtYmM3Mi00NDViLThlOWItYzVlMDNiYWZlYjVjIn0.AvWgxq4OVHKWK3Q2G2VIUo_bBimpzGngWCJxUfIeN0sIKueQV1rgpyNE8xra5bOVrPVPd188TSEz0YYsf5xPCQ'
+// ============================================
+// Initialization and Connection Management
+// ============================================
 
-// Database singleton
-let db: Client | null = null
-
-// Initialize the database connection
-export async function initDatabase(): Promise<Client> {
-  if (db) {
-    return db
+/**
+ * Initialize the database connection
+ * For Supabase, this just ensures the client is ready and user is authenticated
+ */
+export async function initDatabase(): Promise<void> {
+  const session = await getSession()
+  if (!session) {
+    console.log('[Supabase] No active session - database operations will require authentication')
+  } else {
+    console.log('[Supabase] ✅ Connected to Supabase PostgreSQL')
+    console.log('[Supabase] User:', session.user.email, '| ID:', session.user.id)
   }
-
-  // Connect to Turso Cloud
-  db = createClient({
-    url: TURSO_URL,
-    authToken: TURSO_AUTH_TOKEN,
-  })
-
-  // Create tables
-  await db.batch([
-    // Items table with vector embedding support
-    `CREATE TABLE IF NOT EXISTS items (
-      id TEXT PRIMARY KEY,
-      type TEXT DEFAULT 'tab',
-      url TEXT,
-      url_hash TEXT NOT NULL UNIQUE,
-      title TEXT,
-      favicon TEXT,
-      thumbnail TEXT,
-      source TEXT,
-      transcription TEXT NOT NULL,
-      ai_summary TEXT,
-      project_id TEXT,
-      reason TEXT,
-      context_tabs TEXT,
-      context_tab_count INTEGER DEFAULT 0,
-      embedding BLOB,
-      created_at INTEGER NOT NULL,
-      status TEXT DEFAULT 'saved'
-    )`,
-    // Projects table
-    `CREATE TABLE IF NOT EXISTS projects (
-      id TEXT PRIMARY KEY,
-      name TEXT NOT NULL,
-      color TEXT,
-      created_at INTEGER NOT NULL
-    )`,
-    // Indexes for common queries
-    `CREATE INDEX IF NOT EXISTS idx_items_project ON items(project_id)`,
-    `CREATE INDEX IF NOT EXISTS idx_items_created ON items(created_at DESC)`,
-    `CREATE INDEX IF NOT EXISTS idx_items_status ON items(status)`,
-    `CREATE INDEX IF NOT EXISTS idx_items_type ON items(type)`,
-  ])
-
-  // Migration: Add new columns if they don't exist (for existing databases)
-  try {
-    await db.execute('ALTER TABLE items ADD COLUMN type TEXT DEFAULT \'tab\'')
-  } catch {
-    // Column already exists, ignore
-  }
-  try {
-    await db.execute('ALTER TABLE items ADD COLUMN source TEXT')
-  } catch {
-    // Column already exists, ignore
-  }
-  try {
-    await db.execute('ALTER TABLE items ADD COLUMN ai_summary TEXT')
-  } catch {
-    // Column already exists, ignore
-  }
-  // Migration: Add thumbnail column for tab screenshots
-  try {
-    await db.execute('ALTER TABLE items ADD COLUMN thumbnail TEXT')
-  } catch {
-    // Column already exists, ignore
-  }
-  // Migration: Add reminder_at column for scheduled reminders
-  try {
-    await db.execute('ALTER TABLE items ADD COLUMN reminder_at INTEGER')
-  } catch {
-    // Column already exists, ignore
-  }
-  // Index for efficient reminder queries
-  try {
-    await db.execute('CREATE INDEX IF NOT EXISTS idx_items_reminder ON items(reminder_at) WHERE reminder_at IS NOT NULL')
-  } catch {
-    // Index already exists or not supported, ignore
-  }
-
-  return db
 }
 
-// Get the database instance
-export async function getDatabase(): Promise<Client> {
-  if (!db) {
-    return initDatabase()
+/**
+ * Initialize database with user credentials
+ * @deprecated With Supabase, credentials are managed via auth session
+ * This function is kept for backwards compatibility during migration
+ */
+export async function initDatabaseWithCredentials(_url: string, _token: string): Promise<void> {
+  console.log('[Supabase] initDatabaseWithCredentials is deprecated with Supabase - using auth session instead')
+  await initDatabase()
+}
+
+/**
+ * Disconnect from the database
+ * @deprecated With Supabase, connection is managed automatically
+ */
+export function disconnectDatabase(): void {
+  console.log('[Supabase] disconnectDatabase is deprecated with Supabase')
+}
+
+/**
+ * Check if database is connected with user credentials
+ * Returns true if user is authenticated
+ */
+export async function isUsingUserCredentials(): Promise<boolean> {
+  const session = await getSession()
+  return session !== null
+}
+
+/**
+ * Get current database credentials
+ * @deprecated With Supabase, credentials are managed via auth session
+ */
+export function getCurrentCredentials(): { url: string; token: string } | null {
+  console.log('[Supabase] getCurrentCredentials is deprecated with Supabase')
+  return null
+}
+
+/**
+ * Get the database instance
+ * @deprecated Use Supabase client directly via getSupabaseClient()
+ */
+export async function getDatabase(): Promise<ReturnType<typeof getSupabaseClient>> {
+  return getSupabaseClient()
+}
+
+// ============================================
+// Helper Functions
+// ============================================
+
+/**
+ * Get current user ID from session
+ * Throws if not authenticated
+ */
+async function getCurrentUserId(): Promise<string> {
+  const session = await getSession()
+  if (!session) {
+    throw new Error('Not authenticated - please sign in')
   }
-  return db
+  return session.user.id
 }
 
-// Convert embedding array to blob for storage
-function embeddingToBlob(embedding: number[]): Uint8Array {
-  const buffer = new Float32Array(embedding)
-  return new Uint8Array(buffer.buffer)
+/**
+ * Convert embedding array to PostgreSQL vector format
+ * pgvector expects format: [0.1, 0.2, 0.3, ...]
+ */
+function embeddingToVector(embedding: number[]): string {
+  return `[${embedding.join(',')}]`
 }
 
-// Convert blob back to embedding array
-function blobToEmbedding(blob: Uint8Array): number[] {
-  const buffer = new Float32Array(blob.buffer)
-  return Array.from(buffer)
+/**
+ * Parse PostgreSQL vector to embedding array
+ */
+function vectorToEmbedding(vector: string | null): number[] | null {
+  if (!vector) return null
+  // Vector format: [0.1, 0.2, ...]
+  const cleaned = vector.replace('[', '').replace(']', '')
+  return cleaned.split(',').map(Number)
 }
 
-// Calculate cosine similarity between two vectors
-function cosineSimilarity(a: number[], b: number[]): number {
-  if (a.length !== b.length) return 0
+// ============================================
+// Items CRUD Operations
+// ============================================
 
-  let dotProduct = 0
-  let normA = 0
-  let normB = 0
-
-  for (let i = 0; i < a.length; i++) {
-    dotProduct += a[i] * b[i]
-    normA += a[i] * a[i]
-    normB += b[i] * b[i]
-  }
-
-  const denominator = Math.sqrt(normA) * Math.sqrt(normB)
-  if (denominator === 0) return 0
-
-  return dotProduct / denominator
-}
-
-// Save a voice item
+/**
+ * Save a voice item
+ */
 export async function saveItem(
   item: Omit<VoiceItem, 'id' | 'createdAt' | 'urlHash' | 'embedding'>,
   embedding: number[] | null
 ): Promise<VoiceItem> {
-  const database = await getDatabase()
+  const supabase = getSupabaseClient()
+  const userId = await getCurrentUserId()
 
   const id = generateId()
-  // For notes, use placeholder URL since url column is NOT NULL
+  // For notes, use placeholder URL since url column can be empty
   const isNote = item.type === 'note'
   const url = isNote ? `${NOTE_URL_PREFIX}${id}` : item.url
   const urlHash = generateUrlHash(url)
@@ -164,67 +138,78 @@ export async function saveItem(
     embedding,
   }
 
-  await database.execute({
-    sql: `INSERT OR REPLACE INTO items
-      (id, type, url, url_hash, title, favicon, thumbnail, source, transcription, ai_summary, project_id, reason, context_tabs, context_tab_count, embedding, created_at, status, reminder_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    args: [
-      id,
-      item.type || 'tab',
-      url,
-      urlHash,
-      item.title,
-      item.favicon,
-      item.thumbnail || null,
-      item.source,
-      item.transcription,
-      item.aiSummary || null,
-      item.projectId,
-      item.reason,
-      JSON.stringify(item.contextTabs),
-      item.contextTabCount,
-      embedding ? embeddingToBlob(embedding) : null,
-      createdAt,
-      item.status || 'saved',
-      item.reminderAt || null,
-    ],
+  const { error } = await supabase.from('items').insert({
+    id,
+    user_id: userId,
+    type: item.type || 'tab',
+    url,
+    url_hash: urlHash,
+    title: item.title,
+    favicon: item.favicon,
+    thumbnail: item.thumbnail || null,
+    source: item.source,
+    transcription: item.transcription,
+    ai_summary: item.aiSummary || null,
+    project_id: item.projectId,
+    reason: item.reason,
+    context_tabs: item.contextTabs || [],
+    context_tab_count: item.contextTabCount || 0,
+    embedding: embedding ? embeddingToVector(embedding) : null,
+    created_at: createdAt,
+    status: item.status || 'saved',
+    reminder_at: item.reminderAt || null,
   })
+
+  if (error) {
+    console.error('[Supabase] Failed to save item:', error)
+    throw error
+  }
 
   return savedItem
 }
 
-// Get items with optional filters
+/**
+ * Get items with optional filters
+ */
 export async function getItems(
   options: { limit?: number; projectId?: string; status?: string } = {}
 ): Promise<VoiceItem[]> {
-  const database = await getDatabase()
+  const supabase = getSupabaseClient()
 
-  let sql = 'SELECT * FROM items WHERE status = ?'
-  const args: (string | number)[] = [options.status || 'saved']
+  let query = supabase
+    .from('items')
+    .select('*')
+    .eq('status', options.status || 'saved')
+    .order('created_at', { ascending: false })
 
   if (options.projectId) {
-    sql += ' AND project_id = ?'
-    args.push(options.projectId)
+    query = query.eq('project_id', options.projectId)
   }
-
-  sql += ' ORDER BY created_at DESC'
 
   if (options.limit) {
-    sql += ' LIMIT ?'
-    args.push(options.limit)
+    query = query.limit(options.limit)
   }
 
-  const result = await database.execute({ sql, args })
+  const { data, error } = await query
 
-  return result.rows.map(row => rowToVoiceItem(row))
+  if (error) {
+    console.error('[Supabase] Failed to get items:', error)
+    throw error
+  }
+
+  const items = (data || []).map(rowToVoiceItem)
+  console.log(`[Supabase] Loaded ${items.length} items from PostgreSQL`)
+  return items
 }
 
-// Helper function to convert a database row to VoiceItem
+/**
+ * Helper function to convert a database row to VoiceItem
+ */
 function rowToVoiceItem(row: Record<string, unknown>): VoiceItem {
   return {
     id: row.id as string,
     type: (row.type as VoiceItem['type']) || 'tab',
-    url: (row.url as string) || '', // Fallback to empty string for legacy items
+    url: (row.url as string) || '',
     urlHash: row.url_hash as string,
     title: row.title as string | null,
     favicon: row.favicon as string | null,
@@ -234,198 +219,265 @@ function rowToVoiceItem(row: Record<string, unknown>): VoiceItem {
     aiSummary: row.ai_summary as string | null,
     projectId: row.project_id as string | null,
     reason: row.reason as string | null,
-    contextTabs: JSON.parse((row.context_tabs as string) || '[]'),
-    contextTabCount: row.context_tab_count as number,
-    embedding: row.embedding ? blobToEmbedding(new Uint8Array(row.embedding as ArrayBuffer)) : null,
+    contextTabs: (row.context_tabs as string[]) || [],
+    contextTabCount: (row.context_tab_count as number) || 0,
+    embedding: vectorToEmbedding(row.embedding as string | null),
     createdAt: row.created_at as number,
     status: row.status as VoiceItem['status'],
     reminderAt: row.reminder_at as number | null,
   }
 }
 
-// Semantic search using cosine similarity
+/**
+ * Semantic search using pgvector cosine similarity
+ */
 export async function semanticSearch(
   queryEmbedding: number[],
   options: { limit?: number; projectId?: string } = {}
 ): Promise<SearchResult[]> {
-  const database = await getDatabase()
+  const supabase = getSupabaseClient()
+  const userId = await getCurrentUserId()
 
-  // Get all items with embeddings
-  let sql = 'SELECT * FROM items WHERE status = ? AND embedding IS NOT NULL'
-  const args: (string | number)[] = ['saved']
+  // Call the RPC function for semantic search
+  const { data, error } = await supabase.rpc('search_items_by_embedding', {
+    query_embedding: embeddingToVector(queryEmbedding),
+    query_user_id: userId,
+    query_project_id: options.projectId || null,
+    match_count: options.limit || 10,
+    similarity_threshold: 0.0,
+  })
 
-  if (options.projectId) {
-    sql += ' AND project_id = ?'
-    args.push(options.projectId)
+  if (error) {
+    console.error('[Supabase] Semantic search failed:', error)
+    throw error
   }
 
-  const result = await database.execute({ sql, args })
-
-  // Calculate similarity for each item
-  const itemsWithSimilarity: SearchResult[] = result.rows.map(row => {
-    const item = rowToVoiceItem(row)
-    const similarity = item.embedding ? cosineSimilarity(queryEmbedding, item.embedding) : 0
-
-    return {
-      ...item,
-      similarity,
-    }
-  })
-
-  // Sort by similarity and limit
-  const sorted = itemsWithSimilarity.sort((a, b) => b.similarity - a.similarity)
-  const limit = options.limit || 10
-
-  return sorted.slice(0, limit)
+  return (data || []).map((row: Record<string, unknown>) => ({
+    ...rowToVoiceItem(row),
+    similarity: row.similarity as number,
+  }))
 }
 
-// Delete an item
+/**
+ * Delete an item (soft delete - moves to trash)
+ */
 export async function deleteItem(id: string): Promise<void> {
-  const database = await getDatabase()
-  await database.execute({
-    sql: 'UPDATE items SET status = ? WHERE id = ?',
-    args: ['deleted', id],
-  })
+  const supabase = getSupabaseClient()
+
+  const { error } = await supabase
+    .from('items')
+    .update({ status: 'deleted' })
+    .eq('id', id)
+
+  if (error) {
+    console.error('[Supabase] Failed to delete item:', error)
+    throw error
+  }
 }
 
-// Update an item's project
+/**
+ * Update an item's project
+ */
 export async function updateItemProject(id: string, projectId: string | null): Promise<void> {
-  const database = await getDatabase()
-  await database.execute({
-    sql: 'UPDATE items SET project_id = ? WHERE id = ?',
-    args: [projectId, id],
-  })
+  const supabase = getSupabaseClient()
+
+  const { error } = await supabase
+    .from('items')
+    .update({ project_id: projectId })
+    .eq('id', id)
+
+  if (error) {
+    console.error('[Supabase] Failed to update item project:', error)
+    throw error
+  }
 }
 
-// Update an item's content (title, transcription, aiSummary, thumbnail) and optionally its embedding
+/**
+ * Update an item's content and optionally its embedding
+ */
 export async function updateItem(
   id: string,
   updates: { title?: string; transcription?: string; aiSummary?: string; thumbnail?: string },
   embedding?: number[] | null
 ): Promise<VoiceItem | null> {
-  const database = await getDatabase()
+  const supabase = getSupabaseClient()
 
-  // Build dynamic UPDATE query based on provided fields
-  const setClauses: string[] = []
-  const args: (string | number | Uint8Array | null)[] = []
+  // Build update object with only provided fields
+  const updateData: Record<string, unknown> = {}
 
-  if (updates.title !== undefined) {
-    setClauses.push('title = ?')
-    args.push(updates.title)
-  }
-  if (updates.transcription !== undefined) {
-    setClauses.push('transcription = ?')
-    args.push(updates.transcription)
-  }
-  if (updates.aiSummary !== undefined) {
-    setClauses.push('ai_summary = ?')
-    args.push(updates.aiSummary)
-  }
-  if (updates.thumbnail !== undefined) {
-    setClauses.push('thumbnail = ?')
-    args.push(updates.thumbnail)
-  }
+  if (updates.title !== undefined) updateData.title = updates.title
+  if (updates.transcription !== undefined) updateData.transcription = updates.transcription
+  if (updates.aiSummary !== undefined) updateData.ai_summary = updates.aiSummary
+  if (updates.thumbnail !== undefined) updateData.thumbnail = updates.thumbnail
   if (embedding !== undefined) {
-    setClauses.push('embedding = ?')
-    args.push(embedding ? embeddingToBlob(embedding) : null)
+    updateData.embedding = embedding ? embeddingToVector(embedding) : null
   }
 
-  if (setClauses.length === 0) {
+  if (Object.keys(updateData).length === 0) {
     // Nothing to update, just return the existing item
     return getItemById(id)
   }
 
-  args.push(id)
-  const sql = `UPDATE items SET ${setClauses.join(', ')} WHERE id = ?`
+  const { error } = await supabase
+    .from('items')
+    .update(updateData)
+    .eq('id', id)
 
-  await database.execute({ sql, args })
+  if (error) {
+    console.error('[Supabase] Failed to update item:', error)
+    throw error
+  }
 
   // Return the updated item
   return getItemById(id)
 }
 
-// Get a single item by ID
+/**
+ * Get a single item by ID
+ */
 export async function getItemById(id: string): Promise<VoiceItem | null> {
-  const database = await getDatabase()
-  const result = await database.execute({
-    sql: 'SELECT * FROM items WHERE id = ?',
-    args: [id],
-  })
+  const supabase = getSupabaseClient()
 
-  if (result.rows.length === 0) return null
+  const { data, error } = await supabase
+    .from('items')
+    .select('*')
+    .eq('id', id)
+    .single()
 
-  return rowToVoiceItem(result.rows[0])
+  if (error) {
+    if (error.code === 'PGRST116') {
+      // No rows returned
+      return null
+    }
+    console.error('[Supabase] Failed to get item by ID:', error)
+    throw error
+  }
+
+  return rowToVoiceItem(data)
 }
 
-// Get an item by URL hash (for duplicate detection)
-// Only returns saved items, not deleted ones
+/**
+ * Get an item by URL hash (for duplicate detection)
+ * Only returns saved items, not deleted ones
+ */
 export async function getItemByUrlHash(urlHash: string): Promise<VoiceItem | null> {
-  const database = await getDatabase()
-  console.log('[DB] getItemByUrlHash - searching for urlHash:', urlHash)
-  const result = await database.execute({
-    sql: 'SELECT * FROM items WHERE url_hash = ? AND status = ?',
-    args: [urlHash, 'saved'],
-  })
-  console.log('[DB] getItemByUrlHash - found rows:', result.rows.length)
+  const supabase = getSupabaseClient()
+  console.log('[Supabase] getItemByUrlHash - searching for urlHash:', urlHash)
 
-  if (result.rows.length === 0) return null
+  const { data, error } = await supabase
+    .from('items')
+    .select('*')
+    .eq('url_hash', urlHash)
+    .eq('status', 'saved')
+    .maybeSingle()
 
-  const item = rowToVoiceItem(result.rows[0])
-  console.log('[DB] getItemByUrlHash - returning item:', item.id, item.url)
+  if (error) {
+    console.error('[Supabase] Failed to get item by URL hash:', error)
+    throw error
+  }
+
+  console.log('[Supabase] getItemByUrlHash - found:', data ? 'yes' : 'no')
+
+  if (!data) return null
+
+  const item = rowToVoiceItem(data)
+  console.log('[Supabase] getItemByUrlHash - returning item:', item.id, item.url)
   return item
 }
 
-// Get an item by exact URL match (for duplicate detection)
-// Searches for items with the exact same URL (raw, no normalization)
+/**
+ * Get an item by exact URL match (for duplicate detection)
+ */
 export async function getItemByExactUrl(url: string): Promise<VoiceItem | null> {
-  console.log('[DB] getItemByExactUrl - searching for:', url)
+  const supabase = getSupabaseClient()
+  console.log('[Supabase] getItemByExactUrl - searching for:', url)
 
-  const database = await getDatabase()
-  // Direct SQL query for exact URL match (faster than loading all items)
-  const result = await database.execute({
-    sql: "SELECT * FROM items WHERE url = ? AND status = ? AND type = 'tab'",
-    args: [url, 'saved'],
-  })
+  const { data, error } = await supabase
+    .from('items')
+    .select('*')
+    .eq('url', url)
+    .eq('status', 'saved')
+    .eq('type', 'tab')
+    .maybeSingle()
 
-  console.log('[DB] getItemByExactUrl - found rows:', result.rows.length)
+  if (error) {
+    console.error('[Supabase] Failed to get item by exact URL:', error)
+    throw error
+  }
 
-  if (result.rows.length === 0) return null
+  console.log('[Supabase] getItemByExactUrl - found:', data ? 'yes' : 'no')
 
-  const item = rowToVoiceItem(result.rows[0])
-  console.log('[DB] getItemByExactUrl - returning item:', item.id, item.title)
+  if (!data) return null
+
+  const item = rowToVoiceItem(data)
+  console.log('[Supabase] getItemByExactUrl - returning item:', item.id, item.title)
   return item
 }
 
-// Permanently delete an item
+/**
+ * Permanently delete an item
+ */
 export async function permanentlyDeleteItem(id: string): Promise<void> {
-  const database = await getDatabase()
-  await database.execute({
-    sql: 'DELETE FROM items WHERE id = ?',
-    args: [id],
-  })
+  const supabase = getSupabaseClient()
+
+  const { error } = await supabase
+    .from('items')
+    .delete()
+    .eq('id', id)
+
+  if (error) {
+    console.error('[Supabase] Failed to permanently delete item:', error)
+    throw error
+  }
 }
 
-// Create a project
+// ============================================
+// Projects CRUD Operations
+// ============================================
+
+/**
+ * Create a project
+ */
 export async function createProject(name: string, color?: string): Promise<Project> {
-  const database = await getDatabase()
+  const supabase = getSupabaseClient()
+  const userId = await getCurrentUserId()
 
   const id = generateId()
   const createdAt = Date.now()
 
-  await database.execute({
-    sql: 'INSERT INTO projects (id, name, color, created_at) VALUES (?, ?, ?, ?)',
-    args: [id, name, color || null, createdAt],
+  const { error } = await supabase.from('projects').insert({
+    id,
+    user_id: userId,
+    name,
+    color: color || null,
+    created_at: createdAt,
   })
+
+  if (error) {
+    console.error('[Supabase] Failed to create project:', error)
+    throw error
+  }
 
   return { id, name, color: color || null, createdAt }
 }
 
-// Get all projects
+/**
+ * Get all projects
+ */
 export async function getProjects(): Promise<Project[]> {
-  const database = await getDatabase()
-  const result = await database.execute('SELECT * FROM projects ORDER BY created_at ASC')
+  const supabase = getSupabaseClient()
 
-  return result.rows.map(row => ({
+  const { data, error } = await supabase
+    .from('projects')
+    .select('*')
+    .order('created_at', { ascending: true })
+
+  if (error) {
+    console.error('[Supabase] Failed to get projects:', error)
+    throw error
+  }
+
+  return (data || []).map(row => ({
     id: row.id as string,
     name: row.name as string,
     color: row.color as string | null,
@@ -433,47 +485,63 @@ export async function getProjects(): Promise<Project[]> {
   }))
 }
 
-// Update a project
+/**
+ * Update a project
+ */
 export async function updateProject(id: string, name: string, color?: string): Promise<Project | null> {
-  const database = await getDatabase()
+  const supabase = getSupabaseClient()
 
-  await database.execute({
-    sql: 'UPDATE projects SET name = ?, color = ? WHERE id = ?',
-    args: [name, color || null, id],
-  })
+  const { error } = await supabase
+    .from('projects')
+    .update({ name, color: color || null })
+    .eq('id', id)
+
+  if (error) {
+    console.error('[Supabase] Failed to update project:', error)
+    throw error
+  }
 
   // Return the updated project
-  const result = await database.execute({
-    sql: 'SELECT * FROM projects WHERE id = ?',
-    args: [id],
-  })
+  const { data } = await supabase
+    .from('projects')
+    .select('*')
+    .eq('id', id)
+    .single()
 
-  if (result.rows.length === 0) return null
+  if (!data) return null
 
-  const row = result.rows[0]
   return {
-    id: row.id as string,
-    name: row.name as string,
-    color: row.color as string | null,
-    createdAt: row.created_at as number,
+    id: data.id as string,
+    name: data.name as string,
+    color: data.color as string | null,
+    createdAt: data.created_at as number,
   }
 }
 
-// Delete a project
+/**
+ * Delete a project
+ */
 export async function deleteProject(id: string): Promise<void> {
-  const database = await getDatabase()
-  await database.execute({
-    sql: 'DELETE FROM projects WHERE id = ?',
-    args: [id],
-  })
-  // Update items to remove project reference
-  await database.execute({
-    sql: 'UPDATE items SET project_id = NULL WHERE project_id = ?',
-    args: [id],
-  })
+  const supabase = getSupabaseClient()
+
+  // Delete the project
+  const { error: deleteError } = await supabase
+    .from('projects')
+    .delete()
+    .eq('id', id)
+
+  if (deleteError) {
+    console.error('[Supabase] Failed to delete project:', deleteError)
+    throw deleteError
+  }
+
+  // Note: Items with this project_id will have it set to NULL automatically
+  // due to ON DELETE SET NULL constraint in the database schema
 }
 
-// Check if default projects exist and seed if needed
+/**
+ * Check if default projects exist and seed if needed
+ */
 export async function seedDefaultProjects(): Promise<void> {
   const projects = await getProjects()
 
@@ -497,74 +565,145 @@ export async function seedDefaultProjects(): Promise<void> {
 // Reminder functions
 // ============================================
 
-// Update an item's reminder timestamp
+/**
+ * Update an item's reminder timestamp
+ */
 export async function updateItemReminder(id: string, reminderAt: number | null): Promise<VoiceItem | null> {
-  const database = await getDatabase()
-  await database.execute({
-    sql: 'UPDATE items SET reminder_at = ? WHERE id = ?',
-    args: [reminderAt, id],
-  })
+  const supabase = getSupabaseClient()
+
+  const { error } = await supabase
+    .from('items')
+    .update({ reminder_at: reminderAt })
+    .eq('id', id)
+
+  if (error) {
+    console.error('[Supabase] Failed to update item reminder:', error)
+    throw error
+  }
+
   return getItemById(id)
 }
 
-// Get all items with pending reminders (for recreating alarms on startup)
+/**
+ * Get all items with pending reminders (for recreating alarms on startup)
+ */
 export async function getItemsWithPendingReminders(): Promise<VoiceItem[]> {
-  const database = await getDatabase()
-  const result = await database.execute({
-    sql: 'SELECT * FROM items WHERE status = ? AND reminder_at IS NOT NULL ORDER BY reminder_at ASC',
-    args: ['saved'],
-  })
-  return result.rows.map(row => rowToVoiceItem(row))
+  const supabase = getSupabaseClient()
+
+  const { data, error } = await supabase
+    .from('items')
+    .select('*')
+    .eq('status', 'saved')
+    .not('reminder_at', 'is', null)
+    .order('reminder_at', { ascending: true })
+
+  if (error) {
+    console.error('[Supabase] Failed to get items with pending reminders:', error)
+    throw error
+  }
+
+  return (data || []).map(rowToVoiceItem)
 }
 
-// Clear an item's reminder after it has been triggered
+/**
+ * Clear an item's reminder after it has been triggered
+ */
 export async function clearItemReminder(id: string): Promise<void> {
-  const database = await getDatabase()
-  await database.execute({
-    sql: 'UPDATE items SET reminder_at = NULL WHERE id = ?',
-    args: [id],
-  })
+  const supabase = getSupabaseClient()
+
+  const { error } = await supabase
+    .from('items')
+    .update({ reminder_at: null })
+    .eq('id', id)
+
+  if (error) {
+    console.error('[Supabase] Failed to clear item reminder:', error)
+    throw error
+  }
 }
 
 // ============================================
 // Trash functions (soft-deleted items)
 // ============================================
 
-// Get all deleted items (trash)
+/**
+ * Get all deleted items (trash)
+ */
 export async function getDeletedItems(): Promise<VoiceItem[]> {
-  const database = await getDatabase()
-  const result = await database.execute({
-    sql: 'SELECT * FROM items WHERE status = ? ORDER BY created_at DESC',
-    args: ['deleted'],
-  })
-  return result.rows.map(row => rowToVoiceItem(row))
+  const supabase = getSupabaseClient()
+
+  const { data, error } = await supabase
+    .from('items')
+    .select('*')
+    .eq('status', 'deleted')
+    .order('created_at', { ascending: false })
+
+  if (error) {
+    console.error('[Supabase] Failed to get deleted items:', error)
+    throw error
+  }
+
+  return (data || []).map(rowToVoiceItem)
 }
 
-// Restore a deleted item (move from trash back to saved)
+/**
+ * Restore a deleted item (move from trash back to saved)
+ */
 export async function restoreItem(id: string): Promise<VoiceItem | null> {
-  const database = await getDatabase()
-  await database.execute({
-    sql: 'UPDATE items SET status = ? WHERE id = ?',
-    args: ['saved', id],
-  })
+  const supabase = getSupabaseClient()
+
+  const { error } = await supabase
+    .from('items')
+    .update({ status: 'saved' })
+    .eq('id', id)
+
+  if (error) {
+    console.error('[Supabase] Failed to restore item:', error)
+    throw error
+  }
+
   return getItemById(id)
 }
 
-// Permanently delete an item from trash
+/**
+ * Permanently delete an item from trash
+ */
 export async function emptyTrashItem(id: string): Promise<void> {
-  const database = await getDatabase()
-  await database.execute({
-    sql: 'DELETE FROM items WHERE id = ? AND status = ?',
-    args: [id, 'deleted'],
-  })
+  const supabase = getSupabaseClient()
+
+  const { error } = await supabase
+    .from('items')
+    .delete()
+    .eq('id', id)
+    .eq('status', 'deleted')
+
+  if (error) {
+    console.error('[Supabase] Failed to empty trash item:', error)
+    throw error
+  }
 }
 
-// Empty all trash (permanently delete all deleted items)
+/**
+ * Empty all trash (permanently delete all deleted items)
+ */
 export async function emptyAllTrash(): Promise<number> {
-  const database = await getDatabase()
-  const result = await database.execute({
-    sql: 'DELETE FROM items WHERE status = ?',
-    args: ['deleted'],
-  })
-  return result.rowsAffected
+  const supabase = getSupabaseClient()
+
+  // First count how many items we're deleting
+  const { count } = await supabase
+    .from('items')
+    .select('*', { count: 'exact', head: true })
+    .eq('status', 'deleted')
+
+  const { error } = await supabase
+    .from('items')
+    .delete()
+    .eq('status', 'deleted')
+
+  if (error) {
+    console.error('[Supabase] Failed to empty all trash:', error)
+    throw error
+  }
+
+  return count || 0
 }

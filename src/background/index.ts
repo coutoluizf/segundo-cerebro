@@ -31,6 +31,15 @@ import {
   emptyAllTrash,
 } from '@/shared/db'
 import {
+  sendOtpCode,
+  verifyOtpCode,
+  signOut,
+  getSession,
+  getCurrentUser,
+  isAuthenticated,
+  onAuthStateChange,
+} from '@/shared/auth'
+import {
   scheduleReminder,
   cancelReminder,
   getItemIdFromAlarm,
@@ -366,24 +375,57 @@ function extractPageContentInTab(): string {
   return text
 }
 
-// Initialize database on startup
-initDatabase()
-  .then(() => {
+/**
+ * Initialize database
+ * With Supabase, data access is controlled by RLS based on authenticated user
+ */
+async function initializeDatabase(): Promise<void> {
+  try {
+    // Initialize database connection
+    await initDatabase()
     console.log('[Background] Database initialized')
-    // Seed default projects on first run
-    return seedDefaultProjects()
-  })
-  .then(() => {
-    console.log('[Background] Default projects seeded')
-    // Recreate alarms from database (Chrome clears alarms on restart)
-    return recreateAlarmsFromDb()
-  })
-  .then(() => {
-    console.log('[Background] Alarms recreated from database')
-  })
-  .catch((error) => {
+
+    // Check if user is authenticated
+    const authenticated = await isAuthenticated()
+    if (authenticated) {
+      // Seed default projects for authenticated user
+      await seedDefaultProjects()
+      console.log('[Background] Default projects seeded')
+
+      // Recreate alarms from database (Chrome clears alarms on restart)
+      await recreateAlarmsFromDb()
+      console.log('[Background] Alarms recreated from database')
+    } else {
+      console.log('[Background] Not authenticated - data operations will require sign in')
+    }
+  } catch (error) {
     console.error('[Background] Database initialization error:', error)
-  })
+  }
+}
+
+// Initialize database on startup
+initializeDatabase()
+
+// Listen for auth state changes to refresh data
+onAuthStateChange(async (event, session) => {
+  console.log('[Background] Auth state changed:', event, session?.user?.email)
+
+  if (event === 'SIGNED_IN' && session) {
+    // User just signed in, seed projects and recreate alarms
+    try {
+      await seedDefaultProjects()
+      await recreateAlarmsFromDb()
+      broadcastItemsChanged()
+      console.log('[Background] User signed in, data refreshed')
+    } catch (error) {
+      console.error('[Background] Error refreshing data after sign in:', error)
+    }
+  } else if (event === 'SIGNED_OUT') {
+    // User signed out, broadcast change to clear UI
+    broadcastItemsChanged()
+    console.log('[Background] User signed out')
+  }
+})
 
 // Handle alarm events (for reminders)
 chrome.alarms.onAlarm.addListener(async (alarm) => {
@@ -849,6 +891,68 @@ async function handleMessage(message: BgMessage): Promise<BgResponse<BgMessage['
       const count = await emptyAllTrash()
       broadcastItemsChanged()
       return { success: true, count }
+    }
+
+    // Auth operations - OTP flow (send code, then verify)
+    case 'AUTH_SIGN_IN':
+    case 'AUTH_SEND_OTP': {
+      // Send OTP code to user's email
+      try {
+        await sendOtpCode(message.email)
+        return { success: true }
+      } catch (error) {
+        return { success: false, error: error instanceof Error ? error.message : 'Failed to send code' }
+      }
+    }
+
+    case 'AUTH_VERIFY_OTP': {
+      // Verify OTP code and create session
+      try {
+        const session = await verifyOtpCode(message.email, message.code)
+        return { success: true, user: session.user }
+      } catch (error) {
+        return { success: false, error: error instanceof Error ? error.message : 'Invalid code' }
+      }
+    }
+
+    case 'AUTH_SIGN_OUT': {
+      try {
+        await signOut()
+        broadcastItemsChanged()
+        return { success: true }
+      } catch (error) {
+        return { success: false, error: error instanceof Error ? error.message : 'Failed to sign out' }
+      }
+    }
+
+    case 'AUTH_GET_SESSION': {
+      const session = await getSession()
+      return { session }
+    }
+
+    case 'AUTH_GET_USER': {
+      const user = await getCurrentUser()
+      return { user }
+    }
+
+    case 'AUTH_IS_AUTHENTICATED': {
+      const authenticated = await isAuthenticated()
+      return { authenticated }
+    }
+
+    case 'AUTH_INIT_DATABASE': {
+      try {
+        // Initialize database and seed projects for authenticated user
+        await initDatabase()
+        await seedDefaultProjects()
+        await recreateAlarmsFromDb()
+        broadcastItemsChanged()
+        console.log('[Background] Database initialized for user')
+        return { success: true }
+      } catch (error) {
+        console.error('[Background] Error initializing database:', error)
+        return { success: false, error: error instanceof Error ? error.message : 'Failed to initialize database' }
+      }
     }
 
     default:

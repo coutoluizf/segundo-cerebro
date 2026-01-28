@@ -18,7 +18,8 @@
     "wss://api.elevenlabs.io/*",
     "https://api.elevenlabs.io/*",
     "https://*.turso.io/*",
-    "wss://*.turso.io/*"
+    "wss://*.turso.io/*",
+    "https://*.supabase.co/*"
   ],
   "action": {
     "default_popup": "src/popup/index.html",
