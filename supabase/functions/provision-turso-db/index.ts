@@ -1,5 +1,18 @@
 /**
- * Edge Function: provision-turso-db
+ * ⚠️ DEPRECATED - DO NOT USE
+ *
+ * Esta Edge Function foi criada para a arquitetura original com Turso (database por usuário).
+ * Agora usamos Supabase PostgreSQL com RLS (Row Level Security), que não requer
+ * provisionamento de database separado por usuário.
+ *
+ * Este arquivo é mantido apenas para referência histórica.
+ *
+ * @deprecated Since v0.8.0 - Migrated to Supabase PostgreSQL with RLS
+ * @see supabase/migrations/003_items_and_projects.sql for current schema
+ *
+ * ---
+ *
+ * Edge Function: provision-turso-db (DEPRECATED)
  *
  * Triggered via Database Webhook on auth.users INSERT (new user signup).
  * Creates a new Turso database for the user and stores credentials.

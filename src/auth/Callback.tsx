@@ -23,6 +23,16 @@ export function Callback() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    // Timeout safeguard: if processing takes too long, show error
+    // Prevents infinite "processing" state if something goes wrong silently
+    const timeoutId = setTimeout(() => {
+      if (status === 'processing') {
+        console.error('Callback timeout - processing took too long')
+        setError('Tempo esgotado. O link pode ter expirado ou houve um erro de conexão.')
+        setStatus('error')
+      }
+    }, 30000) // 30 second timeout
+
     async function processCallback() {
       try {
         // Handle the magic link token
@@ -30,7 +40,7 @@ export function Callback() {
         const session = await handleMagicLinkCallback()
 
         if (!session) {
-          setError('Failed to sign in. The link may have expired.')
+          setError('Falha ao entrar. O link pode ter expirado.')
           setStatus('error')
           return
         }
@@ -54,13 +64,16 @@ export function Callback() {
 
       } catch (err) {
         console.error('Callback error:', err)
-        setError(err instanceof Error ? err.message : 'An unexpected error occurred')
+        setError(err instanceof Error ? err.message : 'Ocorreu um erro inesperado.')
         setStatus('error')
       }
     }
 
     processCallback()
-  }, [])
+
+    // Cleanup timeout on unmount
+    return () => clearTimeout(timeoutId)
+  }, [status])
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-zinc-900 to-black flex items-center justify-center p-4">
@@ -75,10 +88,10 @@ export function Callback() {
           {status === 'processing' && (
             <>
               <h1 className="text-2xl font-semibold text-white">
-                Signing you in...
+                Entrando...
               </h1>
               <p className="text-zinc-400">
-                Please wait while we verify your email.
+                Aguarde enquanto verificamos seu email.
               </p>
               <LoadingSpinner />
             </>
@@ -87,10 +100,10 @@ export function Callback() {
           {status === 'success' && (
             <>
               <h1 className="text-2xl font-semibold text-green-400">
-                Welcome to HeyRaji!
+                Bem-vindo ao HeyRaji!
               </h1>
               <p className="text-zinc-400">
-                Redirecting you to the dashboard...
+                Redirecionando para o dashboard...
               </p>
               <SuccessIcon />
             </>
@@ -99,9 +112,9 @@ export function Callback() {
           {status === 'error' && (
             <>
               <h1 className="text-2xl font-semibold text-red-400">
-                Something went wrong
+                Algo deu errado
               </h1>
-              <p className="text-zinc-400 max-w-sm">
+              <p className="text-zinc-400 max-w-sm break-words">
                 {error}
               </p>
               <button
@@ -115,7 +128,7 @@ export function Callback() {
                 }}
                 className="mt-4 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg transition-colors"
               >
-                Try Again
+                Tentar Novamente
               </button>
             </>
           )}

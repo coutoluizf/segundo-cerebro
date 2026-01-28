@@ -236,12 +236,11 @@ export async function semanticSearch(
   options: { limit?: number; projectId?: string } = {}
 ): Promise<SearchResult[]> {
   const supabase = getSupabaseClient()
-  const userId = await getCurrentUserId()
 
   // Call the RPC function for semantic search
+  // Note: RPC uses auth.uid() automatically - no user_id parameter needed (security fix)
   const { data, error } = await supabase.rpc('search_items_by_embedding', {
     query_embedding: embeddingToVector(queryEmbedding),
-    query_user_id: userId,
     query_project_id: options.projectId || null,
     match_count: options.limit || 10,
     similarity_threshold: 0.0,
