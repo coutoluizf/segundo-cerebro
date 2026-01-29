@@ -1,0 +1,287 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "close": "Close",
+    "updated": "Updated",
+    "deleted": "Deleted",
+    "restored": "Restored",
+    "saved": "Saved!",
+    "saving": "Saving...",
+    "sending": "Sending...",
+    "verifying": "Verifying..."
+  },
+  "popup": {
+    "tabs": {
+      "saveTab": "Save Tab",
+      "quickNote": "Quick Note"
+    },
+    "placeholder": {
+      "tab": "Optional comment (AI generates summary)...",
+      "note": "Paste or type your note..."
+    },
+    "buttons": {
+      "saveTab": "Save Tab",
+      "saveNote": "Save Note",
+      "login": "Login"
+    },
+    "toast": {
+      "tabSaved": "Tab saved successfully.",
+      "noteSaved": "Note saved successfully.",
+      "errorEmpty": "Type or paste something before saving.",
+      "itemUpdated": "Existing item updated successfully."
+    },
+    "login": {
+      "title": "Sign in to start",
+      "description": "Create a free account to save and sync your notes."
+    },
+    "mic": {
+      "setup": "Initial Setup",
+      "denied": "Microphone permission denied. Click to set up again.",
+      "prompt": "Allow microphone access to record your voice notes.",
+      "allowButton": "Allow Microphone",
+      "viewSaved": "View saved items"
+    },
+    "duplicate": {
+      "warning": "You already saved this page",
+      "savedOn": "Saved on {{date}}",
+      "updateExisting": "Update existing",
+      "saveAsNew": "Save as new"
+    },
+    "clipboard": {
+      "detected": "Copied text detected"
+    },
+    "source": {
+      "placeholder": "Source (optional): Twitter @user, Book X..."
+    },
+    "closeTabOnSave": "Close tab on save",
+    "footer": {
+      "viewItems": "View your",
+      "itemSaved": "saved item",
+      "itemsSaved": "saved items"
+    },
+    "banner": {
+      "title": "Item saved!",
+      "description": "Check out the Dashboard with semantic search and project organization.",
+      "openDashboard": "Open Dashboard"
+    }
+  },
+  "dashboard": {
+    "header": {
+      "subtitle": "Your ideas, organized"
+    },
+    "search": {
+      "placeholder": "Search by meaning...",
+      "listening": "Listening...",
+      "speakSearch": "Speak your search...",
+      "stopRecording": "Stop recording",
+      "searchByVoice": "Search by voice"
+    },
+    "empty": {
+      "noResults": "No results",
+      "tryOther": "Try searching for other terms or related concepts.",
+      "startSaving": "Start memorizing",
+      "useExtension": "Use the extension to save tabs and notes with your voice."
+    },
+    "loading": "Loading memories...",
+    "views": {
+      "items": "Items",
+      "projects": "Projects",
+      "list": "List",
+      "columns2": "2 columns",
+      "columns3": "3 columns"
+    },
+    "theme": {
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System"
+    },
+    "trash": {
+      "title": "Trash",
+      "empty": "Trash is empty",
+      "emptyDescription": "Deleted items will appear here and can be restored.",
+      "restore": "Restore",
+      "deleteForever": "Delete forever",
+      "restoreAll": "Restore all",
+      "emptyTrash": "Empty trash",
+      "itemRestored": "Item restored successfully.",
+      "confirmDelete": "This item will be permanently deleted. This action cannot be undone.",
+      "confirmEmptyTrash": "All items in the trash will be permanently deleted. This action cannot be undone."
+    },
+    "projects": {
+      "title": "Projects",
+      "newProject": "New project",
+      "allItems": "All items",
+      "projectName": "Project name",
+      "edit": "Edit",
+      "delete": "Delete",
+      "confirmDelete": "Are you sure you want to delete this project? Items will not be deleted."
+    },
+    "results": {
+      "count": "{{count}} result",
+      "count_plural": "{{count}} results",
+      "for": "for"
+    },
+    "toast": {
+      "errorLoading": "Error loading data.",
+      "searchError": "Search error",
+      "deleteError": "Error deleting item.",
+      "updateError": "Error updating item.",
+      "projectUpdated": "Item project changed."
+    }
+  },
+  "options": {
+    "account": {
+      "title": "Account",
+      "loggedIn": "You are logged in. Your data is synced automatically.",
+      "loggedOut": "Sign in to sync your data between devices.",
+      "signOut": "Sign out",
+      "dataSynced": "Data synced"
+    },
+    "otp": {
+      "checkEmail": "Check your email",
+      "codeSent": "We sent a code to",
+      "verificationCode": "Verification code",
+      "verifyCode": "Verify code",
+      "resendCode": "Resend code",
+      "useOtherEmail": "Use another email",
+      "codeSentTitle": "Code sent!",
+      "codeSentDescription": "Check your email {{email}} and enter the code.",
+      "invalidCode": "Invalid code",
+      "invalidCodeDescription": "Check the code and try again."
+    },
+    "email": {
+      "label": "Email",
+      "placeholder": "your@email.com",
+      "sendCode": "Send verification code",
+      "receiveCode": "You will receive a code in your email to sign in."
+    },
+    "auth": {
+      "loginSuccess": "Login successful!",
+      "welcome": "Welcome to HeyRaji!",
+      "signedOut": "Signed out",
+      "signedOutDescription": "You have signed out."
+    },
+    "apiKeys": {
+      "title": "API Keys (Advanced)",
+      "description": "Optional - configure your own API keys if you prefer.",
+      "loggedInNote": "You are logged in, so you don't need to configure API keys. They are optional.",
+      "loggedOutNote": "If you don't want to create an account, you can use your own API keys.",
+      "elevenlabs": {
+        "label": "ElevenLabs API Key",
+        "description": "Used for real-time voice transcription.",
+        "getKey": "Get API Key"
+      },
+      "openai": {
+        "label": "OpenAI API Key",
+        "description": "Used for generating embeddings and semantic search.",
+        "getKey": "Get API Key"
+      },
+      "saveButton": "Save API Keys",
+      "savedSuccess": "API keys saved successfully."
+    },
+    "ai": {
+      "title": "Auto Summary (AI)",
+      "description": "Configure automatic page summarization using artificial intelligence.",
+      "autoSummarize": {
+        "label": "Summarize pages automatically",
+        "description": "Generates an AI summary of the page content when saving tabs.",
+        "enabled": "Auto summary enabled",
+        "enabledDescription": "Pages will be automatically summarized when saved.",
+        "disabled": "Auto summary disabled",
+        "disabledDescription": "Only your transcription will be saved."
+      },
+      "language": {
+        "label": "Summary language",
+        "description": "The summary will be generated in this language, regardless of the page language.",
+        "updated": "Language updated",
+        "updatedDescription": "AI summary language changed."
+      }
+    },
+    "behavior": {
+      "title": "Behavior",
+      "description": "Configure behavior when saving tabs.",
+      "closeTab": {
+        "label": "Close tab on save",
+        "description": "Automatically closes the tab after saving. Does not apply to notes.",
+        "enabled": "Close tab enabled",
+        "enabledDescription": "Tab will be closed automatically after saving.",
+        "disabled": "Close tab disabled",
+        "disabledDescription": "Tab will remain open after saving."
+      },
+      "tabGroups": {
+        "label": "Organize in groups by project",
+        "description": "Automatically groups tabs by project when saving or opening reminders.",
+        "enabled": "Tab groups enabled",
+        "enabledDescription": "Tabs will be organized in groups by project.",
+        "disabled": "Tab groups disabled",
+        "disabledDescription": "Tabs will not be automatically grouped."
+      }
+    },
+    "projects": {
+      "title": "Projects",
+      "description": "Manage your projects to organize saved items.",
+      "newProject": "New project name",
+      "noProjects": "No projects created yet.",
+      "created": "Project created",
+      "createdDescription": "Project \"{{name}}\" created.",
+      "deleted": "Project removed",
+      "deletedDescription": "Project \"{{name}}\" removed."
+    },
+    "toast": {
+      "errorSaving": "Error saving configuration.",
+      "errorSignOut": "Error signing out."
+    }
+  },
+  "auth": {
+    "verifying": "Signing in...",
+    "verifyingDesc": "Please wait while we verify your email.",
+    "welcome": "Welcome to HeyRaji!",
+    "redirecting": "Redirecting to dashboard...",
+    "error": "Something went wrong",
+    "timeout": "Timeout. The link may have expired or there was a connection error.",
+    "failed": "Failed to sign in. The link may have expired.",
+    "unexpected": "An unexpected error occurred.",
+    "tryAgain": "Try Again"
+  },
+  "voice": {
+    "connecting": "Connecting...",
+    "processing": "Processing...",
+    "recording": "Recording",
+    "clickToStop": "Click the mic to stop",
+    "clickToRecord": "Record by voice",
+    "apiKeyMissing": "ElevenLabs API key not configured",
+    "errorStarting": "Error starting recording"
+  },
+  "item": {
+    "untitled": "Untitled",
+    "noProject": "No project",
+    "noTranscription": "No transcription",
+    "noSummary": "No summary",
+    "openOriginal": "Open original",
+    "copyLink": "Copy link",
+    "linkCopied": "Link copied!",
+    "edit": "Edit",
+    "moveToTrash": "Move to trash",
+    "type": {
+      "tab": "Tab",
+      "note": "Note"
+    }
+  },
+  "reminder": {
+    "title": "Reminder",
+    "setReminder": "Set reminder",
+    "clearReminder": "Clear reminder",
+    "inMinutes": "In {{count}} min",
+    "inHours": "In {{count}}h",
+    "inDays": "In {{count}} days",
+    "tomorrow": "Tomorrow",
+    "nextWeek": "Next week",
+    "custom": "Custom..."
+  }
+}

@@ -1,11 +1,14 @@
 /**
  * User settings management
  * Stores preferences in chrome.storage.local
+ * Optionally syncs UI language to Supabase for authenticated users
  */
+
+import { getBrowserLocale, isValidLocale, type Locale } from '@/i18n/config'
 
 // Settings interface
 export interface UserSettings {
-  language: string // Language for AI summaries (e.g., 'pt-BR', 'en-US')
+  language: Locale // UI language (en, pt, es) - also used for AI summaries
   autoSummarize: boolean // Whether to auto-generate AI summaries for tabs
   closeTabOnSave: boolean // Whether to close the tab after saving (only applies to tabs, not notes)
   useTabGroups: boolean // Whether to organize tabs in Chrome tab groups by project
@@ -13,7 +16,7 @@ export interface UserSettings {
 
 // Default settings
 const DEFAULT_SETTINGS: UserSettings = {
-  language: 'pt-BR',
+  language: getBrowserLocale(), // Dynamic default based on browser (also used for AI summaries)
   autoSummarize: true,
   closeTabOnSave: true, // Default to closing tab after save
   useTabGroups: true, // Default to organizing tabs in groups
@@ -31,7 +34,23 @@ export async function getSettings(): Promise<UserSettings> {
     const stored = result[SETTINGS_KEY]
     if (stored) {
       // Merge with defaults to handle new settings added in updates
-      return { ...DEFAULT_SETTINGS, ...stored }
+      const merged = { ...DEFAULT_SETTINGS, ...stored }
+
+      // Migration: if old 'language' was a full locale like 'pt-BR',
+      // migrate to new UI locale format ('pt', 'en', 'es')
+      if (stored.language && !isValidLocale(stored.language)) {
+        // Old format like 'pt-BR' - extract base locale
+        const oldLang = stored.language as string
+        const baseLocale = oldLang.split('-')[0] as Locale
+        merged.language = isValidLocale(baseLocale) ? baseLocale : getBrowserLocale()
+      }
+
+      // Remove legacy summaryLanguage if present (now unified with language)
+      if ('summaryLanguage' in merged) {
+        delete (merged as Record<string, unknown>).summaryLanguage
+      }
+
+      return merged
     }
   } catch (error) {
     console.error('[Settings] Error loading settings:', error)
@@ -41,12 +60,21 @@ export async function getSettings(): Promise<UserSettings> {
 
 /**
  * Save user settings to chrome.storage.local
+ * Optionally syncs UI language to Supabase for authenticated users
  */
 export async function saveSettings(settings: Partial<UserSettings>): Promise<UserSettings> {
   try {
     const current = await getSettings()
     const updated = { ...current, ...settings }
     await chrome.storage.local.set({ [SETTINGS_KEY]: updated })
+
+    // Sync UI language to Supabase if authenticated
+    if (settings.language) {
+      syncLanguageToSupabase(settings.language).catch((e) => {
+        console.warn('[Settings] Failed to sync language to Supabase:', e)
+      })
+    }
+
     return updated
   } catch (error) {
     console.error('[Settings] Error saving settings:', error)
@@ -55,34 +83,28 @@ export async function saveSettings(settings: Partial<UserSettings>): Promise<Use
 }
 
 /**
- * Get language display name
+ * Sync UI language to Supabase user_profiles for authenticated users
+ * This is a fire-and-forget operation - errors are logged but don't block the UI
  */
-export function getLanguageDisplayName(code: string): string {
-  const languages: Record<string, string> = {
-    'pt-BR': 'Português (Brasil)',
-    'en-US': 'English (US)',
-    'es-ES': 'Español',
-    'fr-FR': 'Français',
-    'de-DE': 'Deutsch',
-    'it-IT': 'Italiano',
-    'ja-JP': '日本語',
-    'ko-KR': '한국어',
-    'zh-CN': '中文 (简体)',
+async function syncLanguageToSupabase(language: Locale): Promise<void> {
+  try {
+    // Dynamic import to avoid circular dependencies and keep bundle size down
+    const { isAuthenticated } = await import('./auth')
+    if (!(await isAuthenticated())) return
+
+    const { getSupabaseClient } = await import('./supabase')
+    const supabase = getSupabaseClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (user) {
+      await supabase.from('user_profiles').update({ language }).eq('id', user.id)
+      console.log('[Settings] Language synced to Supabase:', language)
+    }
+  } catch (e) {
+    // Silently fail - this is just a nice-to-have sync
+    console.warn('[Settings] Failed to sync language to Supabase:', e)
   }
-  return languages[code] || code
 }
 
-/**
- * Available languages for AI summaries
- */
-export const AVAILABLE_LANGUAGES = [
-  { code: 'pt-BR', name: 'Português (Brasil)' },
-  { code: 'en-US', name: 'English (US)' },
-  { code: 'es-ES', name: 'Español' },
-  { code: 'fr-FR', name: 'Français' },
-  { code: 'de-DE', name: 'Deutsch' },
-  { code: 'it-IT', name: 'Italiano' },
-  { code: 'ja-JP', name: '日本語' },
-  { code: 'ko-KR', name: '한국어' },
-  { code: 'zh-CN', name: '中文 (简体)' },
-]

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -14,13 +15,32 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { sendMessage } from '@/shared/messaging'
-import { AVAILABLE_LANGUAGES } from '@/shared/settings'
+import { saveSettings } from '@/shared/settings'
+import { useLanguage } from '@/i18n/useLanguage'
 import type { Project } from '@/shared/types'
 import type { User } from '@supabase/supabase-js'
-import { User as UserIcon, Key, FolderOpen, Plus, Trash2, ExternalLink, Sparkles, Globe, TabletSmartphone, LogOut, Mail, Loader2, ChevronDown, ChevronUp } from 'lucide-react'
+import {
+  User as UserIcon,
+  Key,
+  FolderOpen,
+  Plus,
+  Trash2,
+  ExternalLink,
+  Sparkles,
+  TabletSmartphone,
+  LogOut,
+  Mail,
+  Loader2,
+  ChevronDown,
+  ChevronUp,
+  Languages,
+} from 'lucide-react'
 import { RajiLogo } from '@/components/RajiLogo'
 
 export function Options() {
+  const { t } = useTranslation()
+  const { currentLanguage, setLanguage, locales, localeLabels, localeFlags } = useLanguage()
+
   // Auth state
   const [user, setUser] = useState<User | null>(null)
   const [isAuthLoading, setIsAuthLoading] = useState(true)
@@ -37,7 +57,6 @@ export function Options() {
   const [projects, setProjects] = useState<Project[]>([])
   const [newProjectName, setNewProjectName] = useState('')
   const [isSaving, setIsSaving] = useState(false)
-  const [language, setLanguage] = useState('pt-BR')
   const [autoSummarize, setAutoSummarize] = useState(true)
   const [closeTabOnSave, setCloseTabOnSave] = useState(true)
   const [useTabGroups, setUseTabGroups] = useState(true)
@@ -46,12 +65,14 @@ export function Options() {
   // Load current settings
   useEffect(() => {
     // Check auth state
-    sendMessage({ type: 'AUTH_GET_USER' }).then((response) => {
-      setUser(response.user)
-      setIsAuthLoading(false)
-    }).catch(() => {
-      setIsAuthLoading(false)
-    })
+    sendMessage({ type: 'AUTH_GET_USER' })
+      .then((response) => {
+        setUser(response.user)
+        setIsAuthLoading(false)
+      })
+      .catch(() => {
+        setIsAuthLoading(false)
+      })
 
     // Load API keys (for backward compatibility / advanced users)
     sendMessage({ type: 'GET_API_KEYS' }).then((keys) => {
@@ -66,12 +87,19 @@ export function Options() {
 
     // Load user settings
     sendMessage({ type: 'GET_SETTINGS' }).then((settings) => {
-      setLanguage(settings.language)
       setAutoSummarize(settings.autoSummarize)
       setCloseTabOnSave(settings.closeTabOnSave)
       setUseTabGroups(settings.useTabGroups)
     })
   }, [])
+
+  // Handle UI language change
+  const handleUILanguageChange = async (newLanguage: string) => {
+    // Update i18n
+    await setLanguage(newLanguage as 'en' | 'pt' | 'es')
+    // Persist to settings (which also syncs to Supabase)
+    await saveSettings({ language: newLanguage as 'en' | 'pt' | 'es' })
+  }
 
   // Handle sending OTP code
   const handleSendOtp = async () => {
@@ -84,21 +112,21 @@ export function Options() {
         setOtpSent(true)
         toast({
           variant: 'success',
-          title: 'Código enviado!',
-          description: `Verifique seu email ${email} e digite o código.`,
+          title: t('options.otp.codeSentTitle'),
+          description: t('options.otp.codeSentDescription', { email }),
         })
       } else {
         toast({
           variant: 'destructive',
-          title: 'Erro',
-          description: response.error || 'Erro ao enviar código.',
+          title: t('common.error'),
+          description: response.error || t('options.toast.errorSaving'),
         })
       }
-    } catch (error) {
+    } catch {
       toast({
         variant: 'destructive',
-        title: 'Erro',
-        description: 'Erro ao enviar código.',
+        title: t('common.error'),
+        description: t('options.toast.errorSaving'),
       })
     } finally {
       setIsSigningIn(false)
@@ -122,21 +150,21 @@ export function Options() {
         setOtpCode('')
         toast({
           variant: 'success',
-          title: 'Login realizado!',
-          description: 'Bem-vindo ao HeyRaji!',
+          title: t('options.auth.loginSuccess'),
+          description: t('options.auth.welcome'),
         })
       } else {
         toast({
           variant: 'destructive',
-          title: 'Código inválido',
-          description: response.error || 'Verifique o código e tente novamente.',
+          title: t('options.otp.invalidCode'),
+          description: response.error || t('options.otp.invalidCodeDescription'),
         })
       }
-    } catch (error) {
+    } catch {
       toast({
         variant: 'destructive',
-        title: 'Erro',
-        description: 'Erro ao verificar código.',
+        title: t('common.error'),
+        description: t('options.toast.errorSaving'),
       })
     } finally {
       setIsVerifying(false)
@@ -153,14 +181,14 @@ export function Options() {
       setEmail('')
       toast({
         variant: 'success',
-        title: 'Deslogado',
-        description: 'Você saiu da sua conta.',
+        title: t('options.auth.signedOut'),
+        description: t('options.auth.signedOutDescription'),
       })
-    } catch (error) {
+    } catch {
       toast({
         variant: 'destructive',
-        title: 'Erro',
-        description: 'Erro ao sair da conta.',
+        title: t('common.error'),
+        description: t('options.toast.errorSignOut'),
       })
     }
   }
@@ -176,36 +204,17 @@ export function Options() {
       })
       toast({
         variant: 'success',
-        title: 'Salvo!',
-        description: 'API keys salvas com sucesso.',
+        title: t('common.saved'),
+        description: t('options.apiKeys.savedSuccess'),
       })
-    } catch (error) {
+    } catch {
       toast({
         variant: 'destructive',
-        title: 'Erro',
-        description: 'Erro ao salvar API keys.',
+        title: t('common.error'),
+        description: t('options.toast.errorSaving'),
       })
     } finally {
       setIsSaving(false)
-    }
-  }
-
-  // Handle language change
-  const handleLanguageChange = async (newLanguage: string) => {
-    setLanguage(newLanguage)
-    try {
-      await sendMessage({ type: 'SET_SETTINGS', settings: { language: newLanguage } })
-      toast({
-        variant: 'success',
-        title: 'Idioma atualizado',
-        description: 'Idioma dos resumos AI alterado.',
-      })
-    } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: 'Erro',
-        description: 'Erro ao salvar configuração.',
-      })
     }
   }
 
@@ -216,16 +225,18 @@ export function Options() {
       await sendMessage({ type: 'SET_SETTINGS', settings: { autoSummarize: enabled } })
       toast({
         variant: 'success',
-        title: enabled ? 'Resumo automático ativado' : 'Resumo automático desativado',
+        title: enabled
+          ? t('options.ai.autoSummarize.enabled')
+          : t('options.ai.autoSummarize.disabled'),
         description: enabled
-          ? 'Páginas serão resumidas automaticamente ao salvar.'
-          : 'Apenas sua transcrição será salva.',
+          ? t('options.ai.autoSummarize.enabledDescription')
+          : t('options.ai.autoSummarize.disabledDescription'),
       })
-    } catch (error) {
+    } catch {
       toast({
         variant: 'destructive',
-        title: 'Erro',
-        description: 'Erro ao salvar configuração.',
+        title: t('common.error'),
+        description: t('options.toast.errorSaving'),
       })
     }
   }
@@ -237,16 +248,18 @@ export function Options() {
       await sendMessage({ type: 'SET_SETTINGS', settings: { closeTabOnSave: enabled } })
       toast({
         variant: 'success',
-        title: enabled ? 'Fechar tab ativado' : 'Fechar tab desativado',
+        title: enabled
+          ? t('options.behavior.closeTab.enabled')
+          : t('options.behavior.closeTab.disabled'),
         description: enabled
-          ? 'A tab será fechada automaticamente após salvar.'
-          : 'A tab permanecerá aberta após salvar.',
+          ? t('options.behavior.closeTab.enabledDescription')
+          : t('options.behavior.closeTab.disabledDescription'),
       })
-    } catch (error) {
+    } catch {
       toast({
         variant: 'destructive',
-        title: 'Erro',
-        description: 'Erro ao salvar configuração.',
+        title: t('common.error'),
+        description: t('options.toast.errorSaving'),
       })
     }
   }
@@ -258,16 +271,18 @@ export function Options() {
       await sendMessage({ type: 'SET_SETTINGS', settings: { useTabGroups: enabled } })
       toast({
         variant: 'success',
-        title: enabled ? 'Grupos de tabs ativado' : 'Grupos de tabs desativado',
+        title: enabled
+          ? t('options.behavior.tabGroups.enabled')
+          : t('options.behavior.tabGroups.disabled'),
         description: enabled
-          ? 'Tabs serão organizadas em grupos por projeto.'
-          : 'Tabs não serão agrupadas automaticamente.',
+          ? t('options.behavior.tabGroups.enabledDescription')
+          : t('options.behavior.tabGroups.disabledDescription'),
       })
-    } catch (error) {
+    } catch {
       toast({
         variant: 'destructive',
-        title: 'Erro',
-        description: 'Erro ao salvar configuração.',
+        title: t('common.error'),
+        description: t('options.toast.errorSaving'),
       })
     }
   }
@@ -287,15 +302,15 @@ export function Options() {
         setNewProjectName('')
         toast({
           variant: 'success',
-          title: 'Projeto criado',
-          description: `Projeto "${response.project.name}" criado.`,
+          title: t('options.projects.created'),
+          description: t('options.projects.createdDescription', { name: response.project.name }),
         })
       }
-    } catch (error) {
+    } catch {
       toast({
         variant: 'destructive',
-        title: 'Erro',
-        description: 'Erro ao criar projeto.',
+        title: t('common.error'),
+        description: t('options.toast.errorSaving'),
       })
     }
   }
@@ -307,14 +322,14 @@ export function Options() {
       setProjects(projects.filter((p) => p.id !== project.id))
       toast({
         variant: 'success',
-        title: 'Projeto removido',
-        description: `Projeto "${project.name}" removido.`,
+        title: t('options.projects.deleted'),
+        description: t('options.projects.deletedDescription', { name: project.name }),
       })
-    } catch (error) {
+    } catch {
       toast({
         variant: 'destructive',
-        title: 'Erro',
-        description: 'Erro ao remover projeto.',
+        title: t('common.error'),
+        description: t('options.toast.errorSaving'),
       })
     }
   }
@@ -334,12 +349,10 @@ export function Options() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <UserIcon className="h-5 w-5" />
-                Conta
+                {t('options.account.title')}
               </CardTitle>
               <CardDescription>
-                {user
-                  ? 'Você está logado. Seus dados são sincronizados automaticamente.'
-                  : 'Faça login para sincronizar seus dados entre dispositivos.'}
+                {user ? t('options.account.loggedIn') : t('options.account.loggedOut')}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -360,17 +373,13 @@ export function Options() {
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">{user.email}</p>
                       <p className="text-xs text-muted-foreground">
-                        Dados sincronizados
+                        {t('options.account.dataSynced')}
                       </p>
                     </div>
                   </div>
-                  <Button
-                    variant="outline"
-                    onClick={handleSignOut}
-                    className="w-full"
-                  >
+                  <Button variant="outline" onClick={handleSignOut} className="w-full">
                     <LogOut className="h-4 w-4 mr-2" />
-                    Sair da conta
+                    {t('options.account.signOut')}
                   </Button>
                 </div>
               ) : otpSent ? (
@@ -382,14 +391,14 @@ export function Options() {
                         <Mail className="h-6 w-6 text-green-600 dark:text-green-400" />
                       </div>
                     </div>
-                    <p className="font-medium">Verifique seu email</p>
+                    <p className="font-medium">{t('options.otp.checkEmail')}</p>
                     <p className="text-sm text-muted-foreground mt-1">
-                      Enviamos um código para <strong>{email}</strong>
+                      {t('options.otp.codeSent')} <strong>{email}</strong>
                     </p>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="otp">Código de verificação</Label>
+                    <Label htmlFor="otp">{t('options.otp.verificationCode')}</Label>
                     <Input
                       id="otp"
                       type="text"
@@ -411,21 +420,16 @@ export function Options() {
                     {isVerifying ? (
                       <>
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Verificando...
+                        {t('common.verifying')}
                       </>
                     ) : (
-                      'Verificar código'
+                      t('options.otp.verifyCode')
                     )}
                   </Button>
 
                   <div className="flex justify-center gap-4">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleSendOtp}
-                      disabled={isSigningIn}
-                    >
-                      Reenviar código
+                    <Button variant="ghost" size="sm" onClick={handleSendOtp} disabled={isSigningIn}>
+                      {t('options.otp.resendCode')}
                     </Button>
                     <Button
                       variant="ghost"
@@ -436,7 +440,7 @@ export function Options() {
                         setEmail('')
                       }}
                     >
-                      Usar outro email
+                      {t('options.otp.useOtherEmail')}
                     </Button>
                   </div>
                 </div>
@@ -444,11 +448,11 @@ export function Options() {
                 // Login form
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
+                    <Label htmlFor="email">{t('options.email.label')}</Label>
                     <Input
                       id="email"
                       type="email"
-                      placeholder="seu@email.com"
+                      placeholder={t('options.email.placeholder')}
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && handleSendOtp()}
@@ -462,20 +466,44 @@ export function Options() {
                     {isSigningIn ? (
                       <>
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Enviando...
+                        {t('common.sending')}
                       </>
                     ) : (
                       <>
                         <Mail className="h-4 w-4 mr-2" />
-                        Enviar código de verificação
+                        {t('options.email.sendCode')}
                       </>
                     )}
                   </Button>
                   <p className="text-xs text-muted-foreground text-center">
-                    Você receberá um código no seu email para fazer login.
+                    {t('options.email.receiveCode')}
                   </p>
                 </div>
               )}
+            </CardContent>
+          </Card>
+
+          {/* UI Language Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Languages className="h-5 w-5" />
+                {t('options.ai.language.label').replace(' dos resumos', '')}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Select value={currentLanguage} onValueChange={handleUILanguageChange}>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {locales.map((locale) => (
+                    <SelectItem key={locale} value={locale}>
+                      {localeFlags[locale]} {localeLabels[locale]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </CardContent>
           </Card>
 
@@ -488,7 +516,7 @@ export function Options() {
               <CardTitle className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Key className="h-5 w-5" />
-                  API Keys (Avançado)
+                  {t('options.apiKeys.title')}
                 </div>
                 {showAdvancedKeys ? (
                   <ChevronUp className="h-5 w-5 text-muted-foreground" />
@@ -497,22 +525,18 @@ export function Options() {
                 )}
               </CardTitle>
               {!showAdvancedKeys && (
-                <CardDescription>
-                  Opcional - configure suas próprias API keys se preferir.
-                </CardDescription>
+                <CardDescription>{t('options.apiKeys.description')}</CardDescription>
               )}
             </CardHeader>
             {showAdvancedKeys && (
               <CardContent className="space-y-4">
                 <p className="text-sm text-muted-foreground border-l-2 border-amber-500 pl-3">
-                  {user
-                    ? 'Você está logado, então não precisa configurar API keys. Elas são opcionais.'
-                    : 'Se você não quiser criar uma conta, pode usar suas próprias API keys.'}
+                  {user ? t('options.apiKeys.loggedInNote') : t('options.apiKeys.loggedOutNote')}
                 </p>
 
                 {/* ElevenLabs Key */}
                 <div className="space-y-2">
-                  <Label htmlFor="elevenlabs">ElevenLabs API Key</Label>
+                  <Label htmlFor="elevenlabs">{t('options.apiKeys.elevenlabs.label')}</Label>
                   <div className="flex gap-2">
                     <Input
                       id="elevenlabs"
@@ -521,29 +545,25 @@ export function Options() {
                       value={elevenlabsKey}
                       onChange={(e) => setElevenlabsKey(e.target.value)}
                     />
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      asChild
-                    >
+                    <Button variant="outline" size="icon" asChild>
                       <a
                         href="https://elevenlabs.io/app/settings/api-keys"
                         target="_blank"
                         rel="noopener noreferrer"
-                        title="Obter API Key"
+                        title={t('options.apiKeys.elevenlabs.getKey')}
                       >
                         <ExternalLink className="h-4 w-4" />
                       </a>
                     </Button>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Usado para transcrição de voz em tempo real.
+                    {t('options.apiKeys.elevenlabs.description')}
                   </p>
                 </div>
 
                 {/* OpenAI Key */}
                 <div className="space-y-2">
-                  <Label htmlFor="openai">OpenAI API Key</Label>
+                  <Label htmlFor="openai">{t('options.apiKeys.openai.label')}</Label>
                   <div className="flex gap-2">
                     <Input
                       id="openai"
@@ -552,28 +572,24 @@ export function Options() {
                       value={openaiKey}
                       onChange={(e) => setOpenaiKey(e.target.value)}
                     />
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      asChild
-                    >
+                    <Button variant="outline" size="icon" asChild>
                       <a
                         href="https://platform.openai.com/api-keys"
                         target="_blank"
                         rel="noopener noreferrer"
-                        title="Obter API Key"
+                        title={t('options.apiKeys.openai.getKey')}
                       >
                         <ExternalLink className="h-4 w-4" />
                       </a>
                     </Button>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Usado para gerar embeddings e busca semântica.
+                    {t('options.apiKeys.openai.description')}
                   </p>
                 </div>
 
                 <Button onClick={handleSaveKeys} disabled={isSaving}>
-                  {isSaving ? 'Salvando...' : 'Salvar API Keys'}
+                  {isSaving ? t('common.saving') : t('options.apiKeys.saveButton')}
                 </Button>
               </CardContent>
             )}
@@ -584,19 +600,17 @@ export function Options() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Sparkles className="h-5 w-5" />
-                Resumo Automático (AI)
+                {t('options.ai.title')}
               </CardTitle>
-              <CardDescription>
-                Configure o resumo automático de páginas usando inteligência artificial.
-              </CardDescription>
+              <CardDescription>{t('options.ai.description')}</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent>
               {/* Auto-summarize toggle */}
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label htmlFor="auto-summarize">Resumir páginas automaticamente</Label>
+                  <Label htmlFor="auto-summarize">{t('options.ai.autoSummarize.label')}</Label>
                   <p className="text-xs text-muted-foreground">
-                    Gera um resumo AI do conteúdo da página ao salvar tabs.
+                    {t('options.ai.autoSummarize.description')}
                   </p>
                 </div>
                 <Switch
@@ -604,29 +618,6 @@ export function Options() {
                   checked={autoSummarize}
                   onCheckedChange={handleAutoSummarizeChange}
                 />
-              </div>
-
-              {/* Language selector */}
-              <div className="space-y-2">
-                <Label htmlFor="language" className="flex items-center gap-2">
-                  <Globe className="h-4 w-4" />
-                  Idioma dos resumos
-                </Label>
-                <Select value={language} onValueChange={handleLanguageChange}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Selecione o idioma" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {AVAILABLE_LANGUAGES.map((lang) => (
-                      <SelectItem key={lang.code} value={lang.code}>
-                        {lang.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-muted-foreground">
-                  O resumo será gerado neste idioma, independente do idioma da página.
-                </p>
               </div>
             </CardContent>
           </Card>
@@ -636,19 +627,17 @@ export function Options() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <TabletSmartphone className="h-5 w-5" />
-                Comportamento
+                {t('options.behavior.title')}
               </CardTitle>
-              <CardDescription>
-                Configure o comportamento ao salvar tabs.
-              </CardDescription>
+              <CardDescription>{t('options.behavior.description')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Close tab on save toggle */}
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label htmlFor="close-tab">Fechar tab ao salvar</Label>
+                  <Label htmlFor="close-tab">{t('options.behavior.closeTab.label')}</Label>
                   <p className="text-xs text-muted-foreground">
-                    Fecha automaticamente a tab após salvar. Não se aplica a notas.
+                    {t('options.behavior.closeTab.description')}
                   </p>
                 </div>
                 <Switch
@@ -661,9 +650,9 @@ export function Options() {
               {/* Use tab groups toggle */}
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label htmlFor="tab-groups">Organizar em grupos por projeto</Label>
+                  <Label htmlFor="tab-groups">{t('options.behavior.tabGroups.label')}</Label>
                   <p className="text-xs text-muted-foreground">
-                    Agrupa tabs automaticamente pelo projeto ao salvar ou abrir lembretes.
+                    {t('options.behavior.tabGroups.description')}
                   </p>
                 </div>
                 <Switch
@@ -680,25 +669,20 @@ export function Options() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <FolderOpen className="h-5 w-5" />
-                Projetos
+                {t('options.projects.title')}
               </CardTitle>
-              <CardDescription>
-                Gerencie seus projetos para organizar itens salvos.
-              </CardDescription>
+              <CardDescription>{t('options.projects.description')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {/* New project form */}
               <div className="flex gap-2">
                 <Input
-                  placeholder="Nome do novo projeto"
+                  placeholder={t('options.projects.newProject')}
                   value={newProjectName}
                   onChange={(e) => setNewProjectName(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleCreateProject()}
                 />
-                <Button
-                  onClick={handleCreateProject}
-                  disabled={!newProjectName.trim()}
-                >
+                <Button onClick={handleCreateProject} disabled={!newProjectName.trim()}>
                   <Plus className="h-4 w-4" />
                 </Button>
               </div>
@@ -707,7 +691,7 @@ export function Options() {
               <div className="space-y-2">
                 {projects.length === 0 ? (
                   <p className="text-sm text-muted-foreground text-center py-4">
-                    Nenhum projeto criado ainda.
+                    {t('options.projects.noProjects')}
                   </p>
                 ) : (
                   projects.map((project) => (

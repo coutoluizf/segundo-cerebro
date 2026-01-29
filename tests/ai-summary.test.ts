@@ -156,36 +156,35 @@ describe('AI Summary Feature', () => {
 
       const settings = await getSettings()
 
-      expect(settings).toEqual({
-        language: 'pt-BR',
-        autoSummarize: true,
-      })
+      // language is now a unified Locale type (en, pt, es) for both UI and AI summaries
+      expect(settings.autoSummarize).toBe(true)
+      expect(['en', 'pt', 'es']).toContain(settings.language)
     })
 
     it('should save and retrieve settings', async () => {
       const { getSettings, saveSettings } = await import('@/shared/settings')
 
-      // Save custom settings
-      await saveSettings({ language: 'en-US', autoSummarize: false })
+      // Save custom settings - language is Locale type used for both UI and AI
+      await saveSettings({ language: 'en', autoSummarize: false })
 
       // Retrieve settings
       const settings = await getSettings()
 
-      expect(settings.language).toBe('en-US')
+      expect(settings.language).toBe('en')
       expect(settings.autoSummarize).toBe(false)
     })
 
     it('should merge partial settings with defaults', async () => {
       const { getSettings, saveSettings } = await import('@/shared/settings')
 
-      // Save only language
-      await saveSettings({ language: 'es-ES' })
+      // Save only autoSummarize
+      await saveSettings({ autoSummarize: false })
 
-      // Retrieve settings - autoSummarize should still be default (true)
+      // Retrieve settings - language should still be default
       const settings = await getSettings()
 
-      expect(settings.language).toBe('es-ES')
-      expect(settings.autoSummarize).toBe(true)
+      expect(['en', 'pt', 'es']).toContain(settings.language)
+      expect(settings.autoSummarize).toBe(false)
     })
   })
 
@@ -194,8 +193,8 @@ describe('AI Summary Feature', () => {
       const { saveSettings } = await import('@/shared/settings')
       const { generateSummary } = await import('@/shared/summarize')
 
-      // Set language to Spanish
-      await saveSettings({ language: 'es-ES' })
+      // Set language to Spanish (es is the unified locale for both UI and AI)
+      await saveSettings({ language: 'es' })
 
       // Mock successful response
       mockFetch.mockResolvedValueOnce({

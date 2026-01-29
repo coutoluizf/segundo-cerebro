@@ -1,20 +1,20 @@
 /**
  * Integration tests for Duplicate URL Detection
- * Tests the full flow against the REAL Turso database
+ * Tests the full flow against the REAL Supabase database
  *
- * These are true end-to-end tests - no mocks!
+ * These tests use a dedicated test user for authentication.
+ * See tests/CLAUDE.md for test user credentials and documentation.
  */
 
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
+import { loginTestUser, logoutTestUser, TEST_USER } from './setup/auth'
 import {
-  initDatabase,
   saveItem,
   getItemByExactUrl,
   getItemByUrlHash,
   deleteItem,
   permanentlyDeleteItem,
-  getItems,
-} from '@/shared/db'
+} from './setup/test-db'
 import { generateUrlHash } from '@/shared/types'
 
 // Test URLs - using unique paths to avoid conflicts with real data
@@ -22,20 +22,19 @@ const TEST_URL_BASE = 'https://test-heyraji.example.com/integration-test'
 const TEST_URL_1 = `${TEST_URL_BASE}/page-${Date.now()}-1`
 const TEST_URL_2 = `${TEST_URL_BASE}/page-${Date.now()}-2`
 const TEST_URL_WITH_PARAMS = `${TEST_URL_BASE}/page?id=${Date.now()}&filter=active`
-const TEST_URL_WITH_TRAILING_SLASH = `${TEST_URL_BASE}/page-${Date.now()}/`
 
 // Track created items for cleanup
 const createdItemIds: string[] = []
 
 describe('Duplicate URL Detection - Integration Tests', () => {
-  // Initialize database before all tests
+  // Login as test user before all tests
   beforeAll(async () => {
-    console.log('\n🔌 Connecting to Turso database...')
-    await initDatabase()
-    console.log('✅ Database initialized')
+    console.log('\n🔐 Authenticating as test user...')
+    await loginTestUser()
+    console.log('✅ Authenticated')
   })
 
-  // Cleanup: permanently delete all test items
+  // Cleanup: permanently delete all test items and logout
   afterAll(async () => {
     console.log('\n🧹 Cleaning up test items...')
     for (const id of createdItemIds) {
@@ -47,6 +46,8 @@ describe('Duplicate URL Detection - Integration Tests', () => {
       }
     }
     console.log('✅ Cleanup complete')
+
+    await logoutTestUser()
   })
 
   describe('URL Hash Generation', () => {

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Search, Loader2, Sparkles, Mic, MicOff } from 'lucide-react'
 import { ScribeClient, type ScribeConfig } from '@/shared/scribe'
 import type { ScribeState } from '@/shared/types'
@@ -17,6 +18,7 @@ interface SearchBarProps {
  * Features debounced search, loading state, and speech-to-text
  */
 export function SearchBar({ value, onChange, isSearching, large = false }: SearchBarProps) {
+  const { t } = useTranslation()
   const [localValue, setLocalValue] = useState(value)
   const [isFocused, setIsFocused] = useState(false)
   const [voiceState, setVoiceState] = useState<ScribeState>('idle')
@@ -109,7 +111,7 @@ export function SearchBar({ value, onChange, isSearching, large = false }: Searc
         className={cn(
           'absolute -inset-1 rounded-2xl blur-lg transition-opacity duration-300',
           isListening ? 'bg-red-500/30 opacity-100' : 'bg-primary/20',
-          (isFocused || isListening) ? 'opacity-100' : 'opacity-0'
+          isFocused || isListening ? 'opacity-100' : 'opacity-0'
         )}
       />
 
@@ -137,7 +139,7 @@ export function SearchBar({ value, onChange, isSearching, large = false }: Searc
         {/* Input */}
         <input
           type="search"
-          placeholder={isListening ? 'Ouvindo...' : 'Buscar por significado...'}
+          placeholder={isListening ? t('dashboard.search.listening') : t('dashboard.search.placeholder')}
           value={localValue}
           onChange={(e) => setLocalValue(e.target.value)}
           onFocus={() => setIsFocused(true)}
@@ -161,7 +163,7 @@ export function SearchBar({ value, onChange, isSearching, large = false }: Searc
               : 'hover:bg-background/50 text-muted-foreground hover:text-foreground',
             isConnecting && 'opacity-50 cursor-not-allowed'
           )}
-          title={isListening ? 'Parar gravação' : 'Buscar por voz'}
+          title={isListening ? t('dashboard.search.stopRecording') : t('dashboard.search.searchByVoice')}
         >
           {isConnecting ? (
             <Loader2 className={cn('animate-spin', large ? 'h-5 w-5' : 'h-4 w-4')} />
@@ -173,10 +175,7 @@ export function SearchBar({ value, onChange, isSearching, large = false }: Searc
         </button>
 
         {/* AI indicator */}
-        <div className={cn(
-          'flex items-center gap-1 text-muted-foreground/60',
-          large ? 'text-sm' : 'text-xs'
-        )}>
+        <div className={cn('flex items-center gap-1 text-muted-foreground/60', large ? 'text-sm' : 'text-xs')}>
           <Sparkles className={cn(large ? 'h-4 w-4' : 'h-3 w-3')} />
           <span className="hidden sm:inline">AI</span>
         </div>
@@ -187,7 +186,7 @@ export function SearchBar({ value, onChange, isSearching, large = false }: Searc
         <div className="absolute -bottom-6 left-0 right-0 text-center">
           <span className="text-xs text-red-500 flex items-center justify-center gap-1">
             <span className="inline-block h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse" />
-            Fale sua busca...
+            {t('dashboard.search.speakSearch')}
           </span>
         </div>
       )}

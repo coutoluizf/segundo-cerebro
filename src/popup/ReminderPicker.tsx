@@ -9,6 +9,7 @@
  */
 
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Clock, ChevronDown, ChevronUp, X, Calendar } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { getReminderPresets, formatReminderTime } from '@/shared/reminders'
@@ -20,6 +21,7 @@ interface ReminderPickerProps {
 }
 
 export function ReminderPicker({ value, onChange, disabled }: ReminderPickerProps) {
+  const { t } = useTranslation()
   const [isExpanded, setIsExpanded] = useState(false)
   const [showCustomPicker, setShowCustomPicker] = useState(false)
 
@@ -89,7 +91,7 @@ export function ReminderPicker({ value, onChange, disabled }: ReminderPickerProp
           type="button"
           onClick={handleClear}
           className="p-0.5 rounded-full hover:bg-primary/20 transition-colors"
-          aria-label="Remover lembrete"
+          aria-label={t('reminder.clearReminder')}
         >
           <X className="h-3.5 w-3.5" />
         </button>
@@ -116,7 +118,7 @@ export function ReminderPicker({ value, onChange, disabled }: ReminderPickerProp
           <div className="p-1 rounded-md bg-primary/10">
             <Clock className="h-4 w-4 text-primary" />
           </div>
-          <span>Adicionar lembrete</span>
+          <span>{t('reminder.setReminder')}</span>
         </div>
         {isExpanded ? (
           <ChevronUp className="h-4 w-4" />
@@ -156,7 +158,7 @@ export function ReminderPicker({ value, onChange, disabled }: ReminderPickerProp
               )}
             >
               <Calendar className="h-4 w-4 text-muted-foreground" />
-              <span>Escolher data...</span>
+              <span>{t('reminder.custom')}</span>
             </button>
           </div>
 

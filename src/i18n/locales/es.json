@@ -1,0 +1,287 @@
+{
+  "common": {
+    "loading": "Cargando...",
+    "error": "Error",
+    "success": "Éxito",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "confirm": "Confirmar",
+    "close": "Cerrar",
+    "updated": "Actualizado",
+    "deleted": "Eliminado",
+    "restored": "Restaurado",
+    "saved": "¡Guardado!",
+    "saving": "Guardando...",
+    "sending": "Enviando...",
+    "verifying": "Verificando..."
+  },
+  "popup": {
+    "tabs": {
+      "saveTab": "Guardar Pestaña",
+      "quickNote": "Nota Rápida"
+    },
+    "placeholder": {
+      "tab": "Comentario opcional (AI genera resumen)...",
+      "note": "Pega o escribe tu nota..."
+    },
+    "buttons": {
+      "saveTab": "Guardar Pestaña",
+      "saveNote": "Guardar Nota",
+      "login": "Iniciar Sesión"
+    },
+    "toast": {
+      "tabSaved": "Pestaña guardada con éxito.",
+      "noteSaved": "Nota guardada con éxito.",
+      "errorEmpty": "Escribe o pega algo antes de guardar.",
+      "itemUpdated": "Elemento existente actualizado con éxito."
+    },
+    "login": {
+      "title": "Inicia sesión para comenzar",
+      "description": "Crea una cuenta gratuita para guardar y sincronizar tus notas."
+    },
+    "mic": {
+      "setup": "Configuración Inicial",
+      "denied": "Permiso de micrófono denegado. Haz clic para configurar de nuevo.",
+      "prompt": "Permite el acceso al micrófono para grabar tus notas de voz.",
+      "allowButton": "Permitir Micrófono",
+      "viewSaved": "Ver elementos guardados"
+    },
+    "duplicate": {
+      "warning": "Ya guardaste esta página",
+      "savedOn": "Guardado el {{date}}",
+      "updateExisting": "Actualizar existente",
+      "saveAsNew": "Guardar como nuevo"
+    },
+    "clipboard": {
+      "detected": "Texto copiado detectado"
+    },
+    "source": {
+      "placeholder": "Fuente (opcional): Twitter @user, Libro X..."
+    },
+    "closeTabOnSave": "Cerrar pestaña al guardar",
+    "footer": {
+      "viewItems": "Ver tus",
+      "itemSaved": "elemento guardado",
+      "itemsSaved": "elementos guardados"
+    },
+    "banner": {
+      "title": "¡Elemento guardado!",
+      "description": "Conoce el Dashboard con búsqueda semántica y organización por proyectos.",
+      "openDashboard": "Abrir Dashboard"
+    }
+  },
+  "dashboard": {
+    "header": {
+      "subtitle": "Tus ideas, organizadas"
+    },
+    "search": {
+      "placeholder": "Buscar por significado...",
+      "listening": "Escuchando...",
+      "speakSearch": "Di tu búsqueda...",
+      "stopRecording": "Detener grabación",
+      "searchByVoice": "Buscar por voz"
+    },
+    "empty": {
+      "noResults": "Sin resultados",
+      "tryOther": "Intenta buscar otros términos o conceptos relacionados.",
+      "startSaving": "Comienza a memorizar",
+      "useExtension": "Usa la extensión para guardar pestañas y notas con tu voz."
+    },
+    "loading": "Cargando recuerdos...",
+    "views": {
+      "items": "Elementos",
+      "projects": "Proyectos",
+      "list": "Lista",
+      "columns2": "2 columnas",
+      "columns3": "3 columnas"
+    },
+    "theme": {
+      "light": "Claro",
+      "dark": "Oscuro",
+      "system": "Sistema"
+    },
+    "trash": {
+      "title": "Papelera",
+      "empty": "Papelera vacía",
+      "emptyDescription": "Los elementos eliminados aparecerán aquí y pueden ser restaurados.",
+      "restore": "Restaurar",
+      "deleteForever": "Eliminar permanentemente",
+      "restoreAll": "Restaurar todos",
+      "emptyTrash": "Vaciar papelera",
+      "itemRestored": "Elemento restaurado con éxito.",
+      "confirmDelete": "Este elemento será eliminado permanentemente. Esta acción no se puede deshacer.",
+      "confirmEmptyTrash": "Todos los elementos de la papelera serán eliminados permanentemente. Esta acción no se puede deshacer."
+    },
+    "projects": {
+      "title": "Proyectos",
+      "newProject": "Nuevo proyecto",
+      "allItems": "Todos los elementos",
+      "projectName": "Nombre del proyecto",
+      "edit": "Editar",
+      "delete": "Eliminar",
+      "confirmDelete": "¿Estás seguro de que deseas eliminar este proyecto? Los elementos no serán eliminados."
+    },
+    "results": {
+      "count": "{{count}} resultado",
+      "count_plural": "{{count}} resultados",
+      "for": "para"
+    },
+    "toast": {
+      "errorLoading": "Error al cargar datos.",
+      "searchError": "Error en la búsqueda",
+      "deleteError": "Error al eliminar elemento.",
+      "updateError": "Error al actualizar elemento.",
+      "projectUpdated": "Proyecto del elemento cambiado."
+    }
+  },
+  "options": {
+    "account": {
+      "title": "Cuenta",
+      "loggedIn": "Has iniciado sesión. Tus datos se sincronizan automáticamente.",
+      "loggedOut": "Inicia sesión para sincronizar tus datos entre dispositivos.",
+      "signOut": "Cerrar sesión",
+      "dataSynced": "Datos sincronizados"
+    },
+    "otp": {
+      "checkEmail": "Revisa tu correo",
+      "codeSent": "Enviamos un código a",
+      "verificationCode": "Código de verificación",
+      "verifyCode": "Verificar código",
+      "resendCode": "Reenviar código",
+      "useOtherEmail": "Usar otro correo",
+      "codeSentTitle": "¡Código enviado!",
+      "codeSentDescription": "Revisa tu correo {{email}} e ingresa el código.",
+      "invalidCode": "Código inválido",
+      "invalidCodeDescription": "Verifica el código e intenta de nuevo."
+    },
+    "email": {
+      "label": "Correo electrónico",
+      "placeholder": "tu@correo.com",
+      "sendCode": "Enviar código de verificación",
+      "receiveCode": "Recibirás un código en tu correo para iniciar sesión."
+    },
+    "auth": {
+      "loginSuccess": "¡Sesión iniciada!",
+      "welcome": "¡Bienvenido a HeyRaji!",
+      "signedOut": "Sesión cerrada",
+      "signedOutDescription": "Has cerrado tu sesión."
+    },
+    "apiKeys": {
+      "title": "API Keys (Avanzado)",
+      "description": "Opcional - configura tus propias API keys si lo prefieres.",
+      "loggedInNote": "Has iniciado sesión, así que no necesitas configurar API keys. Son opcionales.",
+      "loggedOutNote": "Si no quieres crear una cuenta, puedes usar tus propias API keys.",
+      "elevenlabs": {
+        "label": "ElevenLabs API Key",
+        "description": "Usado para transcripción de voz en tiempo real.",
+        "getKey": "Obtener API Key"
+      },
+      "openai": {
+        "label": "OpenAI API Key",
+        "description": "Usado para generar embeddings y búsqueda semántica.",
+        "getKey": "Obtener API Key"
+      },
+      "saveButton": "Guardar API Keys",
+      "savedSuccess": "API keys guardadas con éxito."
+    },
+    "ai": {
+      "title": "Resumen Automático (AI)",
+      "description": "Configura el resumen automático de páginas usando inteligencia artificial.",
+      "autoSummarize": {
+        "label": "Resumir páginas automáticamente",
+        "description": "Genera un resumen AI del contenido de la página al guardar pestañas.",
+        "enabled": "Resumen automático activado",
+        "enabledDescription": "Las páginas serán resumidas automáticamente al guardar.",
+        "disabled": "Resumen automático desactivado",
+        "disabledDescription": "Solo se guardará tu transcripción."
+      },
+      "language": {
+        "label": "Idioma de los resúmenes",
+        "description": "El resumen se generará en este idioma, independientemente del idioma de la página.",
+        "updated": "Idioma actualizado",
+        "updatedDescription": "Idioma de los resúmenes AI cambiado."
+      }
+    },
+    "behavior": {
+      "title": "Comportamiento",
+      "description": "Configura el comportamiento al guardar pestañas.",
+      "closeTab": {
+        "label": "Cerrar pestaña al guardar",
+        "description": "Cierra automáticamente la pestaña después de guardar. No aplica a notas.",
+        "enabled": "Cerrar pestaña activado",
+        "enabledDescription": "La pestaña se cerrará automáticamente después de guardar.",
+        "disabled": "Cerrar pestaña desactivado",
+        "disabledDescription": "La pestaña permanecerá abierta después de guardar."
+      },
+      "tabGroups": {
+        "label": "Organizar en grupos por proyecto",
+        "description": "Agrupa las pestañas automáticamente por proyecto al guardar o abrir recordatorios.",
+        "enabled": "Grupos de pestañas activado",
+        "enabledDescription": "Las pestañas serán organizadas en grupos por proyecto.",
+        "disabled": "Grupos de pestañas desactivado",
+        "disabledDescription": "Las pestañas no serán agrupadas automáticamente."
+      }
+    },
+    "projects": {
+      "title": "Proyectos",
+      "description": "Administra tus proyectos para organizar elementos guardados.",
+      "newProject": "Nombre del nuevo proyecto",
+      "noProjects": "Aún no hay proyectos creados.",
+      "created": "Proyecto creado",
+      "createdDescription": "Proyecto \"{{name}}\" creado.",
+      "deleted": "Proyecto eliminado",
+      "deletedDescription": "Proyecto \"{{name}}\" eliminado."
+    },
+    "toast": {
+      "errorSaving": "Error al guardar configuración.",
+      "errorSignOut": "Error al cerrar sesión."
+    }
+  },
+  "auth": {
+    "verifying": "Iniciando sesión...",
+    "verifyingDesc": "Espera mientras verificamos tu correo.",
+    "welcome": "¡Bienvenido a HeyRaji!",
+    "redirecting": "Redirigiendo al dashboard...",
+    "error": "Algo salió mal",
+    "timeout": "Tiempo agotado. El enlace puede haber expirado o hubo un error de conexión.",
+    "failed": "Error al iniciar sesión. El enlace puede haber expirado.",
+    "unexpected": "Ocurrió un error inesperado.",
+    "tryAgain": "Intentar de Nuevo"
+  },
+  "voice": {
+    "connecting": "Conectando...",
+    "processing": "Procesando...",
+    "recording": "Grabando",
+    "clickToStop": "Haz clic en el micrófono para detener",
+    "clickToRecord": "Grabar por voz",
+    "apiKeyMissing": "ElevenLabs API key no configurada",
+    "errorStarting": "Error al iniciar grabación"
+  },
+  "item": {
+    "untitled": "Sin título",
+    "noProject": "Sin proyecto",
+    "noTranscription": "Sin transcripción",
+    "noSummary": "Sin resumen",
+    "openOriginal": "Abrir original",
+    "copyLink": "Copiar enlace",
+    "linkCopied": "¡Enlace copiado!",
+    "edit": "Editar",
+    "moveToTrash": "Mover a papelera",
+    "type": {
+      "tab": "Pestaña",
+      "note": "Nota"
+    }
+  },
+  "reminder": {
+    "title": "Recordatorio",
+    "setReminder": "Establecer recordatorio",
+    "clearReminder": "Borrar recordatorio",
+    "inMinutes": "En {{count}} min",
+    "inHours": "En {{count}}h",
+    "inDays": "En {{count}} días",
+    "tomorrow": "Mañana",
+    "nextWeek": "Próxima semana",
+    "custom": "Personalizado..."
+  }
+}

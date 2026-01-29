@@ -1,0 +1,287 @@
+{
+  "common": {
+    "loading": "Carregando...",
+    "error": "Erro",
+    "success": "Sucesso",
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "delete": "Excluir",
+    "confirm": "Confirmar",
+    "close": "Fechar",
+    "updated": "Atualizado",
+    "deleted": "Deletado",
+    "restored": "Restaurado",
+    "saved": "Salvo!",
+    "saving": "Salvando...",
+    "sending": "Enviando...",
+    "verifying": "Verificando..."
+  },
+  "popup": {
+    "tabs": {
+      "saveTab": "Salvar Tab",
+      "quickNote": "Nota Rápida"
+    },
+    "placeholder": {
+      "tab": "Comentário opcional (AI gera resumo)...",
+      "note": "Cole ou digite sua nota..."
+    },
+    "buttons": {
+      "saveTab": "Salvar Tab",
+      "saveNote": "Salvar Nota",
+      "login": "Fazer Login"
+    },
+    "toast": {
+      "tabSaved": "Tab salva com sucesso.",
+      "noteSaved": "Nota salva com sucesso.",
+      "errorEmpty": "Digite ou cole algo antes de salvar.",
+      "itemUpdated": "Item existente atualizado com sucesso."
+    },
+    "login": {
+      "title": "Faça login para começar",
+      "description": "Crie uma conta gratuita para salvar e sincronizar suas anotações."
+    },
+    "mic": {
+      "setup": "Configuração Inicial",
+      "denied": "Permissão de microfone negada. Clique para configurar novamente.",
+      "prompt": "Permita o acesso ao microfone para gravar suas anotações por voz.",
+      "allowButton": "Permitir Microfone",
+      "viewSaved": "Ver itens salvos"
+    },
+    "duplicate": {
+      "warning": "Você já salvou esta página",
+      "savedOn": "Salvo em {{date}}",
+      "updateExisting": "Atualizar existente",
+      "saveAsNew": "Salvar como novo"
+    },
+    "clipboard": {
+      "detected": "Texto copiado detectado"
+    },
+    "source": {
+      "placeholder": "Fonte (opcional): Twitter @user, Livro X..."
+    },
+    "closeTabOnSave": "Fechar tab ao salvar",
+    "footer": {
+      "viewItems": "Ver seus",
+      "itemSaved": "item salvo",
+      "itemsSaved": "itens salvos"
+    },
+    "banner": {
+      "title": "Item salvo!",
+      "description": "Conheça o Dashboard com busca semântica e organização por projetos.",
+      "openDashboard": "Abrir Dashboard"
+    }
+  },
+  "dashboard": {
+    "header": {
+      "subtitle": "Suas ideias, organizadas"
+    },
+    "search": {
+      "placeholder": "Buscar por significado...",
+      "listening": "Ouvindo...",
+      "speakSearch": "Fale sua busca...",
+      "stopRecording": "Parar gravação",
+      "searchByVoice": "Buscar por voz"
+    },
+    "empty": {
+      "noResults": "Nenhum resultado",
+      "tryOther": "Tente buscar por outros termos ou conceitos relacionados.",
+      "startSaving": "Comece a memorizar",
+      "useExtension": "Use a extensão para salvar tabs e notas com sua voz."
+    },
+    "loading": "Carregando memórias...",
+    "views": {
+      "items": "Itens",
+      "projects": "Projetos",
+      "list": "Lista",
+      "columns2": "2 colunas",
+      "columns3": "3 colunas"
+    },
+    "theme": {
+      "light": "Claro",
+      "dark": "Escuro",
+      "system": "Sistema"
+    },
+    "trash": {
+      "title": "Lixeira",
+      "empty": "Lixeira vazia",
+      "emptyDescription": "Itens excluídos aparecerão aqui e podem ser restaurados.",
+      "restore": "Restaurar",
+      "deleteForever": "Excluir permanentemente",
+      "restoreAll": "Restaurar todos",
+      "emptyTrash": "Esvaziar lixeira",
+      "itemRestored": "Item restaurado com sucesso.",
+      "confirmDelete": "Este item será excluído permanentemente. Esta ação não pode ser desfeita.",
+      "confirmEmptyTrash": "Todos os itens na lixeira serão excluídos permanentemente. Esta ação não pode ser desfeita."
+    },
+    "projects": {
+      "title": "Projetos",
+      "newProject": "Novo projeto",
+      "allItems": "Todos os itens",
+      "projectName": "Nome do projeto",
+      "edit": "Editar",
+      "delete": "Excluir",
+      "confirmDelete": "Tem certeza que deseja excluir este projeto? Os itens não serão excluídos."
+    },
+    "results": {
+      "count": "{{count}} resultado",
+      "count_plural": "{{count}} resultados",
+      "for": "para"
+    },
+    "toast": {
+      "errorLoading": "Erro ao carregar dados.",
+      "searchError": "Erro na busca",
+      "deleteError": "Erro ao deletar item.",
+      "updateError": "Erro ao atualizar item.",
+      "projectUpdated": "Projeto do item alterado."
+    }
+  },
+  "options": {
+    "account": {
+      "title": "Conta",
+      "loggedIn": "Você está logado. Seus dados são sincronizados automaticamente.",
+      "loggedOut": "Faça login para sincronizar seus dados entre dispositivos.",
+      "signOut": "Sair da conta",
+      "dataSynced": "Dados sincronizados"
+    },
+    "otp": {
+      "checkEmail": "Verifique seu email",
+      "codeSent": "Enviamos um código para",
+      "verificationCode": "Código de verificação",
+      "verifyCode": "Verificar código",
+      "resendCode": "Reenviar código",
+      "useOtherEmail": "Usar outro email",
+      "codeSentTitle": "Código enviado!",
+      "codeSentDescription": "Verifique seu email {{email}} e digite o código.",
+      "invalidCode": "Código inválido",
+      "invalidCodeDescription": "Verifique o código e tente novamente."
+    },
+    "email": {
+      "label": "Email",
+      "placeholder": "seu@email.com",
+      "sendCode": "Enviar código de verificação",
+      "receiveCode": "Você receberá um código no seu email para fazer login."
+    },
+    "auth": {
+      "loginSuccess": "Login realizado!",
+      "welcome": "Bem-vindo ao HeyRaji!",
+      "signedOut": "Deslogado",
+      "signedOutDescription": "Você saiu da sua conta."
+    },
+    "apiKeys": {
+      "title": "API Keys (Avançado)",
+      "description": "Opcional - configure suas próprias API keys se preferir.",
+      "loggedInNote": "Você está logado, então não precisa configurar API keys. Elas são opcionais.",
+      "loggedOutNote": "Se você não quiser criar uma conta, pode usar suas próprias API keys.",
+      "elevenlabs": {
+        "label": "ElevenLabs API Key",
+        "description": "Usado para transcrição de voz em tempo real.",
+        "getKey": "Obter API Key"
+      },
+      "openai": {
+        "label": "OpenAI API Key",
+        "description": "Usado para gerar embeddings e busca semântica.",
+        "getKey": "Obter API Key"
+      },
+      "saveButton": "Salvar API Keys",
+      "savedSuccess": "API keys salvas com sucesso."
+    },
+    "ai": {
+      "title": "Resumo Automático (AI)",
+      "description": "Configure o resumo automático de páginas usando inteligência artificial.",
+      "autoSummarize": {
+        "label": "Resumir páginas automaticamente",
+        "description": "Gera um resumo AI do conteúdo da página ao salvar tabs.",
+        "enabled": "Resumo automático ativado",
+        "enabledDescription": "Páginas serão resumidas automaticamente ao salvar.",
+        "disabled": "Resumo automático desativado",
+        "disabledDescription": "Apenas sua transcrição será salva."
+      },
+      "language": {
+        "label": "Idioma dos resumos",
+        "description": "O resumo será gerado neste idioma, independente do idioma da página.",
+        "updated": "Idioma atualizado",
+        "updatedDescription": "Idioma dos resumos AI alterado."
+      }
+    },
+    "behavior": {
+      "title": "Comportamento",
+      "description": "Configure o comportamento ao salvar tabs.",
+      "closeTab": {
+        "label": "Fechar tab ao salvar",
+        "description": "Fecha automaticamente a tab após salvar. Não se aplica a notas.",
+        "enabled": "Fechar tab ativado",
+        "enabledDescription": "A tab será fechada automaticamente após salvar.",
+        "disabled": "Fechar tab desativado",
+        "disabledDescription": "A tab permanecerá aberta após salvar."
+      },
+      "tabGroups": {
+        "label": "Organizar em grupos por projeto",
+        "description": "Agrupa tabs automaticamente pelo projeto ao salvar ou abrir lembretes.",
+        "enabled": "Grupos de tabs ativado",
+        "enabledDescription": "Tabs serão organizadas em grupos por projeto.",
+        "disabled": "Grupos de tabs desativado",
+        "disabledDescription": "Tabs não serão agrupadas automaticamente."
+      }
+    },
+    "projects": {
+      "title": "Projetos",
+      "description": "Gerencie seus projetos para organizar itens salvos.",
+      "newProject": "Nome do novo projeto",
+      "noProjects": "Nenhum projeto criado ainda.",
+      "created": "Projeto criado",
+      "createdDescription": "Projeto \"{{name}}\" criado.",
+      "deleted": "Projeto removido",
+      "deletedDescription": "Projeto \"{{name}}\" removido."
+    },
+    "toast": {
+      "errorSaving": "Erro ao salvar configuração.",
+      "errorSignOut": "Erro ao sair da conta."
+    }
+  },
+  "auth": {
+    "verifying": "Entrando...",
+    "verifyingDesc": "Aguarde enquanto verificamos seu email.",
+    "welcome": "Bem-vindo ao HeyRaji!",
+    "redirecting": "Redirecionando para o dashboard...",
+    "error": "Algo deu errado",
+    "timeout": "Tempo esgotado. O link pode ter expirado ou houve um erro de conexão.",
+    "failed": "Falha ao entrar. O link pode ter expirado.",
+    "unexpected": "Ocorreu um erro inesperado.",
+    "tryAgain": "Tentar Novamente"
+  },
+  "voice": {
+    "connecting": "Conectando...",
+    "processing": "Processando...",
+    "recording": "Gravando",
+    "clickToStop": "Clique no microfone para parar",
+    "clickToRecord": "Gravar por voz",
+    "apiKeyMissing": "ElevenLabs API key não configurada",
+    "errorStarting": "Erro ao iniciar gravação"
+  },
+  "item": {
+    "untitled": "Sem título",
+    "noProject": "Sem projeto",
+    "noTranscription": "Sem transcrição",
+    "noSummary": "Sem resumo",
+    "openOriginal": "Abrir original",
+    "copyLink": "Copiar link",
+    "linkCopied": "Link copiado!",
+    "edit": "Editar",
+    "moveToTrash": "Mover para lixeira",
+    "type": {
+      "tab": "Tab",
+      "note": "Nota"
+    }
+  },
+  "reminder": {
+    "title": "Lembrete",
+    "setReminder": "Definir lembrete",
+    "clearReminder": "Limpar lembrete",
+    "inMinutes": "Em {{count}} min",
+    "inHours": "Em {{count}}h",
+    "inDays": "Em {{count}} dias",
+    "tomorrow": "Amanhã",
+    "nextWeek": "Próxima semana",
+    "custom": "Personalizado..."
+  }
+}

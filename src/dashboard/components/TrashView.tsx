@@ -4,6 +4,7 @@
  */
 
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { sendMessage } from '@/shared/messaging'
 import type { VoiceItem, Project } from '@/shared/types'
@@ -29,6 +30,7 @@ interface TrashViewProps {
  * TrashView - Grid display of deleted items with restore functionality
  */
 export function TrashView({ projects, onItemRestored, onClose }: TrashViewProps) {
+  const { t, i18n } = useTranslation()
   const [deletedItems, setDeletedItems] = useState<VoiceItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [restoringId, setRestoringId] = useState<string | null>(null)
@@ -58,7 +60,7 @@ export function TrashView({ projects, onItemRestored, onClose }: TrashViewProps)
       const response = await sendMessage({ type: 'RESTORE_ITEM', id })
       if (response.success) {
         // Remove from local list
-        setDeletedItems(prev => prev.filter(item => item.id !== id))
+        setDeletedItems((prev) => prev.filter((item) => item.id !== id))
         onItemRestored()
       }
     } catch (error) {
@@ -70,13 +72,13 @@ export function TrashView({ projects, onItemRestored, onClose }: TrashViewProps)
 
   // Permanently delete an item
   const handlePermanentDelete = async (id: string) => {
-    if (!window.confirm('Tem certeza? Esta ação não pode ser desfeita.')) return
+    if (!window.confirm(t('dashboard.trash.confirmDelete'))) return
 
     setDeletingId(id)
     try {
       const response = await sendMessage({ type: 'PERMANENT_DELETE_ITEM', id })
       if (response.success) {
-        setDeletedItems(prev => prev.filter(item => item.id !== id))
+        setDeletedItems((prev) => prev.filter((item) => item.id !== id))
       }
     } catch (error) {
       console.error('Error permanently deleting item:', error)
@@ -87,7 +89,7 @@ export function TrashView({ projects, onItemRestored, onClose }: TrashViewProps)
 
   // Empty all trash
   const handleEmptyTrash = async () => {
-    if (!window.confirm(`Excluir permanentemente ${deletedItems.length} itens? Esta ação não pode ser desfeita.`)) return
+    if (!window.confirm(t('dashboard.trash.confirmEmptyTrash'))) return
 
     setIsLoading(true)
     try {
@@ -108,9 +110,10 @@ export function TrashView({ projects, onItemRestored, onClose }: TrashViewProps)
     return projects.find((p) => p.id === projectId)
   }
 
-  // Format date
+  // Format date with appropriate locale
   const formatDate = (timestamp: number): string => {
-    return new Date(timestamp).toLocaleDateString('pt-BR', {
+    const locale = i18n.language === 'pt' ? 'pt-BR' : i18n.language === 'es' ? 'es-ES' : 'en-US'
+    return new Date(timestamp).toLocaleDateString(locale, {
       day: 'numeric',
       month: 'short',
       year: 'numeric',
@@ -131,7 +134,7 @@ export function TrashView({ projects, onItemRestored, onClose }: TrashViewProps)
     return (
       <div className="flex-1 flex flex-col items-center justify-center py-12">
         <Loader2 className="h-8 w-8 text-muted-foreground animate-spin" />
-        <p className="mt-4 text-sm text-muted-foreground">Carregando lixeira...</p>
+        <p className="mt-4 text-sm text-muted-foreground">{t('common.loading')}</p>
       </div>
     )
   }
@@ -143,12 +146,10 @@ export function TrashView({ projects, onItemRestored, onClose }: TrashViewProps)
         <div className="w-16 h-16 rounded-2xl bg-muted/50 flex items-center justify-center mb-4">
           <Trash2 className="h-8 w-8 text-muted-foreground/50" />
         </div>
-        <h3 className="text-lg font-medium">Lixeira vazia</h3>
-        <p className="text-sm text-muted-foreground mt-1">
-          Itens excluídos aparecerão aqui
-        </p>
+        <h3 className="text-lg font-medium">{t('dashboard.trash.empty')}</h3>
+        <p className="text-sm text-muted-foreground mt-1">{t('dashboard.trash.emptyDescription')}</p>
         <Button variant="outline" onClick={onClose} className="mt-6 rounded-xl">
-          Voltar
+          {t('common.close')}
         </Button>
       </div>
     )
@@ -163,15 +164,15 @@ export function TrashView({ projects, onItemRestored, onClose }: TrashViewProps)
             <Trash2 className="h-5 w-5 text-destructive" />
           </div>
           <div>
-            <h2 className="text-lg font-semibold">Lixeira</h2>
+            <h2 className="text-lg font-semibold">{t('dashboard.trash.title')}</h2>
             <p className="text-sm text-muted-foreground">
-              {deletedItems.length} {deletedItems.length === 1 ? 'item' : 'itens'} na lixeira
+              {deletedItems.length} {deletedItems.length === 1 ? 'item' : 'itens'}
             </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" onClick={onClose} className="rounded-xl">
-            Voltar
+            {t('common.close')}
           </Button>
           <Button
             variant="destructive"
@@ -180,7 +181,7 @@ export function TrashView({ projects, onItemRestored, onClose }: TrashViewProps)
             disabled={isLoading}
           >
             <AlertTriangle className="h-4 w-4 mr-2" />
-            Esvaziar Lixeira
+            {t('dashboard.trash.emptyTrash')}
           </Button>
         </div>
       </div>
@@ -219,11 +220,11 @@ export function TrashView({ projects, onItemRestored, onClose }: TrashViewProps)
                   {/* Header */}
                   <div className="flex items-center gap-2 mb-1">
                     {isNote ? (
-                      <span className="text-xs text-amber-500/70 font-medium">Nota</span>
-                    ) : (
-                      <span className="text-xs text-muted-foreground">
-                        {getDomain(item.url)}
+                      <span className="text-xs text-amber-500/70 font-medium">
+                        {t('item.type.note')}
                       </span>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">{getDomain(item.url)}</span>
                     )}
                     {project && (
                       <>
@@ -232,16 +233,14 @@ export function TrashView({ projects, onItemRestored, onClose }: TrashViewProps)
                           className="h-2 w-2 rounded-full opacity-50"
                           style={{ backgroundColor: project.color || '#6B7280' }}
                         />
-                        <span className="text-xs text-muted-foreground/70">
-                          {project.name}
-                        </span>
+                        <span className="text-xs text-muted-foreground/70">{project.name}</span>
                       </>
                     )}
                   </div>
 
                   {/* Title */}
                   <h3 className="font-medium text-sm line-clamp-1 mb-1">
-                    {item.title || item.transcription?.substring(0, 50) || 'Sem título'}
+                    {item.title || item.transcription?.substring(0, 50) || t('item.untitled')}
                   </h3>
 
                   {/* Transcription preview */}
@@ -272,7 +271,7 @@ export function TrashView({ projects, onItemRestored, onClose }: TrashViewProps)
                     ) : (
                       <>
                         <RotateCcw className="h-4 w-4 mr-1" />
-                        Restaurar
+                        {t('dashboard.trash.restore')}
                       </>
                     )}
                   </Button>
@@ -284,7 +283,7 @@ export function TrashView({ projects, onItemRestored, onClose }: TrashViewProps)
                     onClick={() => handlePermanentDelete(item.id)}
                     disabled={isRestoring || isDeleting}
                     className="h-9 w-9 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                    title="Excluir permanentemente"
+                    title={t('dashboard.trash.deleteForever')}
                   >
                     {isDeleting ? (
                       <Loader2 className="h-4 w-4 animate-spin" />

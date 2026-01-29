@@ -17,6 +17,9 @@ export default defineConfig({
     environment: 'node',
     // Include patterns
     include: ['src/**/*.test.ts', 'tests/**/*.test.ts'],
+    // Disable file parallelism to avoid E2E test conflicts
+    // (E2E tests share the same test user session)
+    fileParallelism: false,
   },
   resolve: {
     alias: {

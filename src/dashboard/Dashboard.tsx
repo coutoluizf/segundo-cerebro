@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { SearchBar } from './components/SearchBar'
 import { ProjectFilter } from './components/ProjectFilter'
 import { ItemList } from './components/ItemList'
@@ -10,7 +11,18 @@ import { Toaster } from '@/components/ui/toaster'
 import { useToast } from '@/components/ui/use-toast'
 import { sendMessage, onItemsChanged } from '@/shared/messaging'
 import type { VoiceItem, SearchResult, Project } from '@/shared/types'
-import { Settings, LayoutGrid, LayoutList, Grid3X3, Sparkles, Sun, Moon, Monitor, FolderKanban, Trash2 } from 'lucide-react'
+import {
+  Settings,
+  LayoutGrid,
+  LayoutList,
+  Grid3X3,
+  Sparkles,
+  Sun,
+  Moon,
+  Monitor,
+  FolderKanban,
+  Trash2,
+} from 'lucide-react'
 import { RajiLogo } from '@/components/RajiLogo'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -56,6 +68,7 @@ function getSavedViewMode(): ViewMode {
 }
 
 export function Dashboard() {
+  const { t } = useTranslation()
   const [items, setItems] = useState<(VoiceItem | SearchResult)[]>([])
   const [allItems, setAllItems] = useState<VoiceItem[]>([]) // All items for sidebar counts
   const [projects, setProjects] = useState<Project[]>([])
@@ -119,13 +132,13 @@ export function Dashboard() {
       console.error('[Dashboard] Error loading data:', error)
       toast({
         variant: 'destructive',
-        title: 'Erro',
-        description: 'Erro ao carregar dados.',
+        title: t('common.error'),
+        description: t('dashboard.toast.errorLoading'),
       })
     } finally {
       setIsLoading(false)
     }
-  }, [selectedProject, toast])
+  }, [selectedProject, toast, t])
 
   // Initial load
   useEffect(() => {
@@ -178,8 +191,8 @@ export function Dashboard() {
       console.error('[Dashboard] Search error:', error)
       toast({
         variant: 'destructive',
-        title: 'Erro na busca',
-        description: error instanceof Error ? error.message : 'Erro desconhecido',
+        title: t('dashboard.toast.searchError'),
+        description: error instanceof Error ? error.message : t('common.error'),
       })
     } finally {
       setIsSearching(false)
@@ -198,14 +211,14 @@ export function Dashboard() {
       await sendMessage({ type: 'DELETE_ITEM', id: itemId })
       toast({
         variant: 'success',
-        title: 'Deletado',
-        description: 'Item removido com sucesso.',
+        title: t('common.deleted'),
+        description: t('dashboard.trash.itemRestored').replace('restaurado', 'removido'),
       })
-    } catch (error) {
+    } catch {
       toast({
         variant: 'destructive',
-        title: 'Erro',
-        description: 'Erro ao deletar item.',
+        title: t('common.error'),
+        description: t('dashboard.toast.deleteError'),
       })
     }
   }
@@ -216,20 +229,18 @@ export function Dashboard() {
       await sendMessage({ type: 'UPDATE_ITEM_PROJECT', id: itemId, projectId })
       // Update item locally without reloading all data
       setItems((prevItems) =>
-        prevItems.map((item) =>
-          item.id === itemId ? { ...item, projectId } : item
-        )
+        prevItems.map((item) => (item.id === itemId ? { ...item, projectId } : item))
       )
       toast({
         variant: 'success',
-        title: 'Atualizado',
-        description: 'Projeto do item alterado.',
+        title: t('common.updated'),
+        description: t('dashboard.toast.projectUpdated'),
       })
-    } catch (error) {
+    } catch {
       toast({
         variant: 'destructive',
-        title: 'Erro',
-        description: 'Erro ao atualizar projeto.',
+        title: t('common.error'),
+        description: t('dashboard.toast.updateError'),
       })
     }
   }
@@ -260,9 +271,7 @@ export function Dashboard() {
       if (response.success && response.item) {
         // Update item locally
         setItems((prevItems) =>
-          prevItems.map((item) =>
-            item.id === itemId ? { ...item, ...updates } : item
-          )
+          prevItems.map((item) => (item.id === itemId ? { ...item, ...updates } : item))
         )
         // Update selected item if it's the one being edited
         if (selectedItem?.id === itemId) {
@@ -270,15 +279,15 @@ export function Dashboard() {
         }
         toast({
           variant: 'success',
-          title: 'Atualizado',
-          description: 'Item atualizado com sucesso.',
+          title: t('common.updated'),
+          description: t('dashboard.toast.projectUpdated').replace('Projeto do item', 'Item'),
         })
       }
     } catch (error) {
       toast({
         variant: 'destructive',
-        title: 'Erro',
-        description: 'Erro ao atualizar item.',
+        title: t('common.error'),
+        description: t('dashboard.toast.updateError'),
       })
       throw error // Re-throw so ItemDetail can handle it
     }
@@ -303,7 +312,7 @@ export function Dashboard() {
               </div>
               <div>
                 <h1 className="text-lg font-semibold tracking-tight">HeyRaji</h1>
-                <p className="text-xs text-muted-foreground">Suas ideias, organizadas</p>
+                <p className="text-xs text-muted-foreground">{t('dashboard.header.subtitle')}</p>
               </div>
             </div>
 
@@ -319,7 +328,7 @@ export function Dashboard() {
                       ? 'bg-background shadow-sm text-foreground'
                       : 'text-muted-foreground hover:text-foreground'
                   )}
-                  title="Itens"
+                  title={t('dashboard.views.items')}
                 >
                   <LayoutGrid className="h-4 w-4" />
                 </button>
@@ -331,17 +340,19 @@ export function Dashboard() {
                       ? 'bg-background shadow-sm text-foreground'
                       : 'text-muted-foreground hover:text-foreground'
                   )}
-                  title="Projetos"
+                  title={t('dashboard.views.projects')}
                 >
                   <FolderKanban className="h-4 w-4" />
                 </button>
               </div>
 
               {/* Columns toggle - Pill style (only shown in items view) */}
-              <div className={cn(
-                "flex items-center bg-secondary/50 rounded-full p-1 transition-opacity",
-                viewMode === 'projects' && "opacity-50 pointer-events-none"
-              )}>
+              <div
+                className={cn(
+                  'flex items-center bg-secondary/50 rounded-full p-1 transition-opacity',
+                  viewMode === 'projects' && 'opacity-50 pointer-events-none'
+                )}
+              >
                 <button
                   onClick={() => handleColumnsChange(1)}
                   className={cn(
@@ -350,7 +361,7 @@ export function Dashboard() {
                       ? 'bg-background shadow-sm text-foreground'
                       : 'text-muted-foreground hover:text-foreground'
                   )}
-                  title="Lista"
+                  title={t('dashboard.views.list')}
                 >
                   <LayoutList className="h-4 w-4" />
                 </button>
@@ -362,7 +373,7 @@ export function Dashboard() {
                       ? 'bg-background shadow-sm text-foreground'
                       : 'text-muted-foreground hover:text-foreground'
                   )}
-                  title="2 colunas"
+                  title={t('dashboard.views.columns2')}
                 >
                   <LayoutGrid className="h-4 w-4" />
                 </button>
@@ -374,7 +385,7 @@ export function Dashboard() {
                       ? 'bg-background shadow-sm text-foreground'
                       : 'text-muted-foreground hover:text-foreground'
                   )}
-                  title="3 colunas"
+                  title={t('dashboard.views.columns3')}
                 >
                   <Grid3X3 className="h-4 w-4" />
                 </button>
@@ -383,11 +394,7 @@ export function Dashboard() {
               {/* Theme toggle dropdown */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="rounded-full hover:bg-secondary/70"
-                  >
+                  <Button variant="ghost" size="icon" className="rounded-full hover:bg-secondary/70">
                     <ThemeIcon className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
@@ -397,21 +404,21 @@ export function Dashboard() {
                     className={cn('rounded-lg gap-2', theme === 'light' && 'bg-primary/10')}
                   >
                     <Sun className="h-4 w-4" />
-                    <span>Claro</span>
+                    <span>{t('dashboard.theme.light')}</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={() => handleThemeChange('dark')}
                     className={cn('rounded-lg gap-2', theme === 'dark' && 'bg-primary/10')}
                   >
                     <Moon className="h-4 w-4" />
-                    <span>Escuro</span>
+                    <span>{t('dashboard.theme.dark')}</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={() => handleThemeChange('system')}
                     className={cn('rounded-lg gap-2', theme === 'system' && 'bg-primary/10')}
                   >
                     <Monitor className="h-4 w-4" />
-                    <span>Sistema</span>
+                    <span>{t('dashboard.theme.system')}</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -451,13 +458,10 @@ export function Dashboard() {
               <div className="pt-4 border-t border-border/50">
                 <button
                   onClick={() => setShowTrash(true)}
-                  className={cn(
-                    'sidebar-item w-full',
-                    showTrash && 'sidebar-item-active'
-                  )}
+                  className={cn('sidebar-item w-full', showTrash && 'sidebar-item-active')}
                 >
                   <Trash2 className="h-4 w-4 text-muted-foreground" />
-                  <span className="flex-1 text-left">Lixeira</span>
+                  <span className="flex-1 text-left">{t('dashboard.trash.title')}</span>
                 </button>
               </div>
             </div>
@@ -473,92 +477,89 @@ export function Dashboard() {
                   loadData()
                   toast({
                     variant: 'success',
-                    title: 'Restaurado',
-                    description: 'Item restaurado com sucesso.',
+                    title: t('common.restored'),
+                    description: t('dashboard.trash.itemRestored'),
                   })
                 }}
                 onClose={() => setShowTrash(false)}
               />
             ) : (
               <>
-            {/* Hero Search Bar - Above everything for natural results flow */}
-            <div className="mb-8">
-              <SearchBar
-                value={searchQuery}
-                onChange={handleSearch}
-                isSearching={isSearching}
-                large
-              />
-            </div>
-
-            {/* Recent Carousel - Hidden during search and in projects view */}
-            {!searchQuery && !isLoading && items.length > 0 && viewMode === 'items' && (
-              <RecentCarousel
-                items={items}
-                projects={projects}
-                onItemClick={handleItemClick}
-                className="mb-8"
-              />
-            )}
-
-            {isLoading ? (
-              <div className="flex flex-col items-center justify-center py-20">
-                <div className="relative">
-                  <div className="absolute inset-0 bg-primary/10 blur-2xl rounded-full animate-pulse" />
-                  <Sparkles className="h-8 w-8 text-primary animate-pulse relative" />
+                {/* Hero Search Bar - Above everything for natural results flow */}
+                <div className="mb-8">
+                  <SearchBar value={searchQuery} onChange={handleSearch} isSearching={isSearching} large />
                 </div>
-                <p className="mt-4 text-sm text-muted-foreground">Carregando memórias...</p>
-              </div>
-            ) : items.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-20 text-center">
-                <div className="relative mb-6">
-                  <div className="absolute inset-0 bg-primary/5 blur-3xl rounded-full" />
-                  <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center relative">
-                    <RajiLogo size={40} />
-                  </div>
-                </div>
-                <h2 className="text-xl font-medium mb-2">
-                  {searchQuery ? 'Nenhum resultado' : 'Comece a memorizar'}
-                </h2>
-                <p className="text-sm text-muted-foreground max-w-xs">
-                  {searchQuery
-                    ? 'Tente buscar por outros termos ou conceitos relacionados.'
-                    : 'Use a extensão para salvar tabs e notas com sua voz.'}
-                </p>
-              </div>
-            ) : viewMode === 'projects' && !searchQuery ? (
-              // Project grid view
-              <ProjectGrid
-                projects={projects}
-                items={items}
-                onProjectClick={(projectId) => {
-                  // Filter to the selected project and switch to items view
-                  handleProjectChange(projectId)
-                  handleViewModeChange('items')
-                }}
-              />
-            ) : (
-              <>
-                {/* Results header */}
-                {searchQuery && (
-                  <div className="mb-6 flex items-center gap-2">
-                    <Sparkles className="h-4 w-4 text-primary" />
-                    <span className="text-sm text-muted-foreground">
-                      {items.length} resultado{items.length !== 1 ? 's' : ''} para "{searchQuery}"
-                    </span>
-                  </div>
+
+                {/* Recent Carousel - Hidden during search and in projects view */}
+                {!searchQuery && !isLoading && items.length > 0 && viewMode === 'items' && (
+                  <RecentCarousel
+                    items={items}
+                    projects={projects}
+                    onItemClick={handleItemClick}
+                    className="mb-8"
+                  />
                 )}
-                <ItemList
-                  items={items}
-                  projects={projects}
-                  columns={columns}
-                  onDelete={handleDelete}
-                  onOpen={handleOpen}
-                  onUpdateProject={handleUpdateProject}
-                  onItemClick={handleItemClick}
-                />
-              </>
-            )}
+
+                {isLoading ? (
+                  <div className="flex flex-col items-center justify-center py-20">
+                    <div className="relative">
+                      <div className="absolute inset-0 bg-primary/10 blur-2xl rounded-full animate-pulse" />
+                      <Sparkles className="h-8 w-8 text-primary animate-pulse relative" />
+                    </div>
+                    <p className="mt-4 text-sm text-muted-foreground">{t('dashboard.loading')}</p>
+                  </div>
+                ) : items.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-20 text-center">
+                    <div className="relative mb-6">
+                      <div className="absolute inset-0 bg-primary/5 blur-3xl rounded-full" />
+                      <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center relative">
+                        <RajiLogo size={40} />
+                      </div>
+                    </div>
+                    <h2 className="text-xl font-medium mb-2">
+                      {searchQuery ? t('dashboard.empty.noResults') : t('dashboard.empty.startSaving')}
+                    </h2>
+                    <p className="text-sm text-muted-foreground max-w-xs">
+                      {searchQuery ? t('dashboard.empty.tryOther') : t('dashboard.empty.useExtension')}
+                    </p>
+                  </div>
+                ) : viewMode === 'projects' && !searchQuery ? (
+                  // Project grid view
+                  <ProjectGrid
+                    projects={projects}
+                    items={items}
+                    onProjectClick={(projectId) => {
+                      // Filter to the selected project and switch to items view
+                      handleProjectChange(projectId)
+                      handleViewModeChange('items')
+                    }}
+                  />
+                ) : (
+                  <>
+                    {/* Results header */}
+                    {searchQuery && (
+                      <div className="mb-6 flex items-center gap-2">
+                        <Sparkles className="h-4 w-4 text-primary" />
+                        <span className="text-sm text-muted-foreground">
+                          {items.length}{' '}
+                          {items.length !== 1
+                            ? t('dashboard.results.count_plural', { count: items.length })
+                            : t('dashboard.results.count', { count: items.length })}{' '}
+                          {t('dashboard.results.for')} "{searchQuery}"
+                        </span>
+                      </div>
+                    )}
+                    <ItemList
+                      items={items}
+                      projects={projects}
+                      columns={columns}
+                      onDelete={handleDelete}
+                      onOpen={handleOpen}
+                      onUpdateProject={handleUpdateProject}
+                      onItemClick={handleItemClick}
+                    />
+                  </>
+                )}
               </>
             )}
           </main>

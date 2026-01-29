@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { VoiceCapture } from './VoiceCapture'
 import { ProjectSelector } from './ProjectSelector'
 import { ReminderPicker } from './ReminderPicker'
@@ -9,7 +10,22 @@ import { useToast } from '@/components/ui/use-toast'
 import { sendMessage } from '@/shared/messaging'
 import { getSettings, saveSettings } from '@/shared/settings'
 import type { Project, ItemType, VoiceItem } from '@/shared/types'
-import { Settings, ExternalLink, Mic, FileText, Globe, Clipboard, Sparkles, ChevronRight, X, LayoutDashboard, AlertCircle, Calendar, RefreshCw, User } from 'lucide-react'
+import {
+  Settings,
+  ExternalLink,
+  Mic,
+  FileText,
+  Globe,
+  Clipboard,
+  Sparkles,
+  ChevronRight,
+  X,
+  LayoutDashboard,
+  AlertCircle,
+  Calendar,
+  RefreshCw,
+  User,
+} from 'lucide-react'
 import { RajiLogo } from '@/components/RajiLogo'
 import { cn } from '@/lib/utils'
 
@@ -20,6 +36,8 @@ const DASHBOARD_BANNER_SHOWN_KEY = 'segundo-cerebro-dashboard-banner-v2-shown'
 type MicPermission = 'checking' | 'granted' | 'prompt' | 'denied'
 
 export function Popup() {
+  const { t, i18n } = useTranslation()
+
   // Auth state - user is either authenticated or has API keys (backward compatibility)
   const [isReady, setIsReady] = useState<boolean | null>(null)
   const [micPermission, setMicPermission] = useState<MicPermission>('checking')
@@ -51,15 +69,17 @@ export function Popup() {
     Promise.all([
       sendMessage({ type: 'AUTH_IS_AUTHENTICATED' }),
       sendMessage({ type: 'CHECK_API_KEYS' }),
-    ]).then(([authResponse, keysResponse]) => {
-      // User is ready if authenticated OR has API keys
-      setIsReady(authResponse.authenticated || keysResponse.hasKeys)
-    }).catch(() => {
-      // If auth check fails, fall back to API keys only
-      sendMessage({ type: 'CHECK_API_KEYS' }).then((response) => {
-        setIsReady(response.hasKeys)
+    ])
+      .then(([authResponse, keysResponse]) => {
+        // User is ready if authenticated OR has API keys
+        setIsReady(authResponse.authenticated || keysResponse.hasKeys)
       })
-    })
+      .catch(() => {
+        // If auth check fails, fall back to API keys only
+        sendMessage({ type: 'CHECK_API_KEYS' }).then((response) => {
+          setIsReady(response.hasKeys)
+        })
+      })
 
     // Load projects
     sendMessage({ type: 'GET_PROJECTS' }).then((response) => {
@@ -99,7 +119,14 @@ export function Popup() {
 
   // Check for duplicate URL when we have current tab info
   useEffect(() => {
-    console.log('[Popup] Duplicate useEffect triggered - mode:', mode, 'currentTab:', currentTab?.url, 'ignoreDuplicate:', ignoreDuplicate)
+    console.log(
+      '[Popup] Duplicate useEffect triggered - mode:',
+      mode,
+      'currentTab:',
+      currentTab?.url,
+      'ignoreDuplicate:',
+      ignoreDuplicate
+    )
 
     // Only check in tab mode and if we have a URL
     if (mode !== 'tab' || !currentTab?.url || ignoreDuplicate) {
@@ -108,26 +135,30 @@ export function Popup() {
     }
 
     // Skip special URLs (chrome://, about:, etc.)
-    if (currentTab.url.startsWith('chrome://') ||
-        currentTab.url.startsWith('about:') ||
-        currentTab.url.startsWith('chrome-extension://')) {
+    if (
+      currentTab.url.startsWith('chrome://') ||
+      currentTab.url.startsWith('about:') ||
+      currentTab.url.startsWith('chrome-extension://')
+    ) {
       return
     }
 
     // Check if this URL already exists
     console.log('[Popup] Checking for duplicate URL:', currentTab.url)
-    sendMessage({ type: 'CHECK_DUPLICATE_URL', url: currentTab.url }).then((response) => {
-      console.log('[Popup] Duplicate check response:', response)
-      if (response.exists && response.item) {
-        console.log('[Popup] Found duplicate item:', response.item.id, response.item.title)
-        setDuplicateItem(response.item)
-      } else {
-        console.log('[Popup] No duplicate found')
-        setDuplicateItem(null)
-      }
-    }).catch((error) => {
-      console.error('[Popup] Error checking duplicate:', error)
-    })
+    sendMessage({ type: 'CHECK_DUPLICATE_URL', url: currentTab.url })
+      .then((response) => {
+        console.log('[Popup] Duplicate check response:', response)
+        if (response.exists && response.item) {
+          console.log('[Popup] Found duplicate item:', response.item.id, response.item.title)
+          setDuplicateItem(response.item)
+        } else {
+          console.log('[Popup] No duplicate found')
+          setDuplicateItem(null)
+        }
+      })
+      .catch((error) => {
+        console.error('[Popup] Error checking duplicate:', error)
+      })
   }, [currentTab?.url, mode, ignoreDuplicate])
 
   // Check clipboard for text content
@@ -164,7 +195,7 @@ export function Popup() {
       result.onchange = () => {
         setMicPermission(result.state as MicPermission)
       }
-    } catch (error) {
+    } catch {
       // Permissions API not supported, assume we need to ask
       console.log('[Popup] Permissions API not available, will try on first use')
       setMicPermission('prompt')
@@ -179,9 +210,7 @@ export function Popup() {
     if (currentTab?.favicon) params.set('favicon', currentTab.favicon)
     params.set('setup', 'true') // Flag to indicate this is setup mode
 
-    const recorderUrl = chrome.runtime.getURL(
-      `src/recorder/index.html?${params.toString()}`
-    )
+    const recorderUrl = chrome.runtime.getURL(`src/recorder/index.html?${params.toString()}`)
 
     chrome.tabs.create({ url: recorderUrl })
     window.close()
@@ -193,8 +222,8 @@ export function Popup() {
     if (mode === 'note' && !transcription.trim()) {
       toast({
         variant: 'destructive',
-        title: 'Erro',
-        description: 'Digite ou cole algo antes de salvar.',
+        title: t('common.error'),
+        description: t('popup.toast.errorEmpty'),
       })
       return
     }
@@ -221,8 +250,8 @@ export function Popup() {
       if (response.success) {
         toast({
           variant: 'success',
-          title: 'Salvo!',
-          description: mode === 'tab' ? 'Tab salva com sucesso.' : 'Nota salva com sucesso.',
+          title: t('common.saved'),
+          description: mode === 'tab' ? t('popup.toast.tabSaved') : t('popup.toast.noteSaved'),
         })
 
         // Update item count
@@ -246,13 +275,13 @@ export function Popup() {
           }
         })
       } else {
-        throw new Error(response.error || 'Erro ao salvar')
+        throw new Error(response.error || t('common.error'))
       }
     } catch (error) {
       toast({
         variant: 'destructive',
-        title: 'Erro',
-        description: error instanceof Error ? error.message : 'Erro ao salvar',
+        title: t('common.error'),
+        description: error instanceof Error ? error.message : t('common.error'),
       })
     } finally {
       setIsSaving(false)
@@ -279,7 +308,9 @@ export function Popup() {
 
   // Format date for duplicate item display
   const formatDate = (timestamp: number): string => {
-    return new Date(timestamp).toLocaleDateString('pt-BR', {
+    // Use appropriate locale based on current language
+    const locale = i18n.language === 'pt' ? 'pt-BR' : i18n.language === 'es' ? 'es-ES' : 'en-US'
+    return new Date(timestamp).toLocaleDateString(locale, {
       day: 'numeric',
       month: 'short',
       year: 'numeric',
@@ -311,21 +342,21 @@ export function Popup() {
       if (response.success) {
         toast({
           variant: 'success',
-          title: 'Atualizado!',
-          description: 'Item existente atualizado com sucesso.',
+          title: t('common.updated'),
+          description: t('popup.toast.itemUpdated'),
         })
         // Reset form and close
         setTranscription('')
         setDuplicateItem(null)
         setTimeout(() => window.close(), 1500)
       } else {
-        throw new Error(response.error || 'Erro ao atualizar')
+        throw new Error(response.error || t('common.error'))
       }
     } catch (error) {
       toast({
         variant: 'destructive',
-        title: 'Erro',
-        description: error instanceof Error ? error.message : 'Erro ao atualizar',
+        title: t('common.error'),
+        description: error instanceof Error ? error.message : t('common.error'),
       })
     } finally {
       setIsSaving(false)
@@ -346,7 +377,7 @@ export function Popup() {
           <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full animate-pulse" />
           <Sparkles className="h-6 w-6 text-primary animate-pulse relative" />
         </div>
-        <p className="mt-3 text-sm text-muted-foreground">Carregando...</p>
+        <p className="mt-3 text-sm text-muted-foreground">{t('common.loading')}</p>
       </div>
     )
   }
@@ -370,14 +401,12 @@ export function Popup() {
             <User className="h-7 w-7 text-primary" />
           </div>
           <div>
-            <h2 className="font-medium">Faça login para começar</h2>
-            <p className="text-sm text-muted-foreground mt-1">
-              Crie uma conta gratuita para salvar e sincronizar suas anotações.
-            </p>
+            <h2 className="font-medium">{t('popup.login.title')}</h2>
+            <p className="text-sm text-muted-foreground mt-1">{t('popup.login.description')}</p>
           </div>
           <Button onClick={openOptions} className="w-full rounded-xl h-11">
             <User className="h-4 w-4 mr-2" />
-            Fazer Login
+            {t('popup.buttons.login')}
           </Button>
         </div>
         <Toaster />
@@ -399,10 +428,22 @@ export function Popup() {
             <h1 className="text-lg font-semibold tracking-tight">HeyRaji</h1>
           </div>
           <div className="flex items-center gap-1">
-            <Button variant="ghost" size="icon" onClick={openDashboard} title="Abrir Dashboard" className="rounded-full">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={openDashboard}
+              title={t('popup.banner.openDashboard')}
+              className="rounded-full"
+            >
               <ExternalLink className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="icon" onClick={openOptions} title="Configurações" className="rounded-full">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={openOptions}
+              title={t('options.account.title')}
+              className="rounded-full"
+            >
               <Settings className="h-4 w-4" />
             </Button>
           </div>
@@ -417,11 +458,9 @@ export function Popup() {
             </div>
           </div>
           <div>
-            <h2 className="font-medium">Configuração Inicial</h2>
+            <h2 className="font-medium">{t('popup.mic.setup')}</h2>
             <p className="text-sm text-muted-foreground mt-1">
-              {micPermission === 'denied'
-                ? 'Permissão de microfone negada. Clique para configurar novamente.'
-                : 'Permita o acesso ao microfone para gravar suas anotações por voz.'}
+              {micPermission === 'denied' ? t('popup.mic.denied') : t('popup.mic.prompt')}
             </p>
           </div>
         </div>
@@ -429,13 +468,13 @@ export function Popup() {
         {/* Setup button */}
         <Button onClick={openMicSetup} className="w-full h-12 rounded-xl text-base">
           <Mic className="h-5 w-5 mr-2" />
-          Permitir Microfone
+          {t('popup.mic.allowButton')}
         </Button>
 
         {/* Quick access to dashboard */}
         <Button variant="outline" onClick={openDashboard} className="w-full rounded-xl">
           <ExternalLink className="h-4 w-4 mr-2" />
-          Ver itens salvos
+          {t('popup.mic.viewSaved')}
         </Button>
 
         <Toaster />
@@ -456,10 +495,22 @@ export function Popup() {
           <h1 className="font-semibold tracking-tight">HeyRaji</h1>
         </div>
         <div className="flex items-center gap-1">
-          <Button variant="ghost" size="icon" onClick={openDashboard} title="Abrir Dashboard" className="h-8 w-8 rounded-full">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={openDashboard}
+            title={t('popup.banner.openDashboard')}
+            className="h-8 w-8 rounded-full"
+          >
             <ExternalLink className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="icon" onClick={openOptions} title="Configurações" className="h-8 w-8 rounded-full">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={openOptions}
+            title={t('options.account.title')}
+            className="h-8 w-8 rounded-full"
+          >
             <Settings className="h-4 w-4" />
           </Button>
         </div>
@@ -477,7 +528,7 @@ export function Popup() {
           )}
         >
           <Globe className="h-3.5 w-3.5" />
-          Salvar Tab
+          {t('popup.tabs.saveTab')}
         </button>
         <button
           onClick={() => {
@@ -492,7 +543,7 @@ export function Popup() {
           )}
         >
           <FileText className="h-3.5 w-3.5" />
-          Nota Rápida
+          {t('popup.tabs.quickNote')}
         </button>
       </div>
 
@@ -506,7 +557,7 @@ export function Popup() {
             <Clipboard className="h-4 w-4" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-medium text-primary">Texto copiado detectado</p>
+            <p className="text-xs font-medium text-primary">{t('popup.clipboard.detected')}</p>
             <p className="text-xs text-muted-foreground truncate mt-0.5">
               {clipboardText.substring(0, 50)}...
             </p>
@@ -533,9 +584,9 @@ export function Popup() {
               <AlertCircle className="h-4 w-4 text-amber-500" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-amber-500">Você já salvou esta página</p>
+              <p className="text-sm font-medium text-amber-500">{t('popup.duplicate.warning')}</p>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Salvo em {formatDate(duplicateItem.createdAt)}
+                {t('popup.duplicate.savedOn', { date: formatDate(duplicateItem.createdAt) })}
               </p>
             </div>
           </div>
@@ -543,7 +594,7 @@ export function Popup() {
           {/* Existing item preview */}
           <div className="rounded-lg bg-background/50 p-3 space-y-1">
             <p className="text-sm font-medium line-clamp-1">
-              {duplicateItem.title || 'Sem título'}
+              {duplicateItem.title || t('item.untitled')}
             </p>
             {duplicateItem.transcription && (
               <p className="text-xs text-muted-foreground line-clamp-2">
@@ -554,7 +605,8 @@ export function Popup() {
               <div className="flex items-center gap-1.5 mt-1">
                 <Calendar className="h-3 w-3 text-muted-foreground" />
                 <span className="text-xs text-muted-foreground">
-                  {projects.find(p => p.id === duplicateItem.projectId)?.name || 'Projeto'}
+                  {projects.find((p) => p.id === duplicateItem.projectId)?.name ||
+                    t('dashboard.projects.title')}
                 </span>
               </div>
             )}
@@ -570,14 +622,10 @@ export function Popup() {
               className="flex-1 rounded-lg text-xs h-8"
             >
               <RefreshCw className="h-3 w-3 mr-1.5" />
-              Atualizar existente
+              {t('popup.duplicate.updateExisting')}
             </Button>
-            <Button
-              size="sm"
-              onClick={handleSaveAsNew}
-              className="flex-1 rounded-lg text-xs h-8"
-            >
-              Salvar como novo
+            <Button size="sm" onClick={handleSaveAsNew} className="flex-1 rounded-lg text-xs h-8">
+              {t('popup.duplicate.saveAsNew')}
             </Button>
           </div>
         </div>
@@ -587,7 +635,7 @@ export function Popup() {
       <VoiceCapture
         onTranscriptionChange={setTranscription}
         transcription={transcription}
-        placeholder={mode === 'tab' ? 'Comentário opcional (AI gera resumo)...' : 'Cole ou digite sua nota...'}
+        placeholder={mode === 'tab' ? t('popup.placeholder.tab') : t('popup.placeholder.note')}
       />
 
       {/* Source field (only in note mode) */}
@@ -595,18 +643,14 @@ export function Popup() {
         <Input
           value={source}
           onChange={(e) => setSource(e.target.value)}
-          placeholder="Fonte (opcional): Twitter @user, Livro X..."
+          placeholder={t('popup.source.placeholder')}
           className="text-sm rounded-xl bg-secondary/50 border-0 focus-visible:ring-1 focus-visible:ring-primary/30"
         />
       )}
 
       {/* Reminder picker (only for tabs, not notes) - moved BEFORE project selector */}
       {mode === 'tab' && (
-        <ReminderPicker
-          value={reminderAt}
-          onChange={setReminderAt}
-          disabled={isSaving}
-        />
+        <ReminderPicker value={reminderAt} onChange={setReminderAt} disabled={isSaving} />
       )}
 
       {/* Project, Save button, and footer - with spacing from reminder picker */}
@@ -627,12 +671,12 @@ export function Popup() {
           {isSaving ? (
             <>
               <Sparkles className="h-4 w-4 mr-2 animate-pulse" />
-              Salvando...
+              {t('common.saving')}
             </>
           ) : mode === 'tab' ? (
-            'Salvar Tab'
+            t('popup.buttons.saveTab')
           ) : (
-            'Salvar Nota'
+            t('popup.buttons.saveNote')
           )}
         </Button>
 
@@ -642,7 +686,7 @@ export function Popup() {
             onClick={toggleCloseTabOnSave}
             className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-secondary/30 hover:bg-secondary/50 transition-colors"
           >
-            <span className="text-xs text-muted-foreground">Fechar tab ao salvar</span>
+            <span className="text-xs text-muted-foreground">{t('popup.closeTabOnSave')}</span>
             {/* Custom switch */}
             <div
               className={cn(
@@ -668,7 +712,9 @@ export function Popup() {
           >
             <LayoutDashboard className="h-4 w-4" />
             <span>
-              Ver seus <span className="font-medium text-foreground">{itemCount}</span> {itemCount === 1 ? 'item salvo' : 'itens salvos'}
+              {t('popup.footer.viewItems')}{' '}
+              <span className="font-medium text-foreground">{itemCount}</span>{' '}
+              {itemCount === 1 ? t('popup.footer.itemSaved') : t('popup.footer.itemsSaved')}
             </span>
             <ChevronRight className="h-4 w-4 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
           </button>
@@ -698,9 +744,9 @@ export function Popup() {
               </div>
 
               <div className="flex-1 min-w-0">
-                <h3 className="font-medium text-sm">Item salvo!</h3>
+                <h3 className="font-medium text-sm">{t('popup.banner.title')}</h3>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Conheça o Dashboard com busca semântica e organização por projetos.
+                  {t('popup.banner.description')}
                 </p>
 
                 {/* CTA */}
@@ -709,7 +755,7 @@ export function Popup() {
                   className="mt-2 flex items-center gap-1.5 text-xs font-medium text-primary hover:underline"
                 >
                   <LayoutDashboard className="h-3.5 w-3.5" />
-                  Abrir Dashboard
+                  {t('popup.banner.openDashboard')}
                   <ChevronRight className="h-3.5 w-3.5" />
                 </button>
               </div>

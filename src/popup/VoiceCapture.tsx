@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Textarea } from '@/components/ui/textarea'
 import { ScribeClient, type ScribeConfig } from '@/shared/scribe'
 import type { ScribeState } from '@/shared/types'
@@ -17,6 +18,7 @@ interface VoiceCaptureProps {
  * Features a textarea with embedded mic button for seamless voice/text entry
  */
 export function VoiceCapture({ transcription, onTranscriptionChange, placeholder }: VoiceCaptureProps) {
+  const { t } = useTranslation()
   const [state, setState] = useState<ScribeState>('idle')
   const [error, setError] = useState<string | null>(null)
   const scribeRef = useRef<ScribeClient | null>(null)
@@ -39,7 +41,7 @@ export function VoiceCapture({ transcription, onTranscriptionChange, placeholder
       const apiKeys = await sendMessage({ type: 'GET_API_KEYS' })
 
       if (!apiKeys.elevenlabs) {
-        setError('ElevenLabs API key não configurada')
+        setError(t('voice.apiKeyMissing'))
         return
       }
 
@@ -64,7 +66,7 @@ export function VoiceCapture({ transcription, onTranscriptionChange, placeholder
       await scribeRef.current.connect()
     } catch (err) {
       console.error('[VoiceCapture] Error starting recording:', err)
-      setError(err instanceof Error ? err.message : 'Erro ao iniciar gravação')
+      setError(err instanceof Error ? err.message : t('voice.errorStarting'))
       setState('error')
     }
   }
@@ -100,7 +102,7 @@ export function VoiceCapture({ transcription, onTranscriptionChange, placeholder
         <Textarea
           value={transcription}
           onChange={(e) => onTranscriptionChange(e.target.value)}
-          placeholder={placeholder || "Digite ou grave sua anotação..."}
+          placeholder={placeholder || t('popup.placeholder.note')}
           className={cn(
             'min-h-24 resize-none rounded-xl pr-12',
             'bg-secondary/50 border transition-all duration-200',
@@ -131,7 +133,7 @@ export function VoiceCapture({ transcription, onTranscriptionChange, placeholder
             // Processing state
             (isConnecting || isProcessing) && 'bg-secondary text-muted-foreground'
           )}
-          title={isRecording ? 'Clique para parar' : 'Gravar por voz'}
+          title={isRecording ? t('voice.clickToStop') : t('voice.clickToRecord')}
         >
           {/* Pulse ring while recording */}
           {isRecording && (
@@ -159,15 +161,15 @@ export function VoiceCapture({ transcription, onTranscriptionChange, placeholder
         <div className="flex items-center justify-between text-xs px-1">
           <div className="flex items-center gap-1.5">
             {isConnecting && (
-              <span className="text-muted-foreground">Conectando...</span>
+              <span className="text-muted-foreground">{t('voice.connecting')}</span>
             )}
             {isProcessing && (
-              <span className="text-muted-foreground">Processando...</span>
+              <span className="text-muted-foreground">{t('voice.processing')}</span>
             )}
             {isRecording && (
               <>
                 <span className="inline-block h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse" />
-                <span className="text-red-500 font-medium">Gravando</span>
+                <span className="text-red-500 font-medium">{t('voice.recording')}</span>
               </>
             )}
             {error && (
@@ -175,7 +177,7 @@ export function VoiceCapture({ transcription, onTranscriptionChange, placeholder
             )}
           </div>
           {isRecording && (
-            <span className="text-muted-foreground text-[10px]">Clique no microfone para parar</span>
+            <span className="text-muted-foreground text-[10px]">{t('voice.clickToStop')}</span>
           )}
         </div>
       )}

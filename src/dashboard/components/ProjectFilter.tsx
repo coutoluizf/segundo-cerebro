@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -33,6 +34,7 @@ export function ProjectFilter({
   onProjectChange,
   onProjectsUpdated,
 }: ProjectFilterProps) {
+  const { t } = useTranslation()
   const [isCreating, setIsCreating] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [newName, setNewName] = useState('')
@@ -44,7 +46,7 @@ export function ProjectFilter({
       // Count all items
       return items.length
     }
-    return items.filter(item => item.projectId === projectId).length
+    return items.filter((item) => item.projectId === projectId).length
   }
 
   // Create new project
@@ -52,11 +54,12 @@ export function ProjectFilter({
     if (!newName.trim()) return
 
     // Pick a random color that's not already used
-    const usedColors = projects.map(p => p.color)
-    const availableColors = PROJECT_COLORS.filter(c => !usedColors.includes(c))
-    const color = availableColors.length > 0
-      ? availableColors[Math.floor(Math.random() * availableColors.length)]
-      : PROJECT_COLORS[Math.floor(Math.random() * PROJECT_COLORS.length)]
+    const usedColors = projects.map((p) => p.color)
+    const availableColors = PROJECT_COLORS.filter((c) => !usedColors.includes(c))
+    const color =
+      availableColors.length > 0
+        ? availableColors[Math.floor(Math.random() * availableColors.length)]
+        : PROJECT_COLORS[Math.floor(Math.random() * PROJECT_COLORS.length)]
 
     await sendMessage({ type: 'CREATE_PROJECT', name: newName.trim(), color })
     setNewName('')
@@ -94,7 +97,7 @@ export function ProjectFilter({
   // Delete project
   const handleDelete = async (projectId: string, e: React.MouseEvent) => {
     e.stopPropagation()
-    if (confirm('Tem certeza que deseja excluir este projeto? Os itens não serão excluídos.')) {
+    if (confirm(t('dashboard.projects.confirmDelete'))) {
       await sendMessage({ type: 'DELETE_PROJECT', id: projectId })
       if (selectedProject === projectId) {
         onProjectChange('')
@@ -110,13 +113,13 @@ export function ProjectFilter({
         <div className="flex items-center gap-2">
           <Layers className="h-4 w-4 text-muted-foreground" />
           <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-            Projetos
+            {t('dashboard.projects.title')}
           </h2>
         </div>
         <button
           onClick={() => setIsCreating(true)}
           className="p-1.5 rounded-lg hover:bg-secondary/70 text-muted-foreground hover:text-foreground transition-colors"
-          title="Novo projeto"
+          title={t('dashboard.projects.newProject')}
         >
           <Plus className="h-4 w-4" />
         </button>
@@ -126,16 +129,11 @@ export function ProjectFilter({
         {/* All projects option */}
         <button
           onClick={() => onProjectChange('')}
-          className={cn(
-            'sidebar-item w-full',
-            selectedProject === '' && 'sidebar-item-active'
-          )}
+          className={cn('sidebar-item w-full', selectedProject === '' && 'sidebar-item-active')}
         >
           <div className="h-2.5 w-2.5 rounded-full bg-gradient-to-br from-primary to-amber-500" />
-          <span className="flex-1 text-left">Todos os itens</span>
-          <span className="text-xs text-muted-foreground tabular-nums">
-            {getItemCount(null)}
-          </span>
+          <span className="flex-1 text-left">{t('dashboard.projects.allItems')}</span>
+          <span className="text-xs text-muted-foreground tabular-nums">{getItemCount(null)}</span>
         </button>
 
         {/* Create new project input */}
@@ -144,7 +142,7 @@ export function ProjectFilter({
             <Input
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
-              placeholder="Nome do projeto"
+              placeholder={t('dashboard.projects.projectName')}
               className="h-8 text-sm bg-transparent border-0 focus-visible:ring-1"
               autoFocus
               onKeyDown={(e) => {
@@ -186,7 +184,7 @@ export function ProjectFilter({
               className="project-dot shrink-0"
               style={{
                 backgroundColor: project.color || '#6B7280',
-                color: project.color || '#6B7280'
+                color: project.color || '#6B7280',
               }}
             />
 
@@ -208,7 +206,10 @@ export function ProjectFilter({
                   variant="ghost"
                   size="icon"
                   className="h-6 w-6 shrink-0 rounded-lg"
-                  onClick={(e) => { e.stopPropagation(); handleSaveEdit(project) }}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleSaveEdit(project)
+                  }}
                 >
                   <Check className="h-3 w-3" />
                 </Button>
@@ -216,7 +217,10 @@ export function ProjectFilter({
                   variant="ghost"
                   size="icon"
                   className="h-6 w-6 shrink-0 rounded-lg"
-                  onClick={(e) => { e.stopPropagation(); cancelEdit() }}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    cancelEdit()
+                  }}
                 >
                   <X className="h-3 w-3" />
                 </Button>
@@ -226,29 +230,33 @@ export function ProjectFilter({
               <>
                 <span className="truncate flex-1 text-sm">{project.name}</span>
                 {/* Item count - hidden when hovering to show actions */}
-                <span className={cn(
-                  'text-xs text-muted-foreground tabular-nums transition-opacity',
-                  'group-hover:opacity-0',
-                  selectedProject === project.id && 'group-hover:opacity-0'
-                )}>
+                <span
+                  className={cn(
+                    'text-xs text-muted-foreground tabular-nums transition-opacity',
+                    'group-hover:opacity-0',
+                    selectedProject === project.id && 'group-hover:opacity-0'
+                  )}
+                >
                   {getItemCount(project.id)}
                 </span>
                 {/* Action buttons - shown on hover */}
-                <div className={cn(
-                  'flex items-center gap-0.5 absolute right-2 opacity-0 group-hover:opacity-100 transition-opacity',
-                  selectedProject === project.id ? 'opacity-100' : ''
-                )}>
+                <div
+                  className={cn(
+                    'flex items-center gap-0.5 absolute right-2 opacity-0 group-hover:opacity-100 transition-opacity',
+                    selectedProject === project.id ? 'opacity-100' : ''
+                  )}
+                >
                   <button
                     onClick={(e) => startEdit(project, e)}
                     className="p-1 rounded-md hover:bg-background/50 text-muted-foreground hover:text-foreground transition-colors"
-                    title="Editar"
+                    title={t('dashboard.projects.edit')}
                   >
                     <Pencil className="h-3 w-3" />
                   </button>
                   <button
                     onClick={(e) => handleDelete(project.id, e)}
                     className="p-1 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
-                    title="Excluir"
+                    title={t('dashboard.projects.delete')}
                   >
                     <Trash2 className="h-3 w-3" />
                   </button>

@@ -2,6 +2,34 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.9.0] - 2026-01-29
+
+### Adicionado
+- **Internacionalização (i18n)**: Suporte a múltiplos idiomas na extensão (en, pt, es)
+- **Detecção automática de idioma**: Interface usa o idioma do navegador por padrão
+- **Seletor de idioma**: Dropdown nas Configurações para trocar idioma
+- **Infraestrutura de testes**: Setup de autenticação para testes de integração com usuário dedicado
+
+### Mudado
+- **Idioma unificado**: Resumos AI agora seguem o idioma da UI (removido `summaryLanguage` separado)
+- **Migração automática**: Settings antigos com `summaryLanguage` ou `language: 'pt-BR'` são migrados
+
+### Técnico
+- Nova dependência: `i18next` e `react-i18next` para internacionalização
+- Novo módulo: `src/i18n/index.ts` com inicialização do i18next
+- Novo módulo: `src/i18n/config.ts` com definições de locales e helpers
+- Novo hook: `src/i18n/useLanguage.ts` para troca de idioma
+- Arquivos de tradução: `src/i18n/locales/{en,pt,es}.json` (~350 chaves cada)
+- Tipo `Locale` simplificado para `'en' | 'pt' | 'es'` (usado para UI e AI)
+- Todos os entry points (popup, dashboard, options, auth) inicializam i18n
+- ~350 strings hardcoded substituídas por chamadas `t()`
+- Testes unitários: `tests/i18n/` com 82 testes para config, init, traduções e settings
+- Testes E2E: `tests/e2e/summary-localization.test.ts` validando resumos em en/pt/es
+- Testes de integração: Setup com usuário de teste (`tests/setup/auth.ts`, `tests/setup/test-db.ts`)
+- Documentação: `tests/CLAUDE.md` com credenciais e instruções para testes
+- Edge Function `generate-summary` atualizada para suportar short locales (en, pt, es)
+- Config: `vitest.config.ts` com `fileParallelism: false` para evitar conflitos de sessão
+
 ## [0.8.0] - 2026-01-27
 
 ### Adicionado

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import {
   Select,
   SelectContent,
@@ -26,6 +27,8 @@ export function ProjectSelector({
   selectedProject,
   onProjectChange,
 }: ProjectSelectorProps) {
+  const { t } = useTranslation()
+
   // Convert empty string to special value for Select
   const selectValue = selectedProject || NO_PROJECT_VALUE
 
@@ -38,17 +41,17 @@ export function ProjectSelector({
     <div className="space-y-1.5">
       <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
         <FolderOpen className="h-3 w-3" />
-        Projeto
+        {t('dashboard.projects.title')}
       </label>
       <Select value={selectValue} onValueChange={handleChange}>
         <SelectTrigger className="rounded-xl bg-secondary/50 border-0 focus:ring-1 focus:ring-primary/30 h-10">
-          <SelectValue placeholder="Selecione um projeto" />
+          <SelectValue placeholder={t('item.noProject')} />
         </SelectTrigger>
         <SelectContent className="rounded-xl">
           <SelectItem value={NO_PROJECT_VALUE} className="rounded-lg">
             <div className="flex items-center gap-2">
               <div className="h-2.5 w-2.5 rounded-full bg-muted-foreground/30" />
-              <span className="text-muted-foreground">Sem projeto</span>
+              <span className="text-muted-foreground">{t('item.noProject')}</span>
             </div>
           </SelectItem>
           {projects.map((project) => (

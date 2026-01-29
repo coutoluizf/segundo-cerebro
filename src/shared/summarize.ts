@@ -117,9 +117,15 @@ Just state the facts directly.`
 
 /**
  * Get the full language name from a language code
+ * Supports both UI locales ('en', 'pt', 'es') and full locales ('en-US', 'pt-BR')
  */
 function getLanguageName(code: string): string {
   const languages: Record<string, string> = {
+    // UI locales (from i18n system)
+    'en': 'English',
+    'pt': 'Brazilian Portuguese',
+    'es': 'Spanish',
+    // Full locales (legacy support)
     'pt-BR': 'Brazilian Portuguese',
     'en-US': 'English',
     'es-ES': 'Spanish',

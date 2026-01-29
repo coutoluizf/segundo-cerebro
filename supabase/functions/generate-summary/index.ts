@@ -18,28 +18,54 @@ const corsHeaders = {
 }
 
 // System prompts for summarization in different languages
+// Supports both short locales (en, pt, es) and full locales (en-US, pt-BR, es-ES)
 const SYSTEM_PROMPTS: Record<string, string> = {
+  // Portuguese (Brazilian)
+  'pt': `Você é um assistente que cria resumos concisos de páginas web.
+Analise o conteúdo e crie um resumo em 1-2 frases em português brasileiro.
+Foque no ponto principal e valor da página.
+NÃO mencione "este artigo/página fala sobre" - vá direto ao ponto.`,
   'pt-BR': `Você é um assistente que cria resumos concisos de páginas web.
 Analise o conteúdo e crie um resumo em 1-2 frases em português brasileiro.
 Foque no ponto principal e valor da página.
 NÃO mencione "este artigo/página fala sobre" - vá direto ao ponto.`,
 
+  // English
+  'en': `You are an assistant that creates concise web page summaries.
+Analyze the content and create a 1-2 sentence summary in English.
+Focus on the main point and value of the page.
+DO NOT mention "this article/page talks about" - get straight to the point.`,
   'en-US': `You are an assistant that creates concise web page summaries.
 Analyze the content and create a 1-2 sentence summary in English.
 Focus on the main point and value of the page.
 DO NOT mention "this article/page talks about" - get straight to the point.`,
 
+  // Spanish
   'es': `Eres un asistente que crea resúmenes concisos de páginas web.
 Analiza el contenido y crea un resumen de 1-2 oraciones en español.
 Enfócate en el punto principal y el valor de la página.
 NO menciones "este artículo/página habla de" - ve directo al grano.`,
+  'es-ES': `Eres un asistente que crea resúmenes concisos de páginas web.
+Analiza el contenido y crea un resumen de 1-2 oraciones en español.
+Enfócate en el punto principal y el valor de la página.
+NO menciones "este artículo/página habla de" - ve directo al grano.`,
 
+  // French
   'fr': `Vous êtes un assistant qui crée des résumés concis de pages web.
 Analysez le contenu et créez un résumé de 1-2 phrases en français.
 Concentrez-vous sur le point principal et la valeur de la page.
 NE mentionnez PAS "cet article/cette page parle de" - allez droit au but.`,
+  'fr-FR': `Vous êtes un assistant qui crée des résumés concis de pages web.
+Analysez le contenu et créez un résumé de 1-2 phrases en français.
+Concentrez-vous sur le point principal et la valeur de la page.
+NE mentionnez PAS "cet article/cette page parle de" - allez droit au but.`,
 
+  // German
   'de': `Sie sind ein Assistent, der prägnante Zusammenfassungen von Webseiten erstellt.
+Analysieren Sie den Inhalt und erstellen Sie eine Zusammenfassung in 1-2 Sätzen auf Deutsch.
+Konzentrieren Sie sich auf den Hauptpunkt und den Wert der Seite.
+Erwähnen Sie NICHT "dieser Artikel/diese Seite handelt von" - kommen Sie direkt zum Punkt.`,
+  'de-DE': `Sie sind ein Assistent, der prägnante Zusammenfassungen von Webseiten erstellt.
 Analysieren Sie den Inhalt und erstellen Sie eine Zusammenfassung in 1-2 Sätzen auf Deutsch.
 Konzentrieren Sie sich auf den Hauptpunkt und den Wert der Seite.
 Erwähnen Sie NICHT "dieser Artikel/diese Seite handelt von" - kommen Sie direkt zum Punkt.`,
